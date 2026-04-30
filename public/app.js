@@ -7,6 +7,7 @@ const calendarInput = document.getElementById('calendarInput');
 const prevYearBtn = document.getElementById('prevYearBtn');
 const nextYearBtn = document.getElementById('nextYearBtn');
 const todayBtn = document.getElementById('todayBtn');
+const scrollTopBtn = document.getElementById('scrollTopBtn');
 
 let currentTeam = '';
 let currentYear = new Date().getFullYear();
@@ -37,6 +38,33 @@ const todayDayName = dayNames[today.getDay()];
 const todayDateDisplay = `${todayStr}(${todayDayName})`;
 
 let fpInstance = null;
+let calendarGameDatesCache = {};
+let calendarDisplayMonth = null;
+let calendarDisplayYear = null;
+
+async function loadCalendarGameDates(year, month) {
+  const cacheKey = `${year}-${String(month).padStart(2, '0')}`;
+  if (calendarGameDatesCache[cacheKey]) {
+    return calendarGameDatesCache[cacheKey];
+  }
+
+  const gameDates = new Set();
+  try {
+    const monthData = await loadMonthData(month, year);
+    monthData.forEach(game => {
+      const dateMatch = game.date.match(/(\d{2})\.(\d{2})/);
+      if (dateMatch) {
+        const gameMonth = dateMatch[1];
+        const day = dateMatch[2];
+        gameDates.add(`${year}-${gameMonth}-${day}`);
+      }
+    });
+  } catch (error) {
+    console.error(`Error loading data for month ${month}:`, error);
+  }
+  calendarGameDatesCache[cacheKey] = gameDates;
+  return gameDates;
+}
 
 function initializeFlatpickr() {
   if (!window.flatpickr) {
@@ -45,24 +73,56 @@ function initializeFlatpickr() {
   }
 
   const today = new Date();
+  calendarDisplayYear = today.getFullYear();
+  calendarDisplayMonth = today.getMonth() + 1;
+
   fpInstance = window.flatpickr(calendarInput, {
     mode: 'single',
     locale: 'ko',
     dateFormat: 'Y-m-d',
     defaultDate: today,
     position: 'below center',
-    onChange: (selectedDates) => {
+    onChange: async (selectedDates) => {
       if (selectedDates.length > 0) {
         const date = selectedDates[0];
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
+        // 달력에서 선택한 날짜의 연도 사용
         currentMonth = parseInt(month);
-        currentYear = date.getFullYear();
+        currentYear = calendarDisplayYear;
         currentDay = date.getDate();
         yearDisplay.textContent = currentYear;
         const dateStr = month + '.' + day;
         loadScheduleWithScroll(dateStr);
         fpInstance.close();
+      }
+    },
+    onOpen: async () => {
+      const gameDates = await loadCalendarGameDates(calendarDisplayYear, calendarDisplayMonth);
+      if (fpInstance && gameDates.size > 0) {
+        fpInstance.set('disable', [
+          function(date) {
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            return !gameDates.has(dateStr);
+          }
+        ]);
+      }
+    },
+    onMonthChange: async (selectedDates, dateStr, instance) => {
+      const newMonth = instance.currentMonth + 1;
+      const newYear = instance.currentYear;
+
+      calendarDisplayMonth = newMonth;
+      calendarDisplayYear = newYear;
+
+      const gameDates = await loadCalendarGameDates(newYear, newMonth);
+      if (fpInstance && gameDates.size > 0) {
+        fpInstance.set('disable', [
+          function(date) {
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            return !gameDates.has(dateStr);
+          }
+        ]);
       }
     }
   });
@@ -70,11 +130,10 @@ function initializeFlatpickr() {
   calendarBtn.addEventListener('click', (e) => {
     e.preventDefault();
 
-    // 달력 열 때마다 현재 데이터로 disabled dates 업데이트
-    if (window.currentScheduleData) {
-      updateCalendarDisabledDates(window.currentScheduleData);
-    }
-
+    // 달력 표시를 현재 연도로 초기화
+    calendarDisplayYear = currentYear;
+    calendarDisplayMonth = currentMonth;
+    fpInstance.setDate(new Date(currentYear, currentMonth - 1, 1));
     fpInstance.open();
 
     setTimeout(() => {
@@ -171,7 +230,7 @@ async function loadScheduleWithScroll(scrollToDate) {
 
   try {
     const defaultMonthStr = String(currentMonth).padStart(2, '0');
-    const defaultSchedule = await loadMonthData(currentMonth);
+    const defaultSchedule = await loadMonthData(currentMonth, currentYear);
 
     window.currentScheduleData = defaultSchedule;
     loadedMonths.add(defaultMonthStr);
@@ -480,7 +539,7 @@ function renderGamesByMonth(games, scrollToDate = null) {
       const scoreDiv = document.createElement('div');
       scoreDiv.className = 'score ' + statusClass;
       scoreDiv.id = `score-${game.awayTeam}-${game.homeTeam}-${game.time}`;
-      if (game.awayScore !== null && game.homeScore !== null) {
+      if ((statusClass === 'live' || statusClass === 'finished') && game.awayScore !== null && game.homeScore !== null) {
         scoreDiv.textContent = `${game.awayScore} : ${game.homeScore}`;
       } else {
         scoreDiv.textContent = 'vs';
@@ -712,11 +771,28 @@ function updateGameStatuses() {
 
 setInterval(updateGameStatuses, 1000);
 
+// Scroll To Top Button
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) {
+    scrollTopBtn.classList.add('show');
+  } else {
+    scrollTopBtn.classList.remove('show');
+  }
+});
+
+scrollTopBtn.addEventListener('click', () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
+
 window.currentScheduleData = [];
 
-async function loadMonthData(month) {
+async function loadMonthData(month, year = null) {
   const monthStr = String(month).padStart(2, '0');
-  const apiUrl = `http://${window.location.hostname}:5000/api/schedule?year=${currentYear}&month=${monthStr}&team=${currentTeam}`;
+  const yearToUse = year !== null ? year : currentYear;
+  const apiUrl = `http://${window.location.hostname}:5000/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
   const response = await fetch(apiUrl);
 
   if (response.ok) {
@@ -752,7 +828,7 @@ async function initializeMonthTabsWithLazyLoad() {
 
       if (!loadedMonths.has(monthNum)) {
         scheduleContainer.innerHTML = renderSkeletonLoader();
-        gamesForMonth = await loadMonthData(month);
+        gamesForMonth = await loadMonthData(month, currentYear);
         if (!window.currentScheduleData) {
           window.currentScheduleData = [];
         }
