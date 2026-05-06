@@ -370,7 +370,7 @@ function groupByDate(games) {
 
 async function fetchGameDetail(gameId) {
   try {
-    const apiUrl = `https://${window.location.hostname}:5000/api/game-detail/${gameId}`;
+    const apiUrl = `/api/game-detail/${gameId}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     return data;
@@ -810,7 +810,7 @@ window.currentScheduleData = [];
 async function loadMonthData(month, year = null) {
   const monthStr = String(month).padStart(2, '0');
   const yearToUse = year !== null ? year : currentYear;
-  const apiUrl = `https://${window.location.hostname}:5000/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
+  const apiUrl = `/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
   const response = await fetch(apiUrl);
 
   if (response.ok) {
