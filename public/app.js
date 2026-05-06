@@ -930,10 +930,10 @@ async function loadWeather(forceRefresh = false) {
       });
     }
 
-    // 기준 날짜 표시
-    const monthStr = String(today.getMonth() + 1).padStart(2, '0');
-    const dayStr = String(today.getDate()).padStart(2, '0');
-    weatherDate.textContent = `${todayYear}년 ${monthStr}월 ${dayStr}일 기준`;
+    // 기준 날짜 표시 (0 제거)
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    weatherDate.textContent = `${todayYear}년 ${month}월 ${day}일 기준`;
 
     if (stadiums.size === 0) {
       weatherContainer.innerHTML = '<div class="modal__no-weather-data">오늘 예정된 경기가 없습니다.</div>';
@@ -1016,7 +1016,10 @@ async function loadTeamRank() {
     const response = await fetch('/api/team-rank');
     const data = await response.json();
 
-    rankDate.textContent = data.date || '기준일 미정';
+    // 날짜 형식 변환: "2026년 0505월05일 기준" → "2026년 5월 5일 기준"
+    const dateStr = data.date || '기준일 미정';
+    const formattedDate = dateStr.replace(/(\d{4})년\s+0?(\d+)월0?(\d+)일/g, '$1년 $2월 $3일');
+    rankDate.textContent = formattedDate;
 
     if (data.ranks && data.ranks.length > 0) {
       const table = document.createElement('table');
