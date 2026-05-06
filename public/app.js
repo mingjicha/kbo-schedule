@@ -1,6 +1,6 @@
 const scheduleContainer = document.getElementById('scheduleContainer');
 const monthTabsContainer = document.getElementById('monthTabsContainer');
-const teamTabs = document.querySelectorAll('.team-tab');
+const teamTabs = document.querySelectorAll('.filter__btn');
 const yearDisplay = document.getElementById('yearDisplay');
 const calendarBtn = document.getElementById('calendarBtn');
 const calendarInput = document.getElementById('calendarInput');
@@ -8,13 +8,12 @@ const prevYearBtn = document.getElementById('prevYearBtn');
 const nextYearBtn = document.getElementById('nextYearBtn');
 const todayBtn = document.getElementById('todayBtn');
 const scrollTopBtn = document.getElementById('scrollTopBtn');
+const quickMenuItems = document.querySelectorAll('.quick-menu__item');
 
 let currentTeam = '';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
 let currentDay = null;
-let calendarYear = currentYear;
-let calendarMonth = currentMonth;
 let selectedDate = null;
 let loadedMonths = new Set();
 
@@ -31,6 +30,19 @@ const teamLogos = {
   '키움': '/team/WO.png'
 };
 
+const teamColors = {
+  'LG': '#C8102E',
+  '한화': '#F37222',
+  'SSG': '#E50021',
+  '삼성': '#0066B3',
+  'NC': '#00275A',
+  'KT': '#000000',
+  '롯데': '#00295F',
+  'KIA': '#00205B',
+  '두산': '#131F43',
+  '키움': '#A60134'
+};
+
 const today = new Date();
 const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
 const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -39,8 +51,8 @@ const todayDateDisplay = `${todayStr}(${todayDayName})`;
 
 let fpInstance = null;
 let calendarGameDatesCache = {};
-let calendarDisplayMonth = null;
-let calendarDisplayYear = null;
+let calendarDisplayMonth = currentMonth;
+let calendarDisplayYear = currentYear;
 
 async function loadCalendarGameDates(year, month) {
   const cacheKey = `${year}-${String(month).padStart(2, '0')}`;
@@ -89,11 +101,11 @@ function initializeFlatpickr() {
         const day = String(date.getDate()).padStart(2, '0');
         // 달력에서 선택한 날짜의 연도 사용
         currentMonth = parseInt(month);
-        currentYear = calendarDisplayYear;
+        currentYear = date.getFullYear();
         currentDay = date.getDate();
         yearDisplay.textContent = currentYear;
         const dateStr = month + '.' + day;
-        loadScheduleWithScroll(dateStr);
+        loadSchedule(dateStr);
         fpInstance.close();
       }
     },
@@ -133,7 +145,7 @@ function initializeFlatpickr() {
     // 달력 표시를 현재 연도로 초기화
     calendarDisplayYear = currentYear;
     calendarDisplayMonth = currentMonth;
-    fpInstance.setDate(new Date(currentYear, currentMonth - 1, 1));
+    fpInstance.setDate(today);
     fpInstance.open();
 
     setTimeout(() => {
@@ -150,108 +162,125 @@ function initializeFlatpickr() {
 
 prevYearBtn.addEventListener('click', () => {
   currentYear--;
-  calendarYear = currentYear;
   yearDisplay.textContent = currentYear;
   loadSchedule();
 });
 
 nextYearBtn.addEventListener('click', () => {
   currentYear++;
-  calendarYear = currentYear;
   yearDisplay.textContent = currentYear;
   loadSchedule();
 });
 
-todayBtn.addEventListener('click', () => {
+async function goToToday() {
   const today = new Date();
-  currentYear = today.getFullYear();
-  currentMonth = today.getMonth() + 1;
-  calendarYear = currentYear;
-  calendarMonth = currentMonth;
-  yearDisplay.textContent = currentYear;
-  loadSchedule();
-});
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth() + 1;
+  const todayDay = today.getDate();
 
-function renderSkeletonLoader() {
+  currentYear = todayYear;
+  currentMonth = todayMonth;
+  yearDisplay.textContent = currentYear;
+  currentTeam = '';
+
+  // 월 탭 활성화
+  document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
+  const monthStr = String(todayMonth).padStart(2, '0');
+  const activeTab = document.querySelector(`.nav__tab[data-month="${monthStr}"]`);
+  if (activeTab) {
+    activeTab.classList.add('active');
+  }
+
+  // 팀 필터 초기화
+  document.querySelectorAll('.filter__btn').forEach(btn => btn.classList.remove('active'));
+  const allTeamBtn = document.querySelector('.filter__btn[data-team=""]');
+  if (allTeamBtn) {
+    allTeamBtn.classList.add('active');
+  }
+
+  // 로딩 표시
+  scheduleContainer.innerHTML = renderSkeletonLoader();
+
+  try {
+    const todaySchedule = await loadMonthData(todayMonth, todayYear);
+
+    if (todaySchedule.length === 0) {
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘 경기 일정이 없습니다.</div>';
+      return;
+    }
+
+    window.currentScheduleData = todaySchedule;
+    scheduleContainer.innerHTML = '';
+    const gameList = renderGamesByMonth(todaySchedule, null, todayYear);
+    scheduleContainer.appendChild(gameList);
+
+    // 오늘 날짜로 스크롤
+    setTimeout(() => {
+      const todayDateStr = `${String(todayMonth).padStart(2, '0')}.${String(todayDay).padStart(2, '0')}`;
+      const allDays = document.querySelectorAll('.schedule__day');
+      for (let dayDiv of allDays) {
+        const header = dayDiv.querySelector('.schedule__date-header');
+        if (header && header.getAttribute('data-date').startsWith(todayDateStr)) {
+          dayDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          break;
+        }
+      }
+    }, 100);
+  } catch (error) {
+    console.error('Error loading today schedule:', error);
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+  }
+}
+
+todayBtn.addEventListener('click', goToToday);
+
+function renderSkeletonLoader(cardCount = 5) {
   const skeletonCard = `
-    <div class="game-card scheduled">
-      <div class="game-info">
-        <div class="skeleton-time"></div>
-        <div class="skeleton-stadium"></div>
-        <div class="game-teams">
-          <div class="team-container">
-            <span class="skeleton-team-name"></span>
-            <div class="skeleton-pitcher"></div>
+    <div class="schedule__game schedule__game--scheduled">
+      <div class="schedule__info">
+        <div class="schedule__skeleton--time"></div>
+        <div class="schedule__skeleton--stadium"></div>
+        <div class="schedule__teams">
+          <div class="schedule__team">
+            <span class="schedule__skeleton--team-name"></span>
+            <div class="schedule__skeleton--pitcher"></div>
           </div>
-          <div class="skeleton-logo"></div>
-          <div class="skeleton-score"></div>
-          <div class="skeleton-logo"></div>
-          <div class="team-container">
-            <span class="skeleton-team-name"></span>
-            <div class="skeleton-pitcher"></div>
+          <div class="schedule__skeleton--logo"></div>
+          <div class="schedule__skeleton--score"></div>
+          <div class="schedule__skeleton--logo"></div>
+          <div class="schedule__team">
+            <span class="schedule__skeleton--team-name"></span>
+            <div class="schedule__skeleton--pitcher"></div>
           </div>
         </div>
       </div>
-      <div class="skeleton-status"></div>
+      <div class="schedule__skeleton--status"></div>
     </div>
   `;
 
+  const cardsHTML = skeletonCard.repeat(cardCount);
+
   const skeletonDay = `
-    <div class="day-group">
-      <h3 class="skeleton-date"></h3>
-      ${skeletonCard}
-      ${skeletonCard}
-      ${skeletonCard}
-      ${skeletonCard}
-      ${skeletonCard}
+    <div class="schedule__day">
+      <h3 class="schedule__date-header schedule__date-header--skeleton"></h3>
+      ${cardsHTML}
     </div>
   `;
 
   const skeletonHTML = `
     <div class="loading">
-      <div class="game-list">
-        ${skeletonDay}
+      <div class="schedule__list">
         ${skeletonDay}
         ${skeletonDay}
         ${skeletonDay}
         ${skeletonDay}
       </div>
-      <div class="loading-message">불러온다냥£ <span class="dots"></span></div>
     </div>
   `;
   return skeletonHTML;
 }
 
-async function loadScheduleWithScroll(scrollToDate) {
-  loadedMonths.clear();
-
-  await initializeMonthTabsWithLazyLoad();
-  scheduleContainer.innerHTML = renderSkeletonLoader();
-
-  try {
-    const defaultMonthStr = String(currentMonth).padStart(2, '0');
-    const defaultSchedule = await loadMonthData(currentMonth, currentYear);
-
-    window.currentScheduleData = defaultSchedule;
-    loadedMonths.add(defaultMonthStr);
-
-    if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="no-games">경기 일정이 없습니다.</div>';
-      return;
-    }
-
-    scheduleContainer.innerHTML = '';
-    const gameList = renderGamesByMonth(defaultSchedule, scrollToDate);
-    scheduleContainer.appendChild(gameList);
-
-    updateCalendarDisabledDates(defaultSchedule);
-  } catch (error) {
-    console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="no-games">일정을 불러올 수 없습니다.</div>';
-  }
-}
-
-async function loadSchedule() {
+async function loadSchedule(scrollToDate = null) {
   loadedMonths.clear();
 
   await initializeMonthTabsWithLazyLoad();
@@ -265,18 +294,18 @@ async function loadSchedule() {
     loadedMonths.add(defaultMonthStr);
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="no-games">경기 일정이 없습니다.</div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
       return;
     }
 
     scheduleContainer.innerHTML = '';
-    const gameList = renderGamesByMonth(defaultSchedule);
+    const gameList = renderGamesByMonth(defaultSchedule, scrollToDate, currentYear);
     scheduleContainer.appendChild(gameList);
 
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
   }
 }
 
@@ -338,36 +367,6 @@ function groupByDate(games) {
   return groups;
 }
 
-function renderMonthTabs(schedule) {
-  const grouped = groupByMonth(schedule);
-  const months = Object.keys(grouped).sort();
-
-  const tabContainer = document.createElement('div');
-  tabContainer.className = 'month-tabs';
-
-  months.forEach(month => {
-    const tab = document.createElement('button');
-    tab.className = 'month-tab';
-    const monthNum = parseInt(month);
-    tab.textContent = monthNum + '월';
-    tab.dataset.month = month;
-
-    if (month === String(currentMonth).padStart(2, '0')) {
-      tab.classList.add('active');
-    }
-
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      selectedDate = null;
-      renderGamesByMonth(grouped[month]);
-    });
-
-    tabContainer.appendChild(tab);
-  });
-
-  return tabContainer;
-}
 
 async function fetchGameDetail(gameId) {
   try {
@@ -434,168 +433,111 @@ function getGameStatus(game) {
   return '종료';
 }
 
-function renderGamesByMonth(games, scrollToDate = null) {
+function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
   const grouped = groupByDate(games);
   const gameList = document.createElement('div');
-  gameList.className = 'game-list';
-  gameList.style.marginTop = '1.5rem';
+  gameList.className = 'schedule__list';
 
   Object.keys(grouped).forEach(date => {
     const dayDiv = document.createElement('div');
-    dayDiv.className = 'day-group';
+    dayDiv.className = 'schedule__day';
 
-    const dateOnly = date.split('(')[0];
+    const dateOnly = date.split('(')[0].trim();
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const gameDate = new Date(currentYear, parseInt(dateOnly.split('.')[0]) - 1, parseInt(dateOnly.split('.')[1]));
+
+    const dateParts = dateOnly.split('.');
+    const gameMonth = parseInt(dateParts[0]);
+    const gameDay = parseInt(dateParts[1]);
+    const gameDate = new Date(year, gameMonth - 1, gameDay);
     const isToday = gameDate.getTime() === today.getTime();
 
     if (isToday) {
-      dayDiv.classList.add('today');
+      dayDiv.classList.add('schedule__day--today');
     }
 
     const header = document.createElement('div');
-    header.className = 'day-header';
+    header.className = 'schedule__date-header';
     header.setAttribute('data-date', dateOnly);
 
     const formattedDate = formatDateDisplay(date);
     if (isToday) {
-      header.classList.add('today');
-      header.innerHTML = `${formattedDate} <span class="today-badge">오늘</span>`;
+      header.classList.add('schedule__date-header--today');
+      header.innerHTML = `${formattedDate} <span class="schedule__today-badge">today</span>`;
     } else {
       header.textContent = formattedDate;
     }
     dayDiv.appendChild(header);
 
     grouped[date].forEach(game => {
+      // 팀 필터 적용
+      if (currentTeam) {
+        const teamCodeToName = {
+          'LG': 'LG',
+          'HH': '한화',
+          'SK': 'SSG',
+          'SS': '삼성',
+          'NC': 'NC',
+          'KT': 'KT',
+          'LT': '롯데',
+          'HT': 'KIA',
+          'OB': '두산',
+          'WO': '키움'
+        };
+        const selectedTeamName = teamCodeToName[currentTeam];
+        if (game.awayTeam !== selectedTeamName && game.homeTeam !== selectedTeamName) {
+          return;
+        }
+      }
+
       const gameCard = document.createElement('div');
-      gameCard.className = 'game-card';
+      gameCard.className = 'schedule__game';
 
       const finalStatus = getGameStatus(game);
       const statusClass =
-        finalStatus === '종료' ? 'finished' :
-        finalStatus === '취소' ? 'cancelled' :
-        finalStatus === '진행중' ? 'live' : 'scheduled';
+        finalStatus === '종료' ? 'schedule__game--finished' :
+        finalStatus === '취소' ? 'schedule__game--cancelled' :
+        finalStatus === '진행중' ? 'schedule__game--live' : 'schedule__game--scheduled';
       gameCard.classList.add(statusClass);
 
       const gameInfo = document.createElement('div');
-      gameInfo.className = 'game-info';
+      gameInfo.className = 'schedule__info';
 
       const timeDiv = document.createElement('div');
-      timeDiv.className = 'game-time';
+      timeDiv.className = 'schedule__time';
       timeDiv.textContent = game.time || '시간미정';
       gameInfo.appendChild(timeDiv);
 
       const stadiumDiv = document.createElement('div');
-      stadiumDiv.className = 'stadium';
+      stadiumDiv.className = 'schedule__stadium';
       stadiumDiv.textContent = game.stadium || '';
       gameInfo.appendChild(stadiumDiv);
 
       const teamsDiv = document.createElement('div');
-      teamsDiv.className = 'game-teams';
-
-      // Away team container
-      const awayTeamContainer = document.createElement('div');
-      awayTeamContainer.className = 'team-container';
-
-      const awayTeam = document.createElement('span');
-      awayTeam.className = 'team-name';
-      awayTeam.textContent = game.awayTeam;
-      awayTeamContainer.appendChild(awayTeam);
-
-      if (game.awayPitcher && game.awayPitcher !== 'N/A') {
-        const awayPitcher = document.createElement('div');
-        awayPitcher.className = 'pitcher';
-
-        const awayPitcherText = document.createElement('span');
-        awayPitcherText.textContent = `선 ${game.awayPitcher}`;
-        awayPitcher.appendChild(awayPitcherText);
-
-        if (statusClass === 'finished') {
-          awayPitcher.classList.add(game.winner === 'away' ? 'win' : 'loss');
-          if (game.winner === 'away') {
-            const awaysvgIcon = document.createElement('span');
-            awaysvgIcon.className = 'pitcher-icon';
-            awaysvgIcon.textContent = '🏅';
-            awayPitcher.appendChild(awaysvgIcon);
-          }
-        }
-
-        awayTeamContainer.appendChild(awayPitcher);
-      }
-
-      teamsDiv.appendChild(awayTeamContainer);
-
-      // Away team logo
-      const awayLogo = document.createElement('img');
-      awayLogo.className = 'team-logo';
-      awayLogo.src = teamLogos[game.awayTeam] || '';
-      awayLogo.alt = game.awayTeam;
-      teamsDiv.appendChild(awayLogo);
-
-      const scoreContainer = document.createElement('div');
-      scoreContainer.className = 'score-container';
-
-      const scoreDiv = document.createElement('div');
-      scoreDiv.className = 'score ' + statusClass;
-      scoreDiv.id = `score-${game.awayTeam}-${game.homeTeam}-${game.time}`;
-      if ((statusClass === 'live' || statusClass === 'finished') && game.awayScore !== null && game.homeScore !== null) {
-        scoreDiv.textContent = `${game.awayScore} : ${game.homeScore}`;
-      } else {
-        scoreDiv.textContent = 'vs';
-      }
-      scoreContainer.appendChild(scoreDiv);
-
-      // 진행중일 때 이닝 정보 표시
-      if (statusClass === 'live' && game.gameId) {
-        const inningDiv = document.createElement('div');
-        inningDiv.className = 'inning-info';
-        inningDiv.id = `inning-${game.gameId}`;
-        inningDiv.textContent = '로딩중...';
-        scoreContainer.appendChild(inningDiv);
-
-        // 진행중인 경기 정보 조회 (한 번만)
-        fetchGameDetail(game.gameId).then(data => {
-          if (data && data.inning) {
-            const inningText = `${data.inning}${data.inningSide === '초' ? '회초' : '회말'}`;
-            inningDiv.textContent = inningText;
-          } else {
-            inningDiv.textContent = '경기 정보 없음';
-          }
-        });
-      }
-
-      teamsDiv.appendChild(scoreContainer);
-
-      // Home team logo
-      const homeLogo = document.createElement('img');
-      homeLogo.className = 'team-logo';
-      homeLogo.src = teamLogos[game.homeTeam] || '';
-      homeLogo.alt = game.homeTeam;
-      teamsDiv.appendChild(homeLogo);
+      teamsDiv.className = 'schedule__teams';
 
       // Home team container
       const homeTeamContainer = document.createElement('div');
-      homeTeamContainer.className = 'team-container';
+      homeTeamContainer.className = 'schedule__team';
 
       const homeTeam = document.createElement('span');
-      homeTeam.className = 'team-name';
+      homeTeam.className = 'schedule__team-name';
       homeTeam.textContent = game.homeTeam;
       homeTeamContainer.appendChild(homeTeam);
 
       if (game.homePitcher && game.homePitcher !== 'N/A') {
         const homePitcher = document.createElement('div');
-        homePitcher.className = 'pitcher';
+        homePitcher.className = 'schedule__pitcher';
 
         const homePitcherText = document.createElement('span');
         homePitcherText.textContent = `선 ${game.homePitcher}`;
         homePitcher.appendChild(homePitcherText);
 
-        if (statusClass === 'finished') {
-          homePitcher.classList.add(game.winner === 'home' ? 'win' : 'loss');
+        if (statusClass === 'schedule__game--finished') {
+          homePitcher.classList.add(game.winner === 'home' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
           if (game.winner === 'home') {
             const homesvgIcon = document.createElement('span');
-            homesvgIcon.className = 'pitcher-icon';
+            homesvgIcon.className = 'schedule__pitcher-icon';
             homesvgIcon.textContent = '🏅';
             homePitcher.appendChild(homesvgIcon);
           }
@@ -606,12 +548,97 @@ function renderGamesByMonth(games, scrollToDate = null) {
 
       teamsDiv.appendChild(homeTeamContainer);
 
+      // Home team logo
+      const homeLogo = document.createElement('img');
+      homeLogo.className = 'schedule__logo';
+      homeLogo.src = teamLogos[game.homeTeam] || '';
+      homeLogo.alt = game.homeTeam;
+      teamsDiv.appendChild(homeLogo);
+
+      const scoreContainer = document.createElement('div');
+      scoreContainer.className = 'schedule__score-container';
+
+      const scoreDiv = document.createElement('div');
+      scoreDiv.className = 'schedule__score ' + statusClass;
+      scoreDiv.id = `score-${game.awayTeam}-${game.homeTeam}-${game.time}`;
+      if ((statusClass === 'schedule__game--live' || statusClass === 'schedule__game--finished') && game.awayScore !== null && game.homeScore !== null) {
+        scoreDiv.textContent = `${game.homeScore} : ${game.awayScore}`;
+      } else {
+        scoreDiv.textContent = 'vs';
+      }
+      scoreContainer.appendChild(scoreDiv);
+
+      // 진행중일 때 이닝 정보 표시
+      if (statusClass === 'schedule__game--live' && game.gameId) {
+        const inningDiv = document.createElement('div');
+        inningDiv.className = 'schedule__inning-info';
+        inningDiv.id = `inning-${game.gameId}`;
+        inningDiv.textContent = '로딩중...';
+        scoreContainer.appendChild(inningDiv);
+
+        // 진행중인 경기 정보 조회
+        fetchGameDetail(game.gameId).then(data => {
+          if (data) {
+            // 점수 업데이트
+            if (data.awayScore !== undefined && data.homeScore !== undefined) {
+              scoreDiv.textContent = `${data.homeScore} : ${data.awayScore}`;
+            }
+            // 이닝 정보 업데이트
+            if (data.inning) {
+              const inningText = `${data.inning}${data.inningSide === '초' ? '회초' : '회말'}`;
+              inningDiv.textContent = inningText;
+            } else {
+              inningDiv.textContent = '경기 정보 없음';
+            }
+          }
+        });
+      }
+
+      teamsDiv.appendChild(scoreContainer);
+
+      // Away team logo
+      const awayLogo = document.createElement('img');
+      awayLogo.className = 'schedule__logo';
+      awayLogo.src = teamLogos[game.awayTeam] || '';
+      awayLogo.alt = game.awayTeam;
+      teamsDiv.appendChild(awayLogo);
+
+      // Away team container
+      const awayTeamContainer = document.createElement('div');
+      awayTeamContainer.className = 'schedule__team';
+
+      const awayTeam = document.createElement('span');
+      awayTeam.className = 'schedule__team-name';
+      awayTeam.textContent = game.awayTeam;
+      awayTeamContainer.appendChild(awayTeam);
+
+      if (game.awayPitcher && game.awayPitcher !== 'N/A') {
+        const awayPitcher = document.createElement('div');
+        awayPitcher.className = 'schedule__pitcher';
+
+        const awayPitcherText = document.createElement('span');
+        awayPitcherText.textContent = `선 ${game.awayPitcher}`;
+        awayPitcher.appendChild(awayPitcherText);
+
+        if (statusClass === 'schedule__game--finished') {
+          awayPitcher.classList.add(game.winner === 'away' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
+          if (game.winner === 'away') {
+            const awaysvgIcon = document.createElement('span');
+            awaysvgIcon.className = 'schedule__pitcher-icon';
+            awaysvgIcon.textContent = '🏅';
+            awayPitcher.appendChild(awaysvgIcon);
+          }
+        }
+
+        awayTeamContainer.appendChild(awayPitcher);
+      }
+
+      teamsDiv.appendChild(awayTeamContainer);
+
       gameInfo.appendChild(teamsDiv);
 
-      gameCard.appendChild(gameInfo);
-
       const statusBadge = document.createElement('div');
-      statusBadge.className = 'status-badge ' + statusClass;
+      statusBadge.className = 'schedule__status ' + statusClass;
 
       let statusText = finalStatus;
       if (finalStatus === '종료') {
@@ -626,7 +653,9 @@ function renderGamesByMonth(games, scrollToDate = null) {
 
       statusBadge.innerHTML = statusText;
 
-      gameCard.appendChild(statusBadge);
+      gameInfo.appendChild(statusBadge);
+
+      gameCard.appendChild(gameInfo);
 
       dayDiv.appendChild(gameCard);
     });
@@ -646,67 +675,29 @@ function renderGamesByMonth(games, scrollToDate = null) {
   return gameList;
 }
 
-function renderSchedule(schedule) {
-  scheduleContainer.innerHTML = '';
 
-  let gamesToRender = schedule;
 
-  if (selectedDate) {
-    gamesToRender = schedule.filter(game => game.date.startsWith(selectedDate));
-  }
+async function applyTeamFilter() {
+  try {
+    scheduleContainer.innerHTML = renderSkeletonLoader(1);
+    const defaultSchedule = await loadMonthData(currentMonth);
+    window.currentScheduleData = defaultSchedule;
 
-  if (gamesToRender.length === 0) {
-    scheduleContainer.innerHTML = '<div class="no-games">해당 날짜에 경기가 없습니다.</div>';
-    return;
-  }
-
-  const grouped = groupByMonth(gamesToRender);
-  const defaultMonth = String(currentMonth).padStart(2, '0');
-  const defaultGames = grouped[defaultMonth] || Object.values(grouped)[0] || [];
-
-  const gameList = renderGamesByMonth(defaultGames);
-  scheduleContainer.appendChild(gameList);
-}
-
-function initializeMonthTabs(months) {
-  const tabContainer = document.createElement('div');
-  tabContainer.className = 'month-tabs';
-
-  months.forEach(month => {
-    const tab = document.createElement('button');
-    tab.className = 'month-tab';
-    const monthNum = parseInt(month);
-    tab.textContent = monthNum + '월';
-    tab.dataset.month = month;
-
-    if (month === String(currentMonth).padStart(2, '0')) {
-      tab.classList.add('active');
+    if (defaultSchedule.length === 0) {
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
+      return;
     }
 
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      selectedDate = null;
-      const allMonthTabs = document.querySelectorAll('.month-tab');
-      let gamesForMonth = [];
-      allMonthTabs.forEach(t => {
-        if (t.dataset.month === month) {
-          const grouped = groupByMonth(window.currentScheduleData || []);
-          gamesForMonth = grouped[month] || [];
-        }
-      });
-      if (gamesForMonth.length > 0) {
-        scheduleContainer.innerHTML = '';
-        const gameList = renderGamesByMonth(gamesForMonth);
-        scheduleContainer.appendChild(gameList);
-      }
-    });
+    scheduleContainer.innerHTML = '';
+    const gameList = renderGamesByMonth(defaultSchedule, null, currentYear);
+    scheduleContainer.appendChild(gameList);
 
-    tabContainer.appendChild(tab);
-  });
-
-  monthTabsContainer.innerHTML = '';
-  monthTabsContainer.appendChild(tabContainer);
+    await initializeMonthTabsWithLazyLoad();
+    updateCalendarDisabledDates(defaultSchedule);
+  } catch (error) {
+    console.error('Error loading schedule:', error);
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+  }
 }
 
 teamTabs.forEach(tab => {
@@ -714,18 +705,20 @@ teamTabs.forEach(tab => {
     teamTabs.forEach(t => t.classList.remove('active'));
     e.target.classList.add('active');
     currentTeam = e.target.dataset.team;
-    loadSchedule();
+    applyTeamFilter();
   });
 });
 
 function updateGameStatuses() {
-  const gameCards = document.querySelectorAll('.game-card');
+  const gameCards = document.querySelectorAll('.schedule__game');
   const now = new Date();
 
   gameCards.forEach(card => {
-    const timeText = card.querySelector('.game-time').textContent;
-    const statusBadge = card.querySelector('.status-badge');
-    const dayHeader = card.closest('.day-group').querySelector('.day-header');
+    const timeElement = card.querySelector('.schedule__time');
+    if (!timeElement) return;
+    const timeText = timeElement.textContent;
+    const statusBadge = card.querySelector('.schedule__status');
+    const dayHeader = card.closest('.schedule__day').querySelector('.schedule__date-header');
     const dateStr = dayHeader.getAttribute('data-date');
 
     if (!timeText || timeText === '시간미정') return;
@@ -744,26 +737,26 @@ function updateGameStatuses() {
     const gameEndTime = new Date(gameDateTime.getTime() + 4 * 60 * 60 * 1000);
 
     let newStatus = statusBadge.textContent.replace(' ♤', '').replace(' ¢', '').replace(' £', '');
-    let newClass = card.className.replace('game-card ', '').trim();
+    let newClass = card.className.replace('schedule__game ', '').trim();
 
     if (statusBadge.textContent.includes('종료')) {
       newStatus = '종료 ♤';
-      newClass = 'finished';
+      newClass = 'schedule__game--finished';
     } else if (now >= gameDateTime && now < gameEndTime) {
       newStatus = '진행중 ♧';
-      newClass = 'live';
+      newClass = 'schedule__game--live';
     } else if (now < gameDateTime) {
       newStatus = '예정 ¢';
-      newClass = 'scheduled';
+      newClass = 'schedule__game--scheduled';
     }
 
     if (statusBadge.textContent !== newStatus) {
       statusBadge.textContent = newStatus;
-      card.className = 'game-card ' + newClass;
+      card.className = 'schedule__game ' + newClass;
 
-      const scoreDiv = card.querySelector('.score');
+      const scoreDiv = card.querySelector('.schedule__score');
       if (scoreDiv) {
-        scoreDiv.className = 'score ' + newClass;
+        scoreDiv.className = 'schedule__score ' + newClass;
       }
     }
   });
@@ -787,6 +780,31 @@ scrollTopBtn.addEventListener('click', () => {
   });
 });
 
+async function handleQuickMenuAction(action) {
+  if (action === 'today') {
+    await goToToday();
+  } else if (action === 'rank') {
+    const rankModal = document.getElementById('rankModal');
+    if (!rankModal.classList.contains('show')) {
+      await loadTeamRank();
+    }
+    rankModal.classList.toggle('show');
+  } else if (action === 'weather') {
+    const weatherModal = document.getElementById('weatherModal');
+    if (!weatherModal.classList.contains('show')) {
+      await loadWeather();
+    }
+    weatherModal.classList.toggle('show');
+  }
+}
+
+quickMenuItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const action = item.dataset.action;
+    handleQuickMenuAction(action);
+  });
+});
+
 window.currentScheduleData = [];
 
 async function loadMonthData(month, year = null) {
@@ -806,11 +824,11 @@ async function loadMonthData(month, year = null) {
 
 async function initializeMonthTabsWithLazyLoad() {
   const tabContainer = document.createElement('div');
-  tabContainer.className = 'month-tabs';
+  tabContainer.className = 'nav__tabs-list';
 
   for (let month = 3; month <= 10; month++) {
     const tab = document.createElement('button');
-    tab.className = 'month-tab';
+    tab.className = 'nav__tab';
     tab.textContent = month + '월';
     tab.dataset.month = String(month).padStart(2, '0');
 
@@ -819,32 +837,24 @@ async function initializeMonthTabsWithLazyLoad() {
     }
 
     tab.addEventListener('click', async (e) => {
-      document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       selectedDate = null;
+      currentMonth = month;
 
       const monthNum = String(month).padStart(2, '0');
       let gamesForMonth = [];
 
-      if (!loadedMonths.has(monthNum)) {
-        scheduleContainer.innerHTML = renderSkeletonLoader();
-        gamesForMonth = await loadMonthData(month, currentYear);
-        if (!window.currentScheduleData) {
-          window.currentScheduleData = [];
-        }
-        window.currentScheduleData = window.currentScheduleData.concat(gamesForMonth);
-        loadedMonths.add(monthNum);
-      } else {
-        const grouped = groupByMonth(window.currentScheduleData || []);
-        gamesForMonth = grouped[monthNum] || [];
-      }
+      scheduleContainer.innerHTML = renderSkeletonLoader(currentTeam ? 1 : 5);
+      gamesForMonth = await loadMonthData(month, currentYear);
+      window.currentScheduleData = gamesForMonth;
 
       if (gamesForMonth.length > 0) {
         scheduleContainer.innerHTML = '';
-        const gameList = renderGamesByMonth(gamesForMonth);
+        const gameList = renderGamesByMonth(gamesForMonth, null, currentYear);
         scheduleContainer.appendChild(gameList);
       } else {
-        scheduleContainer.innerHTML = '<div class="no-games">경기 일정이 없습니다.</div>';
+        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
       }
     });
 
@@ -855,6 +865,216 @@ async function initializeMonthTabsWithLazyLoad() {
   monthTabsContainer.appendChild(tabContainer);
 }
 
+// 경기장명 → 표시 이름 매핑
+const stadiumNames = {
+  '잠실': '잠실',
+  '고척': '고척',
+  '수원': '수원',
+  '대전': '대전',
+  '창원': '창원',
+  '광주': '광주',
+  '사직': '사직',
+  '대구': '대구',
+  '문학': '문학',
+  '청주': '청주'
+};
+
+// WMO 코드 → 아이콘 매핑
+function getWeatherIcon(code) {
+  if (code === 0) return '☀️';
+  if (code === 1 || code === 2) return '🌤️';
+  if (code === 3) return '☁️';
+  if (code === 45 || code === 48) return '🌫️';
+  if ([51, 53, 55].includes(code)) return '🌦️';
+  if ([61, 63, 65].includes(code)) return '🌧️';
+  if ([71, 73, 75, 77].includes(code)) return '❄️';
+  if ([80, 81, 82, 85, 86].includes(code)) return '⛈️';
+  if ([95, 96, 99].includes(code)) return '⚡';
+  return '🌡️';
+}
+
+let weatherCache = null;
+
+async function loadWeather(forceRefresh = false) {
+  const weatherContainer = document.getElementById('weatherContainer');
+  const weatherDate = document.getElementById('weatherDate');
+
+  try {
+    // 캐시가 있고 강제 새로고침이 아니면 캐시된 데이터 사용
+    if (weatherCache && !forceRefresh) {
+      renderWeatherCards(weatherCache);
+      return;
+    }
+
+    // 로딩 스피너 표시 (강제 새로고침 시에도 표시)
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중...</span></div></div>';
+
+    // 오늘 경기가 있는 경기장 추출
+    const today = new Date();
+    const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
+    const todayYear = today.getFullYear();
+
+    // currentScheduleData에서 오늘 경기장 찾기
+    const stadiums = new Set();
+    if (window.currentScheduleData && Array.isArray(window.currentScheduleData)) {
+      window.currentScheduleData.forEach(game => {
+        // 경기 날짜가 오늘인지 확인 (연도 고려)
+        const gameDate = game.date.split('(')[0]; // "04.30(화)" → "04.30"
+        if (gameDate === todayStr) {
+          // stadium 필드에서 경기장명 추출 (예: "잠실야구장" → "잠실")
+          if (game.stadium) {
+            const stadiumKey = Object.keys(stadiumNames).find(key => game.stadium.includes(key));
+            if (stadiumKey) stadiums.add(stadiumKey);
+          }
+        }
+      });
+    }
+
+    // 기준 날짜 표시
+    const monthStr = String(today.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(today.getDate()).padStart(2, '0');
+    weatherDate.textContent = `${todayYear}년 ${monthStr}월 ${dayStr}일 기준`;
+
+    if (stadiums.size === 0) {
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">오늘 예정된 경기가 없습니다.</div>';
+      return;
+    }
+
+    // 각 경기장의 날씨 데이터 가져오기
+    const weatherDataList = [];
+    for (const stadium of stadiums) {
+      try {
+        const response = await fetch(`/api/weather?stadium=${encodeURIComponent(stadium)}`);
+        const data = await response.json();
+        weatherDataList.push(data);
+      } catch (error) {
+        console.error(`날씨 조회 실패: ${stadium}`, error);
+      }
+    }
+
+    if (weatherDataList.length === 0) {
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없습니다.</div>';
+      return;
+    }
+
+    // 캐시에 저장
+    weatherCache = weatherDataList;
+
+    // 날씨 카드 렌더링
+    renderWeatherCards(weatherDataList);
+  } catch (error) {
+    console.error('Error loading weather:', error);
+    weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없습니다.</div>';
+  }
+}
+
+function renderWeatherCards(weatherDataList) {
+  const weatherContainer = document.getElementById('weatherContainer');
+
+  const cardsHtml = weatherDataList.map(data => `
+    <div class="modal__weather-card">
+      <div class="modal__weather-stadium">${data.stadium}</div>
+      <div class="modal__weather-icon">${getWeatherIcon(data.weatherCode)}</div>
+      <div class="modal__weather-temp">${data.temperature}°C</div>
+      <div class="modal__weather-desc">${data.weatherDesc}</div>
+      <div class="modal__weather-details">
+        <div class="modal__weather-detail-item">
+          <div class="modal__weather-detail-label">최고</div>
+          <div class="modal__weather-detail-value">${Math.round(data.temperatureMax)}°C</div>
+        </div>
+        <div class="modal__weather-detail-item">
+          <div class="modal__weather-detail-label">최저</div>
+          <div class="modal__weather-detail-value">${Math.round(data.temperatureMin)}°C</div>
+        </div>
+        <div class="modal__weather-detail-item">
+          <div class="modal__weather-detail-label">풍속</div>
+          <div class="modal__weather-detail-value">${data.windspeed}m/s</div>
+        </div>
+        <div class="modal__weather-detail-item">
+          <div class="modal__weather-detail-label">습도</div>
+          <div class="modal__weather-detail-value">${data.humidity}%</div>
+        </div>
+        <div class="modal__weather-detail-item">
+          <div class="modal__weather-detail-label">강수</div>
+          <div class="modal__weather-detail-value">${data.precipitation}mm</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  weatherContainer.innerHTML = `<div class="modal__weather-cards">${cardsHtml}</div>`;
+}
+
+async function loadTeamRank() {
+  const rankTableContainer = document.getElementById('rankTableContainer');
+  const rankDate = document.getElementById('rankDate');
+  const refreshRankBtn = document.getElementById('refreshRankBtn');
+
+  try {
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중...</span></div></div>';
+
+    const response = await fetch('/api/team-rank');
+    const data = await response.json();
+
+    rankDate.textContent = data.date || '기준일 미정';
+
+    if (data.ranks && data.ranks.length > 0) {
+      const table = document.createElement('table');
+      table.className = 'modal__rank-table';
+
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th>순위</th>
+          <th>팀명</th>
+          <th>경기</th>
+          <th>승</th>
+          <th>패</th>
+          <th>무</th>
+          <th>승률</th>
+          <th>게임차</th>
+          <th>연속</th>
+          <th>최근 10경기</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      data.ranks.forEach((rank, index) => {
+        const tr = document.createElement('tr');
+        const teamColor = teamColors[rank.teamName] || '#333';
+        const teamLogo = teamLogos[rank.teamName] || '';
+
+        tr.innerHTML = `
+          <td>${rank.rank}</td>
+          <td class="modal__team-name">
+            ${teamLogo ? `<img src="${teamLogo}" alt="${rank.teamName}" class="modal__team-logo">` : ''}
+            <span style="color: ${teamColor};">${rank.teamName}</span>
+          </td>
+          <td>${rank.games}</td>
+          <td>${rank.wins}</td>
+          <td>${rank.losses}</td>
+          <td>${rank.draws}</td>
+          <td>${rank.winRate}</td>
+          <td>${rank.gameDiff}</td>
+          <td>-</td>
+          <td class="modal__recent-games">${rank.recent10 || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      rankTableContainer.innerHTML = '';
+      rankTableContainer.appendChild(table);
+    } else {
+      rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없습니다.</div>';
+    }
+  } catch (error) {
+    console.error('Error loading team rank:', error);
+    rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없습니다.</div>';
+  }
+}
+
 async function initializeApp() {
   yearDisplay.textContent = currentYear;
   initializeFlatpickr();
@@ -863,19 +1083,70 @@ async function initializeApp() {
     const defaultMonthStr = String(currentMonth).padStart(2, '0');
 
     await initializeMonthTabsWithLazyLoad();
-    scheduleContainer.innerHTML = renderSkeletonLoader();
 
     const defaultSchedule = await loadMonthData(currentMonth);
     window.currentScheduleData = defaultSchedule;
     loadedMonths.add(defaultMonthStr);
 
-    const gameList = renderGamesByMonth(defaultSchedule);
+    const gameList = renderGamesByMonth(defaultSchedule, null, currentYear);
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(gameList);
+
+    // 페이지 로드 시 날씨 데이터 사전 로드
+    await loadWeather();
   } catch (error) {
     console.error('Error initializing app:', error);
-    scheduleContainer.innerHTML = '<div class="no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
   }
 }
 
 initializeApp();
+
+// 팀 순위 및 날씨 모달 컨트롤
+document.addEventListener('DOMContentLoaded', () => {
+  // 팀 순위 모달
+  const refreshRankBtn = document.getElementById('refreshRankBtn');
+  const closeRankBtn = document.getElementById('closeRankBtn');
+  const rankModal = document.getElementById('rankModal');
+
+  if (refreshRankBtn) {
+    refreshRankBtn.addEventListener('click', loadTeamRank);
+  }
+
+  if (closeRankBtn) {
+    closeRankBtn.addEventListener('click', () => {
+      rankModal.classList.remove('show');
+    });
+  }
+
+  if (rankModal) {
+    rankModal.addEventListener('click', (e) => {
+      if (e.target === rankModal) {
+        rankModal.classList.remove('show');
+      }
+    });
+  }
+
+  // 날씨 모달
+  const refreshWeatherBtn = document.getElementById('refreshWeatherBtn');
+  const closeWeatherBtn = document.getElementById('closeWeatherBtn');
+  const weatherModal = document.getElementById('weatherModal');
+
+  if (refreshWeatherBtn) {
+    refreshWeatherBtn.addEventListener('click', () => loadWeather(true));
+  }
+
+  if (closeWeatherBtn) {
+    closeWeatherBtn.addEventListener('click', () => {
+      weatherModal.classList.remove('show');
+    });
+  }
+
+  if (weatherModal) {
+    weatherModal.addEventListener('click', (e) => {
+      if (e.target === weatherModal) {
+        weatherModal.classList.remove('show');
+      }
+    });
+  }
+});

@@ -5,67 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KBO 일정</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrapper">
-    <header class="site-header">
-      <div class="header-content">
-        <div class="header-title">
-          <h1>⚾ KBO 경기 일정</h1>
-          <p>한국야구 최고의 리그, KBO</p>
+  <header class="app-header">
+    <div class="app-header__content">
+      <div class="app-header__title">
+        <h1>⚾ KBO 경기 일정</h1>
+        <p>한국야구 최고의 리그, KBO</p>
+      </div>
+
+      <input type="text" id="calendarInput" class="d-none">
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="app__header-section">
+      <div class="controls">
+        <button id="todayBtn" class="btn btn--today" aria-label="최근">
+          <i class="bi bi-clock-history"></i> 최근
+        </button>
+        <div class="year-selector">
+          <button id="prevYearBtn" class="btn btn--year" aria-label="이전 연도">
+            &lt;
+          </button>
+          <h2 id="yearDisplay">2026</h2>
+          <button id="nextYearBtn" class="btn btn--year" aria-label="다음 연도">
+            &gt;
+          </button>
         </div>
-
-        <input type="text" id="calendarInput" class="d-none">
-      </div>
-    </header>
-
-    <div class="header-controls">
-      <button id="todayBtn" class="btn-today" aria-label="최근">
-        <i class="bi bi-clock-history"></i> 최근
-      </button>
-      <div class="year-selector">
-        <button id="prevYearBtn" class="btn-year" aria-label="이전 연도">
-          &lt;
-        </button>
-        <h2 id="yearDisplay">2026</h2>
-        <button id="nextYearBtn" class="btn-year" aria-label="다음 연도">
-          &gt;
+        <button id="calendarBtn" class="btn btn--calendar" aria-label="달력">
+          <i class="bi bi-calendar3"></i> 달력
         </button>
       </div>
-      <button id="calendarBtn" class="btn-calendar" aria-label="달력">
-        <i class="bi bi-calendar3"></i> 달력
-      </button>
+
+      <nav class="nav">
+        <div class="nav__content">
+          <div id="monthTabsContainer" class="nav__tabs"></div>
+        </div>
+      </nav>
+
+      <aside class="filter">
+        <div class="filter__content">
+          <div class="filter__teams">
+            <button class="filter__btn active" data-team="">전체</button>
+            <button class="filter__btn" data-team="LG">LG</button>
+            <button class="filter__btn" data-team="HH">한화</button>
+            <button class="filter__btn" data-team="SK">SSG</button>
+            <button class="filter__btn" data-team="SS">삼성</button>
+            <button class="filter__btn" data-team="NC">NC</button>
+            <button class="filter__btn" data-team="KT">KT</button>
+            <button class="filter__btn" data-team="LT">롯데</button>
+            <button class="filter__btn" data-team="HT">KIA</button>
+            <button class="filter__btn" data-team="OB">두산</button>
+            <button class="filter__btn" data-team="WO">키움</button>
+          </div>
+        </div>
+      </aside>
     </div>
 
-    <nav class="site-nav">
-      <div class="nav-content">
-        <div id="monthTabsContainer" class="month-tabs-container"></div>
-      </div>
-    </nav>
-
-    <aside class="filter-section">
-      <div class="filter-content">
-        <div class="team-filters">
-          <button class="team-tab active" data-team="">전체</button>
-          <button class="team-tab" data-team="LG">LG</button>
-          <button class="team-tab" data-team="HH">한화</button>
-          <button class="team-tab" data-team="SK">SSG</button>
-          <button class="team-tab" data-team="SS">삼성</button>
-          <button class="team-tab" data-team="NC">NC</button>
-          <button class="team-tab" data-team="KT">KT</button>
-          <button class="team-tab" data-team="LT">롯데</button>
-          <button class="team-tab" data-team="HT">KIA</button>
-          <button class="team-tab" data-team="OB">두산</button>
-          <button class="team-tab" data-team="WO">키움</button>
-        </div>
-      </div>
-    </aside>
-
-    <main class="site-main">
-      <div id="scheduleContainer" class="schedule-container">
+    <main class="main">
+      <div id="scheduleContainer" class="schedule">
         <div class="loading">
           <div class="spinner-border" role="status">
             <span class="visually-hidden">로딩 중이다냥...</span>
@@ -78,18 +80,95 @@
     <button id="scrollTopBtn" class="scroll-top-btn" aria-label="상단으로 이동">
       <i class="bi bi-chevron-up"></i>
     </button>
+
+    <div class="quick-menu">
+      <button class="quick-menu__item" id="todayMenuBtn" data-action="today" aria-label="오늘 경기">
+        <i class="bi bi-play-circle-fill"></i>
+        <span>TODAY</span>
+      </button>
+      <button class="quick-menu__item" id="rankMenuBtn" data-action="rank" aria-label="팀 순위">
+        <i class="bi bi-graph-up"></i>
+        <span>RANK</span>
+      </button>
+      <button class="quick-menu__item" id="weatherMenuBtn" data-action="weather" aria-label="날씨">
+        <i class="bi bi-cloud-sun"></i>
+        <span>WEATHER</span>
+      </button>
+    </div>
+
+    <div id="rankModal" class="modal modal--rank">
+      <div class="modal__content">
+        <div class="modal__header">
+          <div class="modal__header-left">
+            <div>
+              <h3><span class="modal__badge">RANK</span></h3>
+              <div class="modal__date">
+                (<span id="rankDate"></span>)
+              </div>
+            </div>
+          </div>
+          <div class="modal__controls">
+            <button id="refreshRankBtn" class="modal__btn modal__btn--refresh" aria-label="순위 새로고침">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button id="closeRankBtn" class="modal__btn modal__btn--close" aria-label="닫기">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div id="rankTableContainer" class="modal__body">
+          <div class="loading">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">로딩 중...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="weatherModal" class="modal modal--weather">
+      <div class="modal__content modal__content--weather">
+        <div class="modal__header">
+          <div class="modal__header-left">
+            <div>
+              <h3><span class="modal__badge modal__badge--weather">WEATHER</span></h3>
+              <div class="modal__date modal__date--weather">
+                (<span id="weatherDate"></span>)
+              </div>
+            </div>
+          </div>
+          <div class="modal__controls modal__controls--weather">
+            <button id="refreshWeatherBtn" class="modal__btn modal__btn--refresh" aria-label="날씨 새로고침">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button id="closeWeatherBtn" class="modal__btn modal__btn--close" aria-label="닫기">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div id="weatherContainer" class="modal__body modal__body--weather">
+          <div class="loading">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">로딩 중...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-section">
+  <footer class="app-footer">
+    <div class="app-footer__content">
+      <div class="app-footer__section">
         <h3>KBO 경기 일정</h3>
         <p>한국야구 최고 리그 KBO의 경기 일정을 확인하세요.</p>
       </div>
 
-      <div class="footer-section">
-        <h4>링크</h4>
-        <div class="footer-links-inline">
+      <div class="app-footer__section">
+        <h4>
+          <img src="/team/kbo.png" alt="KBO" class="app-footer__logo">
+        </h4>
+        <div class="app-footer__links">
           <a href="https://www.koreabaseball.com/" target="_blank">KBO 공식 사이트</a>
           <a href="https://www.koreabaseball.com/Schedule/Schedule.aspx" target="_blank">KBO 경기 일정</a>
         </div>
@@ -97,7 +176,7 @@
 
     </div>
 
-    <div class="footer-bottom">
+    <div class="app-footer__bottom">
       <p>&copy; KBO 경기 일정. All rights reserved.</p>
       <p>본 사이트는 KBO 공개 데이터를 기반으로 한 비공식 서비스입니다.</p>
       <p>데이터는 제공처 사정에 따라 지연되거나 부정확할 수 있습니다. 팀 메뉴는 지난 시즌 기준으로 정렬됩니다.</p>

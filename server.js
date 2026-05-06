@@ -571,6 +571,197 @@ app.get('/api/game-detail/:gameId', async (req, res) => {
   }
 });
 
+// 팀 순위 조회
+app.get('/api/team-rank', async (req, res) => {
+  try {
+    const url = 'https://www.koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx';
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9',
+      }
+    });
+
+    const $ = cheerio.load(response.data);
+
+    // 데이터 기준 날짜 추출
+    let dateText = '기준일 미정';
+    const dateMatch = response.data.match(/(\d{4})년\s+(\d{2})월(\d{2})일\s+기준/);
+    if (dateMatch) {
+      dateText = `${dateMatch[1]}년 ${dateMatch[2]}월${dateMatch[3]}일 기준`;
+    }
+
+    // 순위 테이블 데이터 추출 - 모든 table 검색
+    const ranks = [];
+
+    // 테이블 찾기 - 일반적인 순위 테이블 구조
+    $('table').each((tableIdx, table) => {
+      const rows = $(table).find('tbody tr, tr');
+
+      rows.each((rowIdx, row) => {
+        const cells = $(row).find('td, th');
+        if (cells.length >= 8) {
+          const rank = $(cells[0]).text().trim();
+          const teamName = $(cells[1]).text().trim();
+          const games = $(cells[2]).text().trim();
+          const wins = $(cells[3]).text().trim();
+          const losses = $(cells[4]).text().trim();
+          const draws = $(cells[5]).text().trim();
+          const winRate = $(cells[6]).text().trim();
+          const gameDiff = $(cells[7]).text().trim();
+
+          // 최근 10경기 연속 기록 추출
+          let recent10 = '';
+          if (cells.length >= 9) {
+            const recentCell = $(cells[8]);
+            const images = recentCell.find('img');
+
+            if (images.length > 0) {
+              // 이미지 alt/title에서 승패 추출
+              recent10 = images.map((idx, img) => {
+                const alt = $(img).attr('alt') || '';
+                const title = $(img).attr('title') || '';
+                const combined = (alt + title).toLowerCase();
+
+                if (combined.includes('승')) return 'W';
+                if (combined.includes('패')) return 'L';
+                if (combined.includes('무') || combined.includes('draw')) return 'D';
+                return '';
+              }).get().join('');
+            }
+
+            // 이미지가 없거나 실패하면 텍스트에서 추출
+            if (!recent10 || recent10.replace(/W|L|D/g, '').length > 0) {
+              const cellText = recentCell.text().trim();
+              if (cellText && cellText !== '-') {
+                recent10 = cellText;
+              } else if (!recent10) {
+                recent10 = '-';
+              }
+            }
+          }
+
+          // 순위가 숫자이고 팀명이 있을 때만 추가
+          if (rank && /^\d+$/.test(rank.trim())) {
+            ranks.push({
+              rank: rank.trim(),
+              teamName,
+              games,
+              wins,
+              losses,
+              draws,
+              winRate,
+              gameDiff,
+              recent10: recent10 || '-'
+            });
+          }
+        }
+      });
+
+      // 순위 데이터를 찾으면 더 이상 찾지 않음
+      if (ranks.length > 5) {
+        return false;
+      }
+    });
+
+    res.json({
+      date: dateText,
+      ranks: ranks
+    });
+
+  } catch (error) {
+    console.error('Error fetching team rank:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch team rank',
+      message: error.message
+    });
+  }
+});
+
+// 경기장 좌표
+const stadiumCoords = {
+  '잠실': { lat: 37.5122, lon: 127.0719 },
+  '고척': { lat: 37.4989, lon: 126.8672 },
+  '수원': { lat: 37.2997, lon: 127.0100 },
+  '대전': { lat: 36.3172, lon: 127.4290 },
+  '창원': { lat: 35.2226, lon: 128.5822 },
+  '광주': { lat: 35.1683, lon: 126.7894 },
+  '사직': { lat: 35.1940, lon: 129.0614 },
+  '대구': { lat: 35.8408, lon: 128.6813 },
+  '문학': { lat: 37.4370, lon: 126.6931 },
+  '청주': { lat: 36.6404, lon: 127.4849 }
+};
+
+// WMO 날씨 코드 → 한국어 설명
+function getWeatherDescription(code) {
+  const codeMap = {
+    0: '맑음',
+    1: '대체로 맑음',
+    2: '구름 조금',
+    3: '흐림',
+    45: '안개',
+    48: '서리',
+    51: '이슬비',
+    53: '이슬비',
+    55: '이슬비',
+    61: '비',
+    63: '중간 정도 비',
+    65: '강한 비',
+    71: '눈',
+    73: '중간 정도 눈',
+    75: '강한 눈',
+    77: '싸락눈',
+    80: '소나기',
+    81: '중간 소나기',
+    82: '강한 소나기',
+    85: '눈소나기',
+    86: '강한 눈소나기',
+    95: '뇌우',
+    96: '우박',
+    99: '강한 우박'
+  };
+  return codeMap[code] || '데이터 없음';
+}
+
+// 날씨 조회
+app.get('/api/weather', async (req, res) => {
+  try {
+    const { stadium } = req.query;
+
+    if (!stadium || !stadiumCoords[stadium]) {
+      return res.status(400).json({ error: '유효하지 않은 경기장명' });
+    }
+
+    const { lat, lon } = stadiumCoords[stadium];
+    const url = `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,weathercode,windspeed_10m,precipitation,relative_humidity_2m` +
+      `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum` +
+      `&timezone=Asia/Seoul&forecast_days=1`;
+
+    const response = await axios.get(url);
+    const current = response.data.current;
+    const daily = response.data.daily;
+
+    res.json({
+      stadium,
+      temperature: Math.round(current.temperature_2m),
+      temperatureMax: daily.temperature_2m_max[0],
+      temperatureMin: daily.temperature_2m_min[0],
+      weatherCode: current.weathercode,
+      weatherDesc: getWeatherDescription(current.weathercode),
+      windspeed: current.windspeed_10m,
+      humidity: current.relative_humidity_2m,
+      precipitation: current.precipitation,
+      precipitationSum: daily.precipitation_sum[0]
+    });
+  } catch (error) {
+    console.error('Error fetching weather:', error.message);
+    res.status(500).json({ error: 'Failed to fetch weather' });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
