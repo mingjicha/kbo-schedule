@@ -18,16 +18,29 @@ let selectedDate = null;
 let loadedMonths = new Set();
 
 const teamLogos = {
-  'LG': '/team/LG.png',
-  '한화': '/team/HH.png',
-  'SSG': '/team/SK.png',
-  '삼성': '/team/SS.png',
-  'NC': '/team/NC.png',
-  'KT': '/team/KT.png',
-  '롯데': '/team/LT.png',
-  'KIA': '/team/HT.png',
-  '두산': '/team/OB.png',
-  '키움': '/team/WO.png'
+  'LG': '/images/team/LG.png',
+  '한화': '/images/team/HH.png',
+  'SSG': '/images/team/SK.png',
+  '삼성': '/images/team/SS.png',
+  'NC': '/images/team/NC.png',
+  'KT': '/images/team/KT.png',
+  '롯데': '/images/team/LT.png',
+  'KIA': '/images/team/HT.png',
+  '두산': '/images/team/OB.png',
+  '키움': '/images/team/WO.png'
+};
+
+const teamLogosDetail = {
+  'LG': '/images/logos/initial_LG_s.png',
+  '한화': '/images/logos/initial_HH_s.png',
+  'SSG': '/images/logos/initial_SK_s.png',
+  '삼성': '/images/logos/initial_SS_s.png',
+  'NC': '/images/logos/initial_NC_s.png',
+  'KT': '/images/logos/initial_KT_s.png',
+  '롯데': '/images/logos/initial_LT_s.png',
+  'KIA': '/images/logos/initial_HT_s.png',
+  '두산': '/images/logos/initial_OB_s.png',
+  '키움': '/images/logos/initial_WO_s.png'
 };
 
 const teamColors = {
@@ -529,10 +542,6 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
         const homePitcher = document.createElement('div');
         homePitcher.className = 'schedule__pitcher';
 
-        const homePitcherText = document.createElement('span');
-        homePitcherText.textContent = `선 ${game.homePitcher}`;
-        homePitcher.appendChild(homePitcherText);
-
         if (statusClass === 'schedule__game--finished') {
           homePitcher.classList.add(game.winner === 'home' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
           if (game.winner === 'home') {
@@ -542,6 +551,10 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
             homePitcher.appendChild(homesvgIcon);
           }
         }
+
+        const homePitcherText = document.createElement('span');
+        homePitcherText.textContent = `선 ${game.homePitcher}`;
+        homePitcher.appendChild(homePitcherText);
 
         homeTeamContainer.appendChild(homePitcher);
       }
@@ -573,7 +586,7 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
         const inningDiv = document.createElement('div');
         inningDiv.className = 'schedule__inning-info';
         inningDiv.id = `inning-${game.gameId}`;
-        inningDiv.textContent = '로딩중...';
+        inningDiv.textContent = '로딩 중이다냥! †';
         scoreContainer.appendChild(inningDiv);
 
         // 진행중인 경기 정보 조회
@@ -616,10 +629,6 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
         const awayPitcher = document.createElement('div');
         awayPitcher.className = 'schedule__pitcher';
 
-        const awayPitcherText = document.createElement('span');
-        awayPitcherText.textContent = `선 ${game.awayPitcher}`;
-        awayPitcher.appendChild(awayPitcherText);
-
         if (statusClass === 'schedule__game--finished') {
           awayPitcher.classList.add(game.winner === 'away' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
           if (game.winner === 'away') {
@@ -629,6 +638,10 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
             awayPitcher.appendChild(awaysvgIcon);
           }
         }
+
+        const awayPitcherText = document.createElement('span');
+        awayPitcherText.textContent = `선 ${game.awayPitcher}`;
+        awayPitcher.appendChild(awayPitcherText);
 
         awayTeamContainer.appendChild(awayPitcher);
       }
@@ -656,6 +669,86 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
       gameInfo.appendChild(statusBadge);
 
       gameCard.appendChild(gameInfo);
+
+      gameCard.addEventListener('click', async (e) => {
+        if (finalStatus === '취소') return;
+
+        const gameDetailModal = document.getElementById('gameDetailModal');
+        const gameDetailContainer = document.getElementById('gameDetailContainer');
+        const gameDetailTitle = document.getElementById('gameDetailTitle');
+
+        const dateStr = date.split('(')[0].trim();
+        const [month, day] = dateStr.split('.');
+        const gameDateTime = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const isToday = gameDateTime.getTime() === today.getTime();
+
+        // 오늘 경기가 아니면 모달을 열지 않음
+        if (!isToday) return;
+
+        gameDetailContainer.innerHTML = '<div class="modal__no-data">로딩 중이다냥! †</div>';
+        gameDetailModal.classList.add('show');
+
+        try {
+          gameDetailTitle.innerHTML = '<h3><span class="modal__badge">Preview</span></h3>';
+          gameDetailContainer.innerHTML = ''; // 기존 내용 삭제
+
+          if (isToday) {
+            // 탭 구조 생성
+            const tabContainer = document.createElement('div');
+            tabContainer.className = 'game-detail__tabs';
+
+            const pitcherTab = document.createElement('button');
+            pitcherTab.className = 'game-detail__tab active';
+            pitcherTab.textContent = '선발투수';
+
+            const lineupTab = document.createElement('button');
+            lineupTab.className = 'game-detail__tab';
+            lineupTab.textContent = '라인업';
+
+            tabContainer.appendChild(pitcherTab);
+            tabContainer.appendChild(lineupTab);
+
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'game-detail__tab-content';
+
+            const pitcherContent = document.createElement('div');
+            pitcherContent.className = 'game-detail__tab-pane active';
+
+            const lineupContent = document.createElement('div');
+            lineupContent.className = 'game-detail__tab-pane';
+            lineupContent.innerHTML = '<div class="modal__no-data">라인업 정보는 준비 중이다냥! †</div>';
+
+            contentContainer.appendChild(pitcherContent);
+            contentContainer.appendChild(lineupContent);
+
+            gameDetailContainer.appendChild(tabContainer);
+            gameDetailContainer.appendChild(contentContainer);
+
+            // 탭 전환 이벤트
+            pitcherTab.addEventListener('click', () => {
+              pitcherTab.classList.add('active');
+              lineupTab.classList.remove('active');
+              pitcherContent.classList.add('active');
+              lineupContent.classList.remove('active');
+            });
+
+            lineupTab.addEventListener('click', () => {
+              lineupTab.classList.add('active');
+              pitcherTab.classList.remove('active');
+              lineupContent.classList.add('active');
+              pitcherContent.classList.remove('active');
+            });
+
+            pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
+            await loadPitcherComparison(game, pitcherContent);
+          }
+        } catch (error) {
+          console.error('Error loading game detail:', error);
+          gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없다냥! †</div>';
+        }
+      });
 
       dayDiv.appendChild(gameCard);
     });
@@ -907,7 +1000,7 @@ async function loadWeather(forceRefresh = false) {
     }
 
     // 로딩 스피너 표시 (강제 새로고침 시에도 표시)
-    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중...</span></div></div>';
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
 
     // 오늘 경기가 있는 경기장 추출
     const today = new Date();
@@ -1011,7 +1104,7 @@ async function loadTeamRank() {
   const refreshRankBtn = document.getElementById('refreshRankBtn');
 
   try {
-    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중...</span></div></div>';
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
 
     const response = await fetch('/api/team-rank');
     const data = await response.json();
@@ -1105,6 +1198,307 @@ async function initializeApp() {
 
 initializeApp();
 
+async function loadPitcherComparison(game, container) {
+  try {
+    // 테스트 데이터 (비활성화 - Puppeteer API 사용)
+    if (false && game.gameId === '20260507OBLG0') {
+      const html = `
+        <div class="game-detail__pitchers">
+          <div class="game-detail__pitcher-card">
+            <div class="game-detail__pitcher-header">
+              <table class="game-detail__stats-table">
+                <thead>
+                  <tr>
+                    <th class="pitcher-info-col">선발투수</th>
+                    <th>경기</th>
+                    <th>평균자책점</th>
+                    <th>선발평균이닝</th>
+                    <th>QS</th>
+                    <th>WAR</th>
+                    <th>WHIP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="pitcher-info-col">
+                      <div class="pitcher-info-with-logo">
+                        <img src="${teamLogosDetail[game.awayTeam] || ''}" alt="${game.awayTeam}" class="pitcher-info-logo">
+                        <div class="game-detail__pitcher-info">
+                          <div class="game-detail__pitcher-name">
+                            <div class="name-wrap">
+                              <span class="name">최민석</span>
+                              <span class="style">우투우타</span>
+                            </div>
+                            <div class="record">시즌 3승 0패<br></div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>6</td>
+                    <td class="stat-highlight">2.67</td>
+                    <td class="stat-highlight">5.2</td>
+                    <td>4</td>
+                    <td class="stat-highlight">0.69</td>
+                    <td>1.37</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="game-detail__pitcher-card">
+            <div class="game-detail__pitcher-header">
+              <table class="game-detail__stats-table">
+                <thead>
+                  <tr>
+                    <th class="pitcher-info-col">선발투수</th>
+                    <th>경기</th>
+                    <th>평균자책점</th>
+                    <th>선발평균이닝</th>
+                    <th>QS</th>
+                    <th>WAR</th>
+                    <th>WHIP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="pitcher-info-col">
+                      <div class="pitcher-info-with-logo">
+                        <img src="${teamLogosDetail[game.homeTeam] || ''}" alt="${game.homeTeam}" class="pitcher-info-logo">
+                        <div class="game-detail__pitcher-info">
+                          <div class="game-detail__pitcher-name">
+                            <div class="name-wrap">
+                              <span class="name">톨허스트</span>
+                              <span class="style">우투우타</span>
+                            </div>
+                            <div class="record">시즌 4승 1패<br></div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>6</td>
+                    <td>3.90</td>
+                    <td>5.1</td>
+                    <td>4</td>
+                    <td>0.47</td>
+                    <td class="stat-highlight">1.33</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
+      return;
+    }
+
+    // API에서 Puppeteer로 크롤링한 데이터 가져오기
+    const response = await fetch(`/api/pitcher-stats?awayPitcher=${encodeURIComponent(game.awayPitcher)}&homePitcher=${encodeURIComponent(game.homePitcher)}&awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}&gameId=${encodeURIComponent(game.gameId)}&year=${currentYear}`);
+    const data = await response.json();
+
+    if (data.awayData || data.homeData) {
+      // 통계 비교 함수
+      const getBetterStatClass = (awayVal, homeVal, lowerIsBetter = false) => {
+        if (!awayVal || !homeVal || awayVal === '-' || homeVal === '-') return { away: '', home: '' };
+
+        const awayNum = parseFloat(awayVal);
+        const homeNum = parseFloat(homeVal);
+
+        if (isNaN(awayNum) || isNaN(homeNum)) return { away: '', home: '' };
+
+        if (lowerIsBetter) {
+          if (awayNum < homeNum) return { away: 'stat-highlight', home: '' };
+          if (awayNum > homeNum) return { away: '', home: 'stat-highlight' };
+        } else {
+          if (awayNum > homeNum) return { away: 'stat-highlight', home: '' };
+          if (awayNum < homeNum) return { away: '', home: 'stat-highlight' };
+        }
+        return { away: '', home: '' };
+      };
+
+      const eraClass = getBetterStatClass(data.awayData.era, data.homeData.era, true);
+      const warClass = getBetterStatClass(data.awayData.war, data.homeData.war);
+      const gamesClass = getBetterStatClass(data.awayData.games, data.homeData.games);
+      const inningClass = getBetterStatClass(data.awayData.startAvgInning, data.homeData.startAvgInning);
+      const qsClass = getBetterStatClass(data.awayData.qs, data.homeData.qs);
+      const whipClass = getBetterStatClass(data.awayData.whip, data.homeData.whip, true);
+
+      const html = `
+        <div class="game-detail__pitchers">
+          ${data.awayData ? `
+            <div class="game-detail__pitcher-card">
+              <div class="game-detail__pitcher-header">
+                <table class="game-detail__stats-table">
+                  <thead>
+                    <tr>
+                      <th class="pitcher-info-col">
+                        <div>
+                          <img src="${teamLogosDetail[game.awayTeam] || ''}" alt="${game.awayTeam}" class="pitcher-info-logo">
+                          <span>선발투수</span>
+                        </div>
+                      </th>
+                      <th>평균자책점</th>
+                      <th>WAR</th>
+                      <th>경기</th>
+                      <th>선발평균이닝</th>
+                      <th>QS</th>
+                      <th>WHIP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pitcher-info-col">
+                        <div class="game-detail__pitcher-info">
+                          <div class="game-detail__pitcher-name">
+                            <div class="name-wrap">
+                              <span class="name">${game.awayPitcher}</span>
+                              <span class="style">${data.awayData.pitcherName.substring(data.awayData.pitcherName.indexOf(game.awayPitcher) + game.awayPitcher.length, data.awayData.pitcherName.indexOf('시즌') !== -1 ? data.awayData.pitcherName.indexOf('시즌') : data.awayData.pitcherName.length) || ''}</span>
+                            </div>
+                            <div class="record">${data.awayData.pitcherName.substring(data.awayData.pitcherName.indexOf('시즌') !== -1 ? data.awayData.pitcherName.indexOf('시즌') : data.awayData.pitcherName.length) || ''}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="${eraClass.away}">${data.awayData.era || '-'}</td>
+                      <td class="${warClass.away}">${data.awayData.war || '-'}</td>
+                      <td class="${gamesClass.away}">${data.awayData.games || '-'}</td>
+                      <td class="${inningClass.away}">${data.awayData.startAvgInning || '-'}</td>
+                      <td class="${qsClass.away}">${data.awayData.qs || '-'}</td>
+                      <td class="${whipClass.away}">${data.awayData.whip || '-'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ` : ''}
+          ${data.homeData ? `
+            <div class="game-detail__pitcher-card">
+              <div class="game-detail__pitcher-header">
+                <table class="game-detail__stats-table">
+                  <thead>
+                    <tr>
+                      <th class="pitcher-info-col">
+                        <div>
+                          <img src="${teamLogosDetail[game.homeTeam] || ''}" alt="${game.homeTeam}" class="pitcher-info-logo">
+                          <span>선발투수</span>
+                        </div>
+                      </th>
+                      <th>평균자책점</th>
+                      <th>WAR</th>
+                      <th>경기</th>
+                      <th>선발평균이닝</th>
+                      <th>QS</th>
+                      <th>WHIP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pitcher-info-col">
+                        <div class="game-detail__pitcher-info">
+                          <div class="game-detail__pitcher-name">
+                            <div class="name-wrap">
+                              <span class="name">${game.homePitcher}</span>
+                              <span class="style">${data.homeData.pitcherName.substring(data.homeData.pitcherName.indexOf(game.homePitcher) + game.homePitcher.length, data.homeData.pitcherName.indexOf('시즌') !== -1 ? data.homeData.pitcherName.indexOf('시즌') : data.homeData.pitcherName.length) || ''}</span>
+                            </div>
+                            <div class="record">${data.homeData.pitcherName.substring(data.homeData.pitcherName.indexOf('시즌') !== -1 ? data.homeData.pitcherName.indexOf('시즌') : data.homeData.pitcherName.length) || ''}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="${eraClass.home}">${data.homeData.era || '-'}</td>
+                      <td class="${warClass.home}">${data.homeData.war || '-'}</td>
+                      <td class="${gamesClass.home}">${data.homeData.games || '-'}</td>
+                      <td class="${inningClass.home}">${data.homeData.startAvgInning || '-'}</td>
+                      <td class="${qsClass.home}">${data.homeData.qs || '-'}</td>
+                      <td class="${whipClass.home}">${data.homeData.whip || '-'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = '<div class="modal__no-data">투수 정보를 찾을 수 없다냥! †</div>';
+    }
+  } catch (error) {
+    console.error('Error loading pitcher comparison:', error);
+    container.innerHTML = '<div class="modal__no-data">투수 정보를 불러올 수 없다냥! †</div>';
+  }
+}
+
+async function loadPitcherWPA(game, container) {
+  try {
+    const response = await fetch(`/api/pitcher-wpa?gameId=${encodeURIComponent(game.gameId)}&awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}`);
+    const data = await response.json();
+
+    if (data.awayWPA || data.homeWPA) {
+      const html = `
+        <div class="game-detail__wpa-container">
+          ${data.awayWPA && data.awayWPA.length > 0 ? `
+            <div class="game-detail__wpa-section">
+              <div class="game-detail__team-section-header">
+                <img src="${teamLogos[game.awayTeam] || ''}" alt="${game.awayTeam}" class="game-detail__team-logo-small">
+                <span class="game-detail__team-name-small">${game.awayTeam}</span>
+              </div>
+              <table class="game-detail__wpa-table">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>투수</th>
+                    <th>WPA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.awayWPA.slice(0, 5).map((pitcher, idx) => `
+                    <tr>
+                      <td>${idx + 1}</td>
+                      <td>${pitcher.name}</td>
+                      <td>${pitcher.wpa}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : ''}
+          ${data.homeWPA && data.homeWPA.length > 0 ? `
+            <div class="game-detail__wpa-section">
+              <div class="game-detail__team-section-header">
+                <img src="${teamLogos[game.homeTeam] || ''}" alt="${game.homeTeam}" class="game-detail__team-logo-small">
+                <span class="game-detail__team-name-small">${game.homeTeam}</span>
+              </div>
+              <table class="game-detail__wpa-table">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>투수</th>
+                    <th>WPA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.homeWPA.slice(0, 5).map((pitcher, idx) => `
+                    <tr>
+                      <td>${idx + 1}</td>
+                      <td>${pitcher.name}</td>
+                      <td>${pitcher.wpa}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = '<div class="modal__no-data">WPA 데이터를 찾을 수 없습니다.</div>';
+    }
+  } catch (error) {
+    console.error('Error loading pitcher WPA:', error);
+    container.innerHTML = '<div class="modal__no-data">WPA 정보를 불러올 수 없습니다.</div>';
+  }
+}
+
 // 팀 순위 및 날씨 모달 컨트롤
 document.addEventListener('DOMContentLoaded', () => {
   // 팀 순위 모달
@@ -1149,6 +1543,23 @@ document.addEventListener('DOMContentLoaded', () => {
     weatherModal.addEventListener('click', (e) => {
       if (e.target === weatherModal) {
         weatherModal.classList.remove('show');
+      }
+    });
+  }
+
+  const closeGameDetailBtn = document.getElementById('closeGameDetailBtn');
+  const gameDetailModal = document.getElementById('gameDetailModal');
+
+  if (closeGameDetailBtn) {
+    closeGameDetailBtn.addEventListener('click', () => {
+      gameDetailModal.classList.remove('show');
+    });
+  }
+
+  if (gameDetailModal) {
+    gameDetailModal.addEventListener('click', (e) => {
+      if (e.target === gameDetailModal) {
+        gameDetailModal.classList.remove('show');
       }
     });
   }

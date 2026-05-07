@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const path = require('path');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,7 +41,9 @@ function parseGameInfo(playHtml, gameId = '') {
     status: '예정',
     winner: null,
     awayPitcher: 'N/A',
-    homePitcher: 'N/A'
+    homePitcher: 'N/A',
+    awayPitcherId: '',
+    homePitcherId: ''
   };
 
   const $ = cheerio.load(playHtml);
@@ -180,54 +183,6 @@ function parseGameInfo(playHtml, gameId = '') {
     awayPitcher,
     homePitcher
   };
-}
-
-async function getPitcherInfo(gameId) {
-  try {
-    // gameId에서 게임 날짜 추출 (YYYYMMDD 형식)
-    const gameDate = gameId.substring(0, 8);
-
-    const response = await axios.post(
-      'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
-      new URLSearchParams({
-        leId: '1',
-        srId: '0',
-        date: gameDate
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx'
-        }
-      }
-    );
-
-    if (response.data && response.data.game && Array.isArray(response.data.game)) {
-      const game = response.data.game.find(g => g.G_ID === gameId);
-      if (game) {
-        const cleanPitcherName = (name) => {
-          if (!name) return 'N/A';
-          return name.trim().replace(/\s+/g, ' ');
-        };
-        return {
-          awayPitcher: cleanPitcherName(game.T_PIT_P_NM),
-          homePitcher: cleanPitcherName(game.B_PIT_P_NM)
-        };
-      }
-    }
-
-    return {
-      awayPitcher: 'N/A',
-      homePitcher: 'N/A'
-    };
-  } catch (error) {
-    console.error('Error fetching pitcher info:', error.message);
-    return {
-      awayPitcher: 'N/A',
-      homePitcher: 'N/A'
-    };
-  }
 }
 
 app.get('/api/schedule', async (req, res) => {
@@ -515,17 +470,6 @@ app.get('/api/schedule', async (req, res) => {
   }
 });
 
-app.get('/api/pitcher/:gameId', async (req, res) => {
-  try {
-    const { gameId } = req.params;
-    const pitcherInfo = await getPitcherInfo(gameId);
-    res.json(pitcherInfo);
-  } catch (error) {
-    console.error('Error fetching pitcher info:', error.message);
-    res.status(500).json({ error: 'Failed to fetch pitcher info' });
-  }
-});
-
 app.get('/api/game-detail/:gameId', async (req, res) => {
   try {
     const { gameId } = req.params;
@@ -585,12 +529,12 @@ app.get('/api/team-rank', async (req, res) => {
 
     const $ = cheerio.load(response.data);
 
-    // 데이터 기준 날짜 추출
-    let dateText = '기준일 미정';
-    const dateMatch = response.data.match(/(\d{4})년\s+(\d{2})월(\d{2})일\s+기준/);
-    if (dateMatch) {
-      dateText = `${dateMatch[1]}년 ${dateMatch[2]}월${dateMatch[3]}일 기준`;
-    }
+    // 오늘 날짜 기준
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateText = `${year}년 ${parseInt(month)}월${parseInt(day)}일 기준`;
 
     // 순위 테이블 데이터 추출 - 모든 table 검색
     const ranks = [];
@@ -761,6 +705,280 @@ app.get('/api/weather', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch weather' });
   }
 });
+
+// 투수 통계 조회 - Puppeteer로 KBO GameCenter 페이지에서 테이블 데이터 크롤링
+app.get('/api/pitcher-stats', async (req, res) => {
+  let browser = null;
+  try {
+    const { awayPitcher, homePitcher, gameId } = req.query;
+
+    if (!awayPitcher || !homePitcher) {
+      return res.status(400).json({ awayData: null, homeData: null });
+    }
+
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    const page = await browser.newPage();
+
+    console.log(`Fetching pitcher stats for: ${awayPitcher} vs ${homePitcher}`);
+
+    // KBO GameCenter 페이지 로드
+    await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
+      waitUntil: 'networkidle0',
+      timeout: 15000
+    });
+
+    // 페이지 로드 대기
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // gameId에 해당하는 게임 찾고 클릭해서 프리뷰 활성화
+    if (gameId) {
+      const activated = await page.evaluate((gId) => {
+        const gameItem = document.querySelector(`li[g_id="${gId}"]`);
+        if (gameItem) {
+          gameItem.click();
+          return true;
+        }
+        return false;
+      }, gameId);
+
+      console.log(`Game activated: ${activated}`);
+
+      // 프리뷰 렌더링 대기
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+
+    // 페이지 HTML 캡처 (디버그)
+    const pageHtml = await page.content();
+    console.log('Page HTML length:', pageHtml.length);
+    console.log('Contains preview:', pageHtml.includes('preview'));
+    console.log('Contains table:', pageHtml.includes('<table'));
+
+    // 프리뷰 테이블에서 데이터 추출
+    const pitcherData = await page.evaluate((awayName, homeName) => {
+      const result = { awayData: null, homeData: null };
+
+      // 모든 가능한 컨테이너 찾기
+      const allDivs = document.querySelectorAll('div[class*="preview"], div[class*="detail"], div[class*="info"]');
+      console.log(`Found ${allDivs.length} potential containers`);
+
+      // 모든 테이블 찾기
+      const allTables = document.querySelectorAll('table');
+      console.log(`Total tables in page: ${allTables.length}`);
+
+      // 각 테이블 구조 확인
+      for (let i = 0; i < allTables.length; i++) {
+        const table = allTables[i];
+        const rows = table.querySelectorAll('tbody tr');
+        console.log(`Table ${i}: ${rows.length} rows`);
+
+        for (let row of rows) {
+          const cells = row.querySelectorAll('td');
+          console.log(`Row has ${cells.length} cells`);
+
+          if (cells.length < 2) continue;
+
+          const pitcherCell = cells[0].textContent.trim();
+          console.log(`Cell content: "${pitcherCell}"`);
+
+          // 각 셀에서 필요한 정보 추출
+          // KBO 테이블 순서: 평균자책점, WAR, 경기, 선발평균이닝, QS, WHIP
+          let era = '', war = '', games = '', startAvgInning = '', qs = '', whip = '';
+
+          if (cells.length >= 2) era = cells[1].textContent.trim();
+          if (cells.length >= 3) war = cells[2].textContent.trim();
+          if (cells.length >= 4) games = cells[3].textContent.trim();
+          if (cells.length >= 5) startAvgInning = cells[4].textContent.trim();
+          if (cells.length >= 6) qs = cells[5].textContent.trim();
+          if (cells.length >= 7) whip = cells[6].textContent.trim();
+
+          // 투수 이름으로 매칭
+          if (!result.awayData && pitcherCell.includes(awayName)) {
+            result.awayData = { pitcherName: pitcherCell, era, war, games, startAvgInning, qs, whip };
+            console.log(`Matched away pitcher: ${awayName}`);
+          }
+
+          if (!result.homeData && pitcherCell.includes(homeName)) {
+            result.homeData = { pitcherName: pitcherCell, era, war, games, startAvgInning, qs, whip };
+            console.log(`Matched home pitcher: ${homeName}`);
+          }
+
+          if (result.awayData && result.homeData) return result;
+        }
+      }
+
+      return result;
+    }, awayPitcher, homePitcher);
+
+    console.log('API Response received');
+    console.log('Final data:', pitcherData);
+
+    res.json({
+      awayData: pitcherData.awayData || null,
+      homeData: pitcherData.homeData || null
+    });
+
+  } catch (error) {
+    console.error('Error in /api/pitcher-stats:', error.message);
+    res.json({ awayData: null, homeData: null });
+  } finally {
+    if (browser) await browser.close();
+  }
+});
+
+
+// 투수 WPA 조회
+app.get('/api/pitcher-wpa', async (req, res) => {
+  try {
+    const { gameId, awayTeam, homeTeam } = req.query;
+
+    if (!gameId) {
+      return res.status(400).json({ awayWPA: [], homeWPA: [] });
+    }
+
+    const awayWPA = await getPitcherWPA(gameId, awayTeam);
+    const homeWPA = await getPitcherWPA(gameId, homeTeam);
+
+    res.json({
+      awayWPA: awayWPA || [],
+      homeWPA: homeWPA || []
+    });
+  } catch (error) {
+    console.error('Error fetching pitcher WPA:', error.message);
+    res.json({ awayWPA: [], homeWPA: [] });
+  }
+});
+
+// 투수 통계 조회
+async function getPitcherStats(pitcherName, gameId, year) {
+  try {
+    const gameDate = gameId.substring(0, 8);
+
+    // KBO GameCenter API에서 경기 정보 조회
+    const gameListResponse = await axios.post(
+      'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
+      new URLSearchParams({
+        leId: '1',
+        srId: '0',
+        date: gameDate
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      }
+    );
+
+    console.log(`Looking for pitcher: ${pitcherName}, gameId: ${gameId}`);
+    console.log('Game list response:', JSON.stringify(gameListResponse.data).substring(0, 500));
+
+    if (gameListResponse.data && gameListResponse.data.game && Array.isArray(gameListResponse.data.game)) {
+      const gameData = gameListResponse.data.game.find(g => g.G_ID === gameId);
+
+      if (gameData) {
+        console.log('Found game data:', JSON.stringify(gameData).substring(0, 1000));
+
+        // 투수 이름과 매칭되는지 확인
+        const isPitcherHome = gameData.T_PIT_P_NM === pitcherName || (gameData.T_PIT_P_NM && gameData.T_PIT_P_NM.includes(pitcherName));
+        const isPitcherAway = gameData.B_PIT_P_NM === pitcherName || (gameData.B_PIT_P_NM && gameData.B_PIT_P_NM.includes(pitcherName));
+
+        console.log(`Is pitcher home: ${isPitcherHome}, Is pitcher away: ${isPitcherAway}`);
+        console.log(`Home pitcher: ${gameData.T_PIT_P_NM}, Away pitcher: ${gameData.B_PIT_P_NM}`);
+
+        if (isPitcherHome) {
+          return {
+            games: gameData.T_PIT_P_G || '-',
+            wins: gameData.T_PIT_P_W || '-',
+            losses: gameData.T_PIT_P_L || '-',
+            era: gameData.T_PIT_P_ERA || '-',
+            innings: gameData.T_PIT_P_IP || '-',
+            strikeouts: gameData.T_PIT_P_SO || '-',
+            qs: gameData.T_PIT_P_QS || '-',
+            war: gameData.T_PIT_P_WAR || '-',
+            whip: gameData.T_PIT_P_WHIP || '-',
+            startAvgInning: gameData.T_PIT_P_STARTIP || '-'
+          };
+        }
+
+        if (isPitcherAway) {
+          return {
+            games: gameData.B_PIT_P_G || '-',
+            wins: gameData.B_PIT_P_W || '-',
+            losses: gameData.B_PIT_P_L || '-',
+            era: gameData.B_PIT_P_ERA || '-',
+            innings: gameData.B_PIT_P_IP || '-',
+            strikeouts: gameData.B_PIT_P_SO || '-',
+            qs: gameData.B_PIT_P_QS || '-',
+            war: gameData.B_PIT_P_WAR || '-',
+            whip: gameData.B_PIT_P_WHIP || '-',
+            startAvgInning: gameData.B_PIT_P_STARTIP || '-'
+          };
+        }
+      } else {
+        console.log('Game not found in list');
+      }
+    } else {
+      console.log('No game array in response');
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching pitcher stats:', error.message);
+    return null;
+  }
+}
+
+// 투수 WPA 조회
+async function getPitcherWPA(gameId, teamName) {
+  try {
+    const response = await axios.get(
+      `https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameId=${gameId}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      }
+    );
+
+    const $ = cheerio.load(response.data);
+    const wpaData = [];
+
+    // WPA 테이블 찾기
+    const tables = $('table');
+    let teamFound = false;
+
+    tables.each((idx, table) => {
+      const headerText = $(table).find('thead tr:first th:first').text();
+      if (headerText && headerText.includes(teamName)) {
+        teamFound = true;
+      }
+
+      if (teamFound) {
+        $(table).find('tbody tr').each((rowIdx, tr) => {
+          if (wpaData.length >= 5) return;
+
+          const cells = $(tr).find('td');
+          if (cells.length >= 3) {
+            const pitcherName = $(cells[0]).text().trim();
+            const wpa = $(cells[cells.length - 1]).text().trim();
+
+            if (pitcherName && wpa) {
+              wpaData.push({
+                name: pitcherName,
+                wpa: wpa
+              });
+            }
+          }
+        });
+      }
+    });
+
+    return wpaData.length > 0 ? wpaData : null;
+  } catch (error) {
+    console.error('Error fetching pitcher WPA:', error.message);
+    return null;
+  }
+}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at https://localhost:${PORT}`);

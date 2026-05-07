@@ -103,32 +103,7 @@ body {
   font-weight: 700;
 }
 
-.btn--today {
-  background-color: white;
-  border: 1px solid #ddd;
-  color: #333;
-  padding: 8px 16px;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.btn--today:hover {
-  border-color: #999;
-  background-color: #f5f5f5;
-}
-
-#yearDisplay {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0;
-  min-width: 96px;
-  text-align: center;
-}
-
-
+.btn--today,
 .btn--calendar {
   background-color: white;
   border: 1px solid #ddd;
@@ -139,12 +114,24 @@ body {
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
+}
+
+.btn--calendar {
   position: relative;
 }
 
+.btn--today:hover,
 .btn--calendar:hover {
   border-color: #999;
   background-color: #f5f5f5;
+}
+
+#yearDisplay {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  min-width: 96px;
+  text-align: center;
 }
 
 /* Navigation */
@@ -208,7 +195,7 @@ body {
   padding: 8px 16px;
   border: 1px solid #ddd;
   background-color: white;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
   color: #666;
@@ -480,7 +467,7 @@ body {
   background-color: #626ABD;
   color: white;
   border-radius: 16px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -499,6 +486,10 @@ body {
   min-height: 80px;
   background-color: white;
   gap: 16px;
+}
+
+.schedule__day.schedule__day--today .schedule__game {
+  cursor: pointer;
 }
 
 .schedule__game:hover {
@@ -535,7 +526,7 @@ body {
 .schedule__info {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 }
@@ -612,7 +603,6 @@ body {
 
 .schedule__score.schedule__game--scheduled {
   color: #757575;
-  /* font-size: 0.8125rem; */
 }
 
 .schedule__score.schedule__game--live {
@@ -700,8 +690,91 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 40px 20px;
   font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+  min-height: 200px;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  vertical-align: text-bottom;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #333;
+  border-radius: 50%;
+  animation: spinner-border 0.8s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.loading + .visually-hidden,
+.loading .visually-hidden {
+  display: block;
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  color: #666;
+}
+
+.loading .spinner-border + span {
+  display: block;
+  font-size: 1rem;
+  color: #666;
+}
+
+.loading .spinner-border ~ .visually-hidden {
+  display: block;
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  margin: 0;
+  padding: 0;
+}
+
+.loading .spinner-border ~ * {
+  font-size: 1rem;
+  color: #666;
+}
+
+.loading .visually-hidden {
+  display: block;
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  margin-top: 15px;
+  padding: 0;
+  font-size: 1rem;
+  color: #666;
 }
 
 .loading .schedule__list {
@@ -1163,13 +1236,13 @@ body {
 .modal__content {
   background-color: white;
   border-radius: 8px;
-  width: 90%;
-  max-width: 920px;
-  height: 550px;
+  width: 920px;
+  max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   scrollbar-width: none;
+  margin: auto;
 }
 
 .modal__content::-webkit-scrollbar {
@@ -1215,7 +1288,7 @@ body {
   background-color: #F9D366;
   color: white;
   border-radius: 20px;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1225,6 +1298,11 @@ body {
   background-color: #2f6f64;
 }
 
+.modal--game-detail .modal__badge {
+  background-color: #333333;
+  color: #ffffff;
+}
+
 .modal__controls {
   display: flex;
   gap: 8px;
@@ -1232,7 +1310,7 @@ body {
 }
 
 .modal__date {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #666;
 }
 
@@ -1275,7 +1353,7 @@ body {
 
 .modal__body {
   overflow-x: auto;
-  padding: 10px 40px;
+  padding: 10px 20px;
 }
 
 .modal__rank-table {
@@ -1290,10 +1368,10 @@ body {
 }
 
 .modal__rank-table th {
-  padding: 8px 8px;
+  padding: 6px 8px;
   text-align: center;
   font-weight: 400;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   color: white;
   white-space: nowrap;
 }
@@ -1303,14 +1381,14 @@ body {
   text-align: center;
   border-bottom: 1px solid #eee;
   color: #666;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
 }
 
-.modal__rank-table tbody tr:nth-child(1) td,
-.modal__rank-table tbody tr:nth-child(2) td,
-.modal__rank-table tbody tr:nth-child(3) td,
-.modal__rank-table tbody tr:nth-child(4) td,
-.modal__rank-table tbody tr:nth-child(5) td {
+.modal__rank-table tbody tr:nth-child(1) td:first-child,
+.modal__rank-table tbody tr:nth-child(2) td:first-child,
+.modal__rank-table tbody tr:nth-child(3) td:first-child,
+.modal__rank-table tbody tr:nth-child(4) td:first-child,
+.modal__rank-table tbody tr:nth-child(5) td:first-child {
   font-weight: 600;
 }
 
@@ -1336,15 +1414,7 @@ body {
 }
 
 .modal__rank-table .modal__team-name span {
-  font-weight: 400;
-}
-
-.modal__rank-table tbody tr:nth-child(1) .modal__team-name span,
-.modal__rank-table tbody tr:nth-child(2) .modal__team-name span,
-.modal__rank-table tbody tr:nth-child(3) .modal__team-name span,
-.modal__rank-table tbody tr:nth-child(4) .modal__team-name span,
-.modal__rank-table tbody tr:nth-child(5) .modal__team-name span {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .modal__rank-table tbody tr:nth-child(5) {
@@ -1358,8 +1428,7 @@ body {
 .modal__rank-table .modal__recent-games {
   font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
   letter-spacing: 2px;
-  font-size: 0.9rem;
-  line-height: 1;
+  font-size: 1.1rem;
 }
 
 
@@ -1371,13 +1440,7 @@ body {
 
 
 .modal__content.modal__content--weather {
-  background-color: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 920px;
-  height: 330px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
 }
@@ -1414,30 +1477,30 @@ body {
   text-align: center;
   font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
   flex: 0 0 calc(20% - 8px);
-  min-width: 160px;
+  min-width: 168px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .modal__weather-stadium {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #333;
 }
 
 .modal__weather-icon {
-  font-size: 1.5rem;
+  font-size: 3rem;
 }
 
 .modal__weather-temp {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #333;
 }
 
 .modal__weather-desc {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #666;
 }
 
@@ -1463,7 +1526,7 @@ body {
 }
 
 .modal__weather-detail-label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #999;
   line-height: 1;
 }
@@ -1471,7 +1534,7 @@ body {
 .modal__weather-detail-value {
   font-weight: 700;
   color: #333;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   line-height: 1;
 }
 
@@ -1482,8 +1545,302 @@ body {
   color: #999;
 }
 
+/* Game Detail Modal */
+.modal--game-detail {
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1050;
+}
+
+.modal--game-detail .modal__content {
+  background-color: white;
+  border-radius: 8px;
+  width: 920px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin: auto;
+}
+
+.game-detail__pitchers {
+  display: flex;
+  padding: 0 0 20px 0;
+  flex-direction: column;
+}
+
+.game-detail__pitcher-card {
+  flex: 1;
+  border: none;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.game-detail__pitcher-card .game-detail__pitcher-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.game-detail__pitcher-card .game-detail__pitcher-info {
+  flex: 0 0 auto;
+  min-width: 80px;
+}
+
+.game-detail__pitcher-card .game-detail__stats-table {
+  flex: 1;
+  margin-top: 0;
+  margin-left: auto;
+}
+
+.game-detail__pitcher-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.game-detail__team-logo {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.game-detail__team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-detail__pitcher-info {
+  flex: 1;
+}
+
+.game-detail__pitcher-name {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.game-detail__pitcher-name .name-wrap {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #ddd;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-detail__pitcher-name .name {
+  font-weight: 700;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.game-detail__pitcher-name .style {
+  font-size: 0.95rem;
+  color: #999;
+}
+
+.game-detail__pitcher-name .record {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 5px;
+}
+
+.game-detail__stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  table-layout: fixed;
+}
+
+.game-detail__stats-table thead {
+  background-color: #f5f5f5;
+}
+
+.game-detail__stats-table th {
+  padding: 5px 6px;
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  color: #333;
+  white-space: nowrap;
+  font-size: 1.2rem;
+  width: 60px;
+}
+
+.game-detail__stats-table td {
+  padding: 10px 6px;
+  text-align: center;
+  border-bottom: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 1.1rem;
+  width: 60px;
+}
+
+.game-detail__stats-table td.stat-highlight {
+  color: #a92424;
+}
+
+.game-detail__stats-table th.pitcher-info-col {
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  padding: 5px 6px;
+  background-color: transparent;
+  width: 150px;
+}
+
+.game-detail__stats-table th.pitcher-info-col > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-detail__stats-table td.pitcher-info-col {
+  text-align: center;
+  border-bottom: none;
+  padding: 5px 6px;
+  vertical-align: top;
+  width: 150px;
+}
+
+.pitcher-info-with-logo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.pitcher-info-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.game-detail__wpa-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.game-detail__wpa-section {
+  flex: 1;
+}
+
+.game-detail__team-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.game-detail__team-logo-small {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.game-detail__team-name-small {
+  font-size: 0.95rem;
+}
+
+.game-detail__wpa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  border: 1px solid #eee;
+}
+
+.game-detail__wpa-table thead {
+  background-color: #f5f5f5;
+}
+
+.game-detail__wpa-table th {
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.game-detail__wpa-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-size: 1rem;
+}
+
+.game-detail__wpa-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.modal__no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 1rem;
+}
+
 @media (min-width: 1024px) {
   .scroll-top-btn {
     right: calc(35% - 480px);
   }
+}
+
+/* Game Detail Tabs */
+.game-detail__tabs {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  background-color:#333;
+  border-radius: 20px;
+  padding: 4px;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+
+.game-detail__tab {
+  padding: 0 5px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #fff;
+  transition: all 0.2s ease;
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+  border-radius: 20px;
+}
+
+.game-detail__tab.active {
+  color: #333;
+  background-color: white;
+}
+
+.game-detail__tab.active::after {
+  content: ' ♧';
+}
+
+.game-detail__tab-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-detail__tab-pane {
+  display: none;
+}
+
+.game-detail__tab-pane.active {
+  display: block;
 }
