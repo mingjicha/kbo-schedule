@@ -2,8 +2,6 @@
 
 KBO 공식 데이터와 AI 기반 분석을 결합하여 한국야구 경기 일정, 점수, 투수 정보, 팀 순위 및 날씨 정보를 제공하는 웹 서비스입니다.
 
-**배포 주소**: https://kbo-schedule-production.up.railway.app/
-
 ---
 
 ## 주요 기능
@@ -44,7 +42,7 @@ KBO 공식 데이터와 AI 기반 분석을 결합하여 한국야구 경기 일
 ## 배포
 
 - **Railway** — Node.js 서버 배포
-- 배포 주소: https://kbo-schedule-production.up.railway.app/
+- **배포 주소**: https://kbo-schedule-production.up.railway.app/
 - 자동 빌드 및 배포 파이프라인 구성
 
 ---

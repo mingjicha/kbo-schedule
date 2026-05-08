@@ -1,0 +1,114 @@
+/* Flatpickr Calendar Styling */
+.flatpickr-calendar {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  position: fixed !important;
+  z-index: 99 !important;
+}
+
+.flatpickr-calendar.open {
+  display: block !important;
+}
+
+.flatpickr-months {
+  background: white;
+  color: #000;
+}
+
+.flatpickr-month {
+  background: white;
+  color: #000;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  color: #333;
+  fill: #333;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+  color: #000;
+  fill: #000;
+}
+
+.flatpickr-current-month input.cur-year {
+  color: #000;
+  background: white;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background: white;
+  color: #000;
+}
+
+.flatpickr-weekdays {
+  background: white;
+  color: #000;
+}
+
+.flatpickr-weekday {
+  color: #333;
+  background: white;
+}
+
+.flatpickr-days {
+  background: white;
+}
+
+.flatpickr-day {
+  color: #333;
+  border-color: white;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange {
+  background: #000;
+  border-color: #000;
+  color: white;
+}
+
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:hover,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected.inRange:hover,
+.flatpickr-day.selected.inRange:focus {
+  background: #333;
+  border-color: #333;
+  color: white;
+}
+
+.flatpickr-day.inRange {
+  background: #f0f0f0;
+  color: #000;
+}
+
+.flatpickr-day.today {
+  border-color: #000;
+  color: #000;
+}
+
+.flatpickr-day.today.selected {
+  background: #000;
+  border-color: #000;
+  color: white;
+}
+
+.flatpickr-day.today:hover {
+  background: #000;
+  color: white;
+  border-color: #000;
+}
+
+.flatpickr-day:hover {
+  background: #000;
+  color: white;
+  border-color: #000;
+}

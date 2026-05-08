@@ -1,0 +1,618 @@
+/* Modal Base */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal__content {
+  background-color: white;
+  border-radius: 8px;
+  width: 920px;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  scrollbar-width: none;
+  margin: auto;
+}
+
+.modal__content::-webkit-scrollbar {
+  display: none;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1;
+}
+
+.modal__header-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.modal__header-left > div {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.modal__header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  line-height: 1;
+}
+
+.modal__badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background-color: #F9D366;
+  color: white;
+  border-radius: 20px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modal__badge--weather {
+  background-color: #2f6f64;
+}
+
+.modal--game-detail .modal__badge {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.modal__controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.modal__date {
+  font-size: 1rem;
+  color: #666;
+}
+
+.modal__btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #666;
+  padding: 0;
+}
+
+.modal__btn--refresh:hover {
+  background-color: #fffbf0;
+  border-color: #F9D366;
+  color: #F9D366;
+}
+
+.modal--weather .modal__btn--refresh:hover {
+  background-color: #f0f5f4;
+  border-color: #2f6f64;
+  color: #2f6f64;
+}
+
+.modal__btn--close:hover {
+  background-color: #f5f5f5;
+  border-color: #999;
+  color: #333;
+}
+
+.modal__btn i {
+  font-size: 1rem;
+}
+
+.modal__body {
+  overflow-x: auto;
+  padding: 10px 20px;
+}
+
+.modal__no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 1rem;
+}
+
+/* Rank Table */
+.modal__rank-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+}
+
+.modal__rank-table thead {
+  background-color: #F9D366;
+}
+
+.modal__rank-table th {
+  padding: 6px 8px;
+  text-align: center;
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: white;
+  white-space: nowrap;
+}
+
+.modal__rank-table td {
+  padding: 8px 8px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.modal__rank-table tbody tr:nth-child(1) td:first-child,
+.modal__rank-table tbody tr:nth-child(2) td:first-child,
+.modal__rank-table tbody tr:nth-child(3) td:first-child,
+.modal__rank-table tbody tr:nth-child(4) td:first-child,
+.modal__rank-table tbody tr:nth-child(5) td:first-child {
+  font-weight: 600;
+}
+
+.modal__rank-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.modal__rank-table .schedule__team-name {
+  text-align: left;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+}
+
+.modal__rank-table .modal__team-name .modal__team-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.modal__rank-table .modal__team-name span {
+  font-weight: 500;
+}
+
+.modal__rank-table tbody tr:nth-child(5) {
+  border-bottom: 1px solid #F9D366;
+}
+
+.modal__rank-table tbody tr:nth-child(5) td {
+  border-bottom: none;
+}
+
+.modal__rank-table .modal__recent-games {
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+}
+
+.modal__no-rank-data {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+}
+
+/* Weather Modal */
+.modal__content.modal__content--weather {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__content.modal__content--weather::-webkit-scrollbar {
+  display: none;
+}
+
+.modal__body--weather {
+  padding: 15px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal__weather-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.modal__weather-card {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+  flex: 0 0 calc(20% - 8px);
+  min-width: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal__weather-stadium {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal__weather-icon {
+  font-size: 3rem;
+}
+
+.modal__weather-temp {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal__weather-desc {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.modal__weather-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: #666;
+  width: 100%;
+}
+
+.modal__weather-detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  font-size: 0.825rem;
+  padding: 4px 0;
+}
+
+.modal__weather-detail-label {
+  font-size: 0.85rem;
+  color: #999;
+  line-height: 1;
+}
+
+.modal__weather-detail-value {
+  font-weight: 700;
+  color: #333;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.modal__no-weather-data {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+}
+
+/* Game Detail Modal */
+.modal--game-detail {
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1050;
+}
+
+.modal--game-detail .modal__content {
+  background-color: white;
+  border-radius: 8px;
+  width: 920px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  margin: auto;
+}
+
+.game-detail__pitchers {
+  display: flex;
+  padding: 0 0 20px 0;
+  flex-direction: column;
+}
+
+.game-detail__pitcher-card {
+  flex: 1;
+  border: none;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.game-detail__pitcher-card .game-detail__pitcher-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.game-detail__pitcher-card .game-detail__pitcher-info {
+  flex: 0 0 auto;
+  min-width: 80px;
+}
+
+.game-detail__pitcher-card .game-detail__stats-table {
+  flex: 1;
+  margin-top: 0;
+  margin-left: auto;
+}
+
+.game-detail__pitcher-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.game-detail__team-logo {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.game-detail__team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-detail__pitcher-info {
+  flex: 1;
+}
+
+.game-detail__pitcher-name {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.game-detail__pitcher-name .name-wrap {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #ddd;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-detail__pitcher-name .name {
+  font-weight: 700;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.game-detail__pitcher-name .style {
+  font-size: 0.95rem;
+  color: #999;
+}
+
+.game-detail__pitcher-name .record {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 5px;
+}
+
+.game-detail__stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  table-layout: fixed;
+}
+
+.game-detail__stats-table thead {
+  background-color: #f5f5f5;
+}
+
+.game-detail__stats-table th {
+  padding: 5px 6px;
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  color: #333;
+  white-space: nowrap;
+  font-size: 1.2rem;
+  width: 60px;
+}
+
+.game-detail__stats-table td {
+  padding: 10px 6px;
+  text-align: center;
+  border-bottom: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 1.1rem;
+  width: 60px;
+}
+
+.game-detail__stats-table td.stat-highlight {
+  color: #a92424;
+}
+
+.game-detail__stats-table th.pitcher-info-col {
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  padding: 5px 6px;
+  background-color: transparent;
+  width: 150px;
+}
+
+.game-detail__stats-table th.pitcher-info-col > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-detail__stats-table td.pitcher-info-col {
+  text-align: center;
+  border-bottom: none;
+  padding: 5px 6px;
+  vertical-align: top;
+  width: 150px;
+}
+
+.pitcher-info-with-logo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.pitcher-info-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.game-detail__wpa-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.game-detail__wpa-section {
+  flex: 1;
+}
+
+.game-detail__team-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.game-detail__team-logo-small {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.game-detail__team-name-small {
+  font-size: 0.95rem;
+}
+
+.game-detail__wpa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  border: 1px solid #eee;
+}
+
+.game-detail__wpa-table thead {
+  background-color: #f5f5f5;
+}
+
+.game-detail__wpa-table th {
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.game-detail__wpa-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-size: 1rem;
+}
+
+.game-detail__wpa-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Game Detail Tabs */
+.game-detail__tabs {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  background-color: #333;
+  border-radius: 20px;
+  padding: 2px;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+
+.game-detail__tab {
+  padding: 0 5px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #fff;
+  transition: all 0.2s ease;
+  font-family: 'OngleipParkDahyeon', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+  border-radius: 20px;
+}
+
+.game-detail__tab.active {
+  color: #333;
+  background-color: white;
+}
+
+.game-detail__tab.active::after {
+  content: ' ♧';
+}
+
+.game-detail__tab-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-detail__tab-pane {
+  display: none;
+}
+
+.game-detail__tab-pane.active {
+  display: block;
+}

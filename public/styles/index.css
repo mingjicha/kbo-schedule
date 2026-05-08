@@ -1,0 +1,9 @@
+/* Import all CSS files */
+@import url('./common.css');
+@import url('./header.css');
+@import url('./nav.css');
+@import url('./filter.css');
+@import url('./main.css');
+@import url('./modal.css');
+@import url('./calendar.css');
+@import url('./footer.css');

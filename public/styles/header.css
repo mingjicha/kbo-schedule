@@ -1,0 +1,87 @@
+/* Header */
+.app-header {
+  background-color: white;
+  padding: 32px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.app-header__content {
+  padding: 0 20px;
+}
+
+.app-header__title {
+  text-align: center;
+}
+
+.app-header__title h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.app-header__title p {
+  font-size: 1rem;
+  color: #999;
+  margin-bottom: 0;
+}
+
+.controls {
+  background-color: white;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.btn--year {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.btn--today,
+.btn--calendar {
+  background-color: white;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn--calendar {
+  position: relative;
+}
+
+.btn--today:hover,
+.btn--calendar:hover {
+  border-color: #999;
+  background-color: #f5f5f5;
+}
+
+#yearDisplay {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  min-width: 96px;
+  text-align: center;
+}
+
+.year-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}

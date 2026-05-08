@@ -1,0 +1,277 @@
+/* Main Content */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule {
+  padding: 0 20px 40px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Day Group */
+.schedule__day {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.schedule__day.schedule__day--today {
+  background-color: white;
+  border: 2px solid #626ABD;
+}
+
+.schedule__date-header {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.schedule__today-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #626ABD;
+  color: white;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Game Card */
+.schedule__game {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  min-height: 80px;
+  background-color: white;
+  gap: 16px;
+}
+
+.schedule__day.schedule__day--today .schedule__game {
+  cursor: pointer;
+}
+
+.schedule__game:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.schedule__game.schedule__game--finished {
+  background-color: #f5f5f5;
+  border-color: #f0f0f0;
+}
+
+.schedule__game.schedule__game--scheduled {
+  background-color: white;
+  border-color: #f0f0f0;
+}
+
+.schedule__game.schedule__game--live {
+  background-color: white;
+  border-color: #626ABD;
+}
+
+.schedule__game.schedule__game--cancelled {
+  background-color: #f5f5f5;
+  border-color: #f0f0f0;
+}
+
+.schedule__day.schedule__day--today .schedule__game {
+  background-color: rgb(147 153 219 / 10%);
+  border: 1px solid #626ABD;
+}
+
+/* Game Info */
+.schedule__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.schedule__time {
+  color: #333;
+  font-weight: 600;
+}
+
+.schedule__teams {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-weight: 600;
+  flex: 1;
+  justify-content: center;
+}
+
+.schedule__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.schedule__team-name {
+  min-width: 70px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.schedule__pitcher {
+  font-size: 0.9rem;
+  color: #757575;
+  min-width: 70px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.schedule__pitcher.schedule__pitcher--win {
+  color: #626ABD;
+}
+
+.schedule__pitcher.schedule__pitcher--loss {
+  color: #757575;
+}
+
+.schedule__logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.schedule__score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 1.375rem;
+  color: #333;
+  min-width: 70px;
+  justify-content: center;
+}
+
+.schedule__score.schedule__game--finished {
+  color: #333;
+  font-size: 1.375rem;
+}
+
+.schedule__score.schedule__game--scheduled {
+  color: #757575;
+}
+
+.schedule__score.schedule__game--live {
+  color: #626ABD;
+  font-size: 1.375rem;
+}
+
+.schedule__score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.schedule__inning-info {
+  font-size: 0.75rem;
+  color: #757575;
+  font-weight: 500;
+  margin-top: -3.2px;
+}
+
+.schedule__stadium {
+  color: #999;
+  font-size: 1rem;
+}
+
+/* Status Badge */
+.schedule__status {
+  padding: 4px 12px;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 60px;
+  text-align: center;
+  background-color: #f3f3f3;
+  color: #757575;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.schedule__status::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.schedule__status.schedule__game--finished::before {
+  background-color: #2f6f64;
+}
+
+.schedule__status.schedule__game--scheduled {
+  color: #666;
+}
+
+.schedule__status.schedule__game--scheduled::before {
+  background-color: #626ABD;
+}
+
+.schedule__status.schedule__game--live {
+  color: #666;
+}
+
+.schedule__status.schedule__game--live::before {
+  background-color: #626ABD;
+}
+
+.schedule__status.schedule__game--cancelled::before {
+  background-color: #e57373;
+}
+
+.schedule__no-games {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

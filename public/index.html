@@ -7,9 +7,10 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles/index.css">
 </head>
 <body>
+  <!-- ==================== HEADER SECTION ==================== -->
   <header class="app-header">
     <div class="app-header__content">
       <div class="app-header__title">
@@ -21,8 +22,10 @@
     </div>
   </header>
 
+  <!-- ==================== MAIN SECTION ==================== -->
   <div class="app-wrapper">
     <div class="app">
+    <!-- Header Controls: Year, Calendar, Today Button -->
     <div class="app__header-section">
       <div class="controls">
         <button id="todayBtn" class="btn btn--today" aria-label="최근">
@@ -42,12 +45,14 @@
         </button>
       </div>
 
+      <!-- Navigation: Month Tabs -->
       <nav class="nav">
         <div class="nav__content">
           <div id="monthTabsContainer" class="nav__tabs"></div>
         </div>
       </nav>
 
+      <!-- Filter: Team Selection -->
       <aside class="filter">
         <div class="filter__content">
           <div class="filter__teams">
@@ -67,6 +72,7 @@
       </aside>
     </div>
 
+    <!-- Main Content: Schedule -->
     <main class="main">
       <div id="scheduleContainer" class="schedule">
         <div class="loading">
@@ -75,6 +81,7 @@
       </div>
     </main>
 
+    <!-- UI Components: Scroll Top Button, Quick Menu -->
     <button id="scrollTopBtn" class="scroll-top-btn" aria-label="상단으로 이동">
       <i class="bi bi-chevron-up"></i>
     </button>
@@ -94,6 +101,8 @@
       </button>
     </div>
 
+    <!-- ==================== MODALS ==================== -->
+    <!-- Modal: Team Rank -->
     <div id="rankModal" class="modal modal--rank">
       <div class="modal__content">
         <div class="modal__header">
@@ -120,6 +129,7 @@
       </div>
     </div>
 
+    <!-- Modal: Weather -->
     <div id="weatherModal" class="modal modal--weather">
       <div class="modal__content modal__content--weather">
         <div class="modal__header">
@@ -146,6 +156,7 @@
       </div>
     </div>
 
+    <!-- Modal: Game Detail -->
     <div id="gameDetailModal" class="modal modal--game-detail">
       <div class="modal__content">
         <div class="modal__header">
@@ -165,6 +176,7 @@
     </div>
   </div>
 
+  <!-- ==================== FOOTER SECTION ==================== -->
   <footer class="app-footer">
     <div class="app-footer__content">
       <div class="app-footer__section">
@@ -194,6 +206,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
-  <script src="app.js"></script>
+  <script src="js/constants.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,240 @@
+/* Filter Section */
+.filter {
+  background-color: white;
+}
+
+.filter__content {
+  padding: 20px;
+}
+
+.filter__teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.filter__btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.filter__btn:hover {
+  border-color: #999;
+  background-color: #f5f5f5;
+}
+
+/* 팀별 hover 상태 색상 */
+.filter__btn[data-team="LG"]:hover {
+  border-color: #C8102E;
+  color: #C8102E;
+}
+
+.filter__btn[data-team="HH"]:hover {
+  border-color: #F37222;
+  color: #F37222;
+}
+
+.filter__btn[data-team="SK"]:hover {
+  border-color: #E50021;
+  color: #E50021;
+}
+
+.filter__btn[data-team="SS"]:hover {
+  border-color: #0066B3;
+  color: #0066B3;
+}
+
+.filter__btn[data-team="NC"]:hover {
+  border-color: #00275A;
+  color: #00275A;
+}
+
+.filter__btn[data-team="KT"]:hover {
+  border-color: #000000;
+  color: #000000;
+}
+
+.filter__btn[data-team="LT"]:hover {
+  border-color: #00295F;
+  color: #00295F;
+}
+
+.filter__btn[data-team="HT"]:hover {
+  border-color: #00205B;
+  color: #00205B;
+}
+
+.filter__btn[data-team="OB"]:hover {
+  border-color: #131F43;
+  color: #131F43;
+}
+
+.filter__btn[data-team="WO"]:hover {
+  border-color: #A60134;
+  color: #A60134;
+}
+
+/* 팀별 글꼴 색상 (비활성) */
+.filter__btn[data-team="LG"] {
+  color: #C8102E;
+}
+
+.filter__btn[data-team="HH"] {
+  color: #F37222;
+}
+
+.filter__btn[data-team="SK"] {
+  color: #E50021;
+}
+
+.filter__btn[data-team="SS"] {
+  color: #0066B3;
+}
+
+.filter__btn[data-team="NC"] {
+  color: #00275A;
+}
+
+.filter__btn[data-team="KT"] {
+  color: #000000;
+}
+
+.filter__btn[data-team="LT"] {
+  color: #00295F;
+}
+
+.filter__btn[data-team="HT"] {
+  color: #00205B;
+}
+
+.filter__btn[data-team="OB"] {
+  color: #131F43;
+}
+
+.filter__btn[data-team="WO"] {
+  color: #A60134;
+}
+
+.filter__btn.active {
+  color: white;
+  border-color: transparent;
+}
+
+/* 팀별 색상 */
+.filter__btn[data-team=""].active {
+  background-color: #333;
+  border-color: #333;
+}
+
+.filter__btn[data-team=""].active:hover {
+  background-color: #333;
+  color: white;
+}
+
+.filter__btn[data-team="LG"].active {
+  background-color: #C8102E;
+  border-color: #C8102E;
+}
+
+.filter__btn[data-team="LG"].active:hover {
+  background-color: #C8102E;
+  color: white;
+}
+
+.filter__btn[data-team="HH"].active {
+  background-color: #F37222;
+  border-color: #F37222;
+}
+
+.filter__btn[data-team="HH"].active:hover {
+  background-color: #F37222;
+  color: white;
+}
+
+.filter__btn[data-team="SK"].active {
+  background-color: #E50021;
+  border-color: #E50021;
+}
+
+.filter__btn[data-team="SK"].active:hover {
+  background-color: #E50021;
+  color: white;
+}
+
+.filter__btn[data-team="SS"].active {
+  background-color: #0066B3;
+  border-color: #0066B3;
+}
+
+.filter__btn[data-team="SS"].active:hover {
+  background-color: #0066B3;
+  color: white;
+}
+
+.filter__btn[data-team="NC"].active {
+  background-color: #00275A;
+  border-color: #00275A;
+}
+
+.filter__btn[data-team="NC"].active:hover {
+  background-color: #00275A;
+  color: white;
+}
+
+.filter__btn[data-team="KT"].active {
+  background-color: #000000;
+  border-color: #000000;
+}
+
+.filter__btn[data-team="KT"].active:hover {
+  background-color: #000000;
+  color: white;
+}
+
+.filter__btn[data-team="LT"].active {
+  background-color: #00295F;
+  border-color: #00295F;
+}
+
+.filter__btn[data-team="LT"].active:hover {
+  background-color: #00295F;
+  color: white;
+}
+
+.filter__btn[data-team="HT"].active {
+  background-color: #00205B;
+  border-color: #00205B;
+}
+
+.filter__btn[data-team="HT"].active:hover {
+  background-color: #00205B;
+  color: white;
+}
+
+.filter__btn[data-team="OB"].active {
+  background-color: #131F43;
+  border-color: #131F43;
+}
+
+.filter__btn[data-team="OB"].active:hover {
+  background-color: #131F43;
+  color: white;
+}
+
+.filter__btn[data-team="WO"].active {
+  background-color: #A60134;
+  border-color: #A60134;
+}
+
+.filter__btn[data-team="WO"].active:hover {
+  background-color: #A60134;
+  color: white;
+}
