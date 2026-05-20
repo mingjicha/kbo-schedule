@@ -85,42 +85,92 @@
 /* 팀별 글꼴 색상 (비활성) */
 .filter__btn[data-team="LG"] {
   color: #C8102E;
+  border-color: #C8102E;
+}
+
+.filter__btn[data-team="LG"]:hover {
+  background-color: rgba(200, 16, 46, 0.1);
 }
 
 .filter__btn[data-team="HH"] {
   color: #F37222;
+  border-color: #F37222;
+}
+
+.filter__btn[data-team="HH"]:hover {
+  background-color: rgba(243, 114, 34, 0.1);
 }
 
 .filter__btn[data-team="SK"] {
   color: #E50021;
+  border-color: #E50021;
+}
+
+.filter__btn[data-team="SK"]:hover {
+  background-color: rgba(229, 0, 33, 0.1);
 }
 
 .filter__btn[data-team="SS"] {
   color: #0066B3;
+  border-color: #0066B3;
+}
+
+.filter__btn[data-team="SS"]:hover {
+  background-color: rgba(0, 102, 179, 0.1);
 }
 
 .filter__btn[data-team="NC"] {
   color: #00275A;
+  border-color: #00275A;
+}
+
+.filter__btn[data-team="NC"]:hover {
+  background-color: rgba(0, 39, 90, 0.1);
 }
 
 .filter__btn[data-team="KT"] {
   color: #000000;
+  border-color: #000000;
+}
+
+.filter__btn[data-team="KT"]:hover {
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 .filter__btn[data-team="LT"] {
   color: #00295F;
+  border-color: #00295F;
+}
+
+.filter__btn[data-team="LT"]:hover {
+  background-color: rgba(0, 41, 95, 0.1);
 }
 
 .filter__btn[data-team="HT"] {
   color: #00205B;
+  border-color: #00205B;
+}
+
+.filter__btn[data-team="HT"]:hover {
+  background-color: rgba(0, 32, 91, 0.1);
 }
 
 .filter__btn[data-team="OB"] {
   color: #131F43;
+  border-color: #131F43;
+}
+
+.filter__btn[data-team="OB"]:hover {
+  background-color: rgba(19, 31, 67, 0.1);
 }
 
 .filter__btn[data-team="WO"] {
   color: #A60134;
+  border-color: #A60134;
+}
+
+.filter__btn[data-team="WO"]:hover {
+  background-color: rgba(166, 1, 52, 0.1);
 }
 
 .filter__btn.active {

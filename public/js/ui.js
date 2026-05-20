@@ -107,6 +107,7 @@ async function goToToday() {
 
     if (todaySchedule.length === 0) {
       scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘 경기 일정이 없습니다.</div>';
+      alert('오늘 경기는 없다냥! †');
       return;
     }
 

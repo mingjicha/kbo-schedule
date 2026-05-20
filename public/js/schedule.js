@@ -247,86 +247,6 @@ function createGameCard(game, date, isToday) {
   const teamsDiv = document.createElement('div');
   teamsDiv.className = 'schedule__teams';
 
-  const homeTeamContainer = document.createElement('div');
-  homeTeamContainer.className = 'schedule__team';
-
-  const homeTeam = document.createElement('span');
-  homeTeam.className = 'schedule__team-name';
-  homeTeam.textContent = game.homeTeam;
-  homeTeamContainer.appendChild(homeTeam);
-
-  if (game.homePitcher && game.homePitcher !== 'N/A') {
-    const homePitcher = document.createElement('div');
-    homePitcher.className = 'schedule__pitcher';
-
-    if (statusClass === 'schedule__game--finished') {
-      homePitcher.classList.add(game.winner === 'home' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
-      if (game.winner === 'home') {
-        const homesvgIcon = document.createElement('span');
-        homesvgIcon.className = 'schedule__pitcher-icon';
-        homesvgIcon.textContent = '🏅';
-        homePitcher.appendChild(homesvgIcon);
-      }
-    }
-
-    const homePitcherText = document.createElement('span');
-    homePitcherText.textContent = `선 ${game.homePitcher}`;
-    homePitcher.appendChild(homePitcherText);
-
-    homeTeamContainer.appendChild(homePitcher);
-  }
-
-  teamsDiv.appendChild(homeTeamContainer);
-
-  const homeLogo = document.createElement('img');
-  homeLogo.className = 'schedule__logo';
-  homeLogo.src = teamLogos[game.homeTeam] || '';
-  homeLogo.alt = game.homeTeam;
-  teamsDiv.appendChild(homeLogo);
-
-  const scoreContainer = document.createElement('div');
-  scoreContainer.className = 'schedule__score-container';
-
-  const scoreDiv = document.createElement('div');
-  scoreDiv.className = 'schedule__score ' + statusClass;
-  scoreDiv.id = `score-${game.awayTeam}-${game.homeTeam}-${game.time}`;
-  if ((statusClass === 'schedule__game--live' || statusClass === 'schedule__game--finished') && game.awayScore !== null && game.homeScore !== null) {
-    scoreDiv.textContent = `${game.homeScore} : ${game.awayScore}`;
-  } else {
-    scoreDiv.textContent = 'vs';
-  }
-  scoreContainer.appendChild(scoreDiv);
-
-  if (statusClass === 'schedule__game--live' && game.gameId) {
-    const inningDiv = document.createElement('div');
-    inningDiv.className = 'schedule__inning-info';
-    inningDiv.id = `inning-${game.gameId}`;
-    inningDiv.textContent = '로딩 중이다냥! †';
-    scoreContainer.appendChild(inningDiv);
-
-    fetchGameDetail(game.gameId).then(data => {
-      if (data) {
-        if (data.awayScore !== undefined && data.homeScore !== undefined) {
-          scoreDiv.textContent = `${data.homeScore} : ${data.awayScore}`;
-        }
-        if (data.inning) {
-          const inningText = `${data.inning}${data.inningSide === '초' ? '회초' : '회말'}`;
-          inningDiv.textContent = inningText;
-        } else {
-          inningDiv.textContent = '경기 정보 없음';
-        }
-      }
-    });
-  }
-
-  teamsDiv.appendChild(scoreContainer);
-
-  const awayLogo = document.createElement('img');
-  awayLogo.className = 'schedule__logo';
-  awayLogo.src = teamLogos[game.awayTeam] || '';
-  awayLogo.alt = game.awayTeam;
-  teamsDiv.appendChild(awayLogo);
-
   const awayTeamContainer = document.createElement('div');
   awayTeamContainer.className = 'schedule__team';
 
@@ -350,13 +270,93 @@ function createGameCard(game, date, isToday) {
     }
 
     const awayPitcherText = document.createElement('span');
-    awayPitcherText.textContent = `선 ${game.awayPitcher}`;
+    awayPitcherText.textContent = game.awayPitcher;
     awayPitcher.appendChild(awayPitcherText);
 
     awayTeamContainer.appendChild(awayPitcher);
   }
 
   teamsDiv.appendChild(awayTeamContainer);
+
+  const awayLogo = document.createElement('img');
+  awayLogo.className = 'schedule__logo';
+  awayLogo.src = teamLogos[game.awayTeam] || '';
+  awayLogo.alt = game.awayTeam;
+  teamsDiv.appendChild(awayLogo);
+
+  const scoreContainer = document.createElement('div');
+  scoreContainer.className = 'schedule__score-container';
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.className = 'schedule__score ' + statusClass;
+  scoreDiv.id = `score-${game.awayTeam}-${game.homeTeam}-${game.time}`;
+  if ((statusClass === 'schedule__game--live' || statusClass === 'schedule__game--finished') && game.awayScore !== null && game.homeScore !== null) {
+    scoreDiv.textContent = `${game.awayScore} : ${game.homeScore}`;
+  } else {
+    scoreDiv.textContent = 'vs';
+  }
+  scoreContainer.appendChild(scoreDiv);
+
+  if (statusClass === 'schedule__game--live' && game.gameId) {
+    const inningDiv = document.createElement('div');
+    inningDiv.className = 'schedule__inning-info';
+    inningDiv.id = `inning-${game.gameId}`;
+    inningDiv.textContent = '로딩 중이다냥! †';
+    scoreContainer.appendChild(inningDiv);
+
+    fetchGameDetail(game.gameId).then(data => {
+      if (data) {
+        if (data.awayScore !== undefined && data.homeScore !== undefined) {
+          scoreDiv.textContent = `${data.awayScore} : ${data.homeScore}`;
+        }
+        if (data.inning) {
+          const inningText = `${data.inning}${data.inningSide === '초' ? '회초' : '회말'}`;
+          inningDiv.textContent = inningText;
+        } else {
+          inningDiv.textContent = '경기 정보 없음';
+        }
+      }
+    });
+  }
+
+  teamsDiv.appendChild(scoreContainer);
+
+  const homeLogo = document.createElement('img');
+  homeLogo.className = 'schedule__logo';
+  homeLogo.src = teamLogos[game.homeTeam] || '';
+  homeLogo.alt = game.homeTeam;
+  teamsDiv.appendChild(homeLogo);
+
+  const homeTeamContainer = document.createElement('div');
+  homeTeamContainer.className = 'schedule__team';
+
+  const homeTeam = document.createElement('span');
+  homeTeam.className = 'schedule__team-name';
+  homeTeam.textContent = game.homeTeam;
+  homeTeamContainer.appendChild(homeTeam);
+
+  if (game.homePitcher && game.homePitcher !== 'N/A') {
+    const homePitcher = document.createElement('div');
+    homePitcher.className = 'schedule__pitcher';
+
+    if (statusClass === 'schedule__game--finished') {
+      homePitcher.classList.add(game.winner === 'home' ? 'schedule__pitcher--win' : 'schedule__pitcher--loss');
+      if (game.winner === 'home') {
+        const homesvgIcon = document.createElement('span');
+        homesvgIcon.className = 'schedule__pitcher-icon';
+        homesvgIcon.textContent = '🏅';
+        homePitcher.appendChild(homesvgIcon);
+      }
+    }
+
+    const homePitcherText = document.createElement('span');
+    homePitcherText.textContent = game.homePitcher;
+    homePitcher.appendChild(homePitcherText);
+
+    homeTeamContainer.appendChild(homePitcher);
+  }
+
+  teamsDiv.appendChild(homeTeamContainer);
 
   gameInfo.appendChild(teamsDiv);
 
@@ -396,64 +396,64 @@ function createGameCard(game, date, isToday) {
 
     if (!isTodayGame) return;
 
-    gameDetailContainer.innerHTML = '<div class="modal__no-data">로딩 중이다냥! †</div>';
     gameDetailModal.classList.add('show');
+    gameDetailTitle.innerHTML = '<h3><span class="modal__badge">Preview</span></h3>';
 
-    try {
-      gameDetailTitle.innerHTML = '<h3><span class="modal__badge">Preview</span></h3>';
+    if (isTodayGame) {
+      const tabContainer = document.createElement('div');
+      tabContainer.className = 'game-detail__tabs';
+
+      const pitcherTab = document.createElement('button');
+      pitcherTab.className = 'game-detail__tab active';
+      pitcherTab.textContent = '선발투수';
+
+      const lineupTab = document.createElement('button');
+      lineupTab.className = 'game-detail__tab';
+      lineupTab.textContent = '라인업';
+
+      tabContainer.appendChild(pitcherTab);
+      tabContainer.appendChild(lineupTab);
+
+      const contentContainer = document.createElement('div');
+      contentContainer.className = 'game-detail__tab-content';
+
+      const pitcherContent = document.createElement('div');
+      pitcherContent.className = 'game-detail__tab-pane active';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
+
+      const lineupContent = document.createElement('div');
+      lineupContent.className = 'game-detail__tab-pane';
+      lineupContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div></div>';
+
+      contentContainer.appendChild(pitcherContent);
+      contentContainer.appendChild(lineupContent);
+
       gameDetailContainer.innerHTML = '';
+      gameDetailContainer.appendChild(tabContainer);
+      gameDetailContainer.appendChild(contentContainer);
 
-      if (isTodayGame) {
-        const tabContainer = document.createElement('div');
-        tabContainer.className = 'game-detail__tabs';
+      pitcherTab.addEventListener('click', () => {
+        pitcherTab.classList.add('active');
+        lineupTab.classList.remove('active');
+        pitcherContent.classList.add('active');
+        lineupContent.classList.remove('active');
+      });
 
-        const pitcherTab = document.createElement('button');
-        pitcherTab.className = 'game-detail__tab active';
-        pitcherTab.textContent = '선발투수';
+      lineupTab.addEventListener('click', () => {
+        lineupTab.classList.add('active');
+        pitcherTab.classList.remove('active');
+        lineupContent.classList.add('active');
+        pitcherContent.classList.remove('active');
+      });
 
-        const lineupTab = document.createElement('button');
-        lineupTab.className = 'game-detail__tab';
-        lineupTab.textContent = '라인업';
+      loadPitcherComparison(game, pitcherContent).catch(error => {
+        console.error('Error loading game detail:', error);
+        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없다냥! †</div>';
+      });
 
-        tabContainer.appendChild(pitcherTab);
-        tabContainer.appendChild(lineupTab);
-
-        const contentContainer = document.createElement('div');
-        contentContainer.className = 'game-detail__tab-content';
-
-        const pitcherContent = document.createElement('div');
-        pitcherContent.className = 'game-detail__tab-pane active';
-
-        const lineupContent = document.createElement('div');
-        lineupContent.className = 'game-detail__tab-pane';
-        lineupContent.innerHTML = '<div class="modal__no-data">라인업 정보는 준비 중이다냥! †</div>';
-
-        contentContainer.appendChild(pitcherContent);
-        contentContainer.appendChild(lineupContent);
-
-        gameDetailContainer.appendChild(tabContainer);
-        gameDetailContainer.appendChild(contentContainer);
-
-        pitcherTab.addEventListener('click', () => {
-          pitcherTab.classList.add('active');
-          lineupTab.classList.remove('active');
-          pitcherContent.classList.add('active');
-          lineupContent.classList.remove('active');
-        });
-
-        lineupTab.addEventListener('click', () => {
-          lineupTab.classList.add('active');
-          pitcherTab.classList.remove('active');
-          lineupContent.classList.add('active');
-          pitcherContent.classList.remove('active');
-        });
-
-        pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
-        await loadPitcherComparison(game, pitcherContent);
-      }
-    } catch (error) {
-      console.error('Error loading game detail:', error);
-      gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없다냥! †</div>';
+      loadLineup(game, lineupContent).catch(error => {
+        console.error('Error loading lineup:', error);
+      });
     }
   });
 

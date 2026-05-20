@@ -350,12 +350,13 @@
   display: flex;
   padding: 0 0 20px 0;
   flex-direction: column;
+  gap: 20px;
 }
 
 .game-detail__pitcher-card {
   flex: 1;
   border: none;
-  border-top: 1px solid #eee;
+  /* border-top: 1px solid #eee; */
   border-bottom: 1px solid #eee;
   display: flex;
   flex-direction: column;
@@ -413,12 +414,13 @@
 }
 
 .game-detail__pitcher-name .name-wrap {
-  display: flex;
+  display: inline-flex;
   gap: 5px;
   margin-bottom: 0;
   border-bottom: 1px solid #ddd;
   justify-content: center;
   align-items: center;
+  margin: 0 auto;
 }
 
 .game-detail__pitcher-name .name {
@@ -436,7 +438,7 @@
   font-size: 1rem;
   color: #666;
   line-height: 1.4;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 .game-detail__stats-table {
@@ -454,7 +456,7 @@
 .game-detail__stats-table th {
   padding: 5px 6px;
   text-align: center;
-  border-bottom: 2px solid #ddd;
+  /* border-bottom: 2px solid #ddd; */
   color: #333;
   white-space: nowrap;
   font-size: 1.2rem;
@@ -462,7 +464,7 @@
 }
 
 .game-detail__stats-table td {
-  padding: 10px 6px;
+  padding: 5px 6px;
   text-align: center;
   border-bottom: none;
   color: #333;
@@ -477,7 +479,7 @@
 
 .game-detail__stats-table th.pitcher-info-col {
   text-align: center;
-  border-bottom: 2px solid #ddd;
+  /* border-bottom: 2px solid #ddd; */
   padding: 5px 6px;
   background-color: transparent;
   width: 150px;
@@ -497,6 +499,10 @@
   width: 150px;
 }
 
+.game-detail__stats-table tbody td:not(.pitcher-info-col) {
+  color: #666;
+}
+
 .pitcher-info-with-logo {
   display: flex;
   align-items: flex-start;
@@ -504,10 +510,20 @@
 }
 
 .pitcher-info-logo {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.pitcher-info-logo.small-logo {
+  width: 24px;
+  height: 24px;
+}
+
+.pitcher-info-logo.large-logo {
+  width: 28px;
+  height: 28px;
 }
 
 .game-detail__wpa-container {
@@ -600,8 +616,8 @@
   background-color: white;
 }
 
-.game-detail__tab.active::after {
-  content: ' ♧';
+.game-detail__tab.active::bdfore {
+  content: '♧ ';
 }
 
 .game-detail__tab-content {
@@ -615,4 +631,169 @@
 
 .game-detail__tab-pane.active {
   display: block;
+}
+
+/* Lineup */
+.game-detail__lineup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lineup__war-summary {
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.lineup__war-summary h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.lineup-data {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lineup-data li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 15px;
+  height: 20px;
+}
+
+.lineup-data .graph {
+  position: relative;
+  float: left;
+  width: 45%;
+  overflow: hidden;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.lineup-data .graph.away {
+  justify-content: flex-end;
+  color: #4a90e2;
+}
+
+.lineup-data .graph.home {
+  justify-content: flex-start;
+  color: #e24a4a;
+}
+
+.lineup-data .away-value,
+.lineup-data .home-value {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.lineup-data .label {
+  text-align: center;
+  width: 10%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.lineup-data .bar-bg {
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  text-align: right;
+  vertical-align: middle;
+  position: relative;
+}
+
+.lineup-data .bar-bg.away {
+  background-color: #4a90e2;
+}
+
+.lineup-data .bar-bg.home {
+  background-color: #e24a4a;
+}
+
+.lineup__players {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  padding-bottom: 20px;
+}
+
+.lineup__team {
+  flex: 1;
+}
+
+.lineup__team-header {
+  display: flex;
+  align-items: center;
+  /* gap: 8px; */
+  /* margin: 0 0 15px 0; */
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.lineup__team-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.lineup__team-logo.small-logo {
+  width: 24px;
+  height: 24px;
+}
+
+.lineup__team-logo.large-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.lineup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.lineup-table thead {
+  background-color: #f0f0f0;
+}
+
+.lineup-table thead th {
+  padding: 5px 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  /* border-bottom: 2px solid #ddd; */
+}
+
+.lineup-table tbody td {
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #666;
+  border-bottom: 1px solid #eee;
+}
+
+.lineup-table tbody td:nth-child(3) {
+  font-weight: 600;
+}
+
+.lineup-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.lineup-table td:nth-child(3) {
+  text-align: center;
 }

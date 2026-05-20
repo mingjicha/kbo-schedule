@@ -32,6 +32,33 @@ const TEAM_MAP = {
 
 const TEAM_CODES = ['', 'LG', 'HH', 'SK', 'SS', 'NC', 'KT', 'LT', 'HT', 'OB', 'WO'];
 
+// Puppeteer 인스턴스 관리
+let browserInstance = null;
+const gameDataCache = {};
+
+async function getBrowser() {
+  if (!browserInstance) {
+    browserInstance = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
+    });
+  }
+  return browserInstance;
+}
+
+function getCachedData(gameId) {
+  return gameDataCache[gameId];
+}
+
+function cacheData(gameId, data) {
+  gameDataCache[gameId] = data;
+  // 캐시 5분 유지
+  setTimeout(() => {
+    delete gameDataCache[gameId];
+  }, 5 * 60 * 1000);
+}
+
+
 function parseGameInfo(playHtml, gameId = '') {
   if (!playHtml) return {
     awayTeam: 'N/A',
@@ -373,13 +400,38 @@ app.get('/api/schedule', async (req, res) => {
             if (pitcherRes.data && pitcherRes.data.game) {
               pitcherRes.data.game.forEach(apiGame => {
                 const gameId = apiGame.G_ID;
-                const awayPitcherName = (apiGame.T_PIT_P_NM || '').trim();
-                const homePitcherName = (apiGame.B_PIT_P_NM || '').trim();
+                const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
+                const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
+                const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+                const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
+                const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
+                const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
+                const awayStartPitcherId = apiGame.T_PIT_P_ID;
+                const homeStartPitcherId = apiGame.B_PIT_P_ID;
+                const winnerPitcherId = apiGame.W_PIT_P_ID;
+
+                let finalAwayPitcher = awayStartPitcher;
+                let finalHomePitcher = homeStartPitcher;
+
+                // 승리투수가 있으면 승리투수 사용 (세이브 상관없이)
+                if (winnerPitcher && winnerPitcherId) {
+                  if (awayScore > homeScore) {
+                    // 어웨이팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
+                    if (awayStartPitcherId && winnerPitcherId !== awayStartPitcherId) {
+                      finalAwayPitcher = winnerPitcher;
+                    }
+                  } else if (homeScore > awayScore) {
+                    // 홈팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
+                    if (homeStartPitcherId && winnerPitcherId !== homeStartPitcherId) {
+                      finalHomePitcher = winnerPitcher;
+                    }
+                  }
+                }
 
                 if (gameId) {
                   pitcherCache[gameId] = {
-                    awayPitcher: awayPitcherName || 'N/A',
-                    homePitcher: homePitcherName || 'N/A'
+                    awayPitcher: finalAwayPitcher,
+                    homePitcher: finalHomePitcher
                   };
                 }
               });
@@ -429,12 +481,41 @@ app.get('/api/schedule', async (req, res) => {
             const todayGameMap = {};
             todayPitcherRes.data.game.forEach(apiGame => {
               const key = `${apiGame.AWAY_NM}_${apiGame.HOME_NM}`;
+
+              const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
+              const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
+              const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+              const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
+              const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
+              const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
+              const awayStartPitcherId = apiGame.T_PIT_P_ID;
+              const homeStartPitcherId = apiGame.B_PIT_P_ID;
+              const winnerPitcherId = apiGame.W_PIT_P_ID;
+
+              // 최종 투수 결정: 승리투수가 있으면 승리투수 사용 (세이브 상관없이)
+              let finalAwayPitcher = awayStartPitcher;
+              let finalHomePitcher = homeStartPitcher;
+
+              if (winnerPitcher && winnerPitcherId) {
+                if (awayScore > homeScore) {
+                  // 어웨이팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
+                  if (awayStartPitcherId && winnerPitcherId !== awayStartPitcherId) {
+                    finalAwayPitcher = winnerPitcher;
+                  }
+                } else if (homeScore > awayScore) {
+                  // 홈팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
+                  if (homeStartPitcherId && winnerPitcherId !== homeStartPitcherId) {
+                    finalHomePitcher = winnerPitcher;
+                  }
+                }
+              }
+
               todayGameMap[key] = {
                 gameId: apiGame.G_ID || '',
-                awayPitcher: (apiGame.T_PIT_P_NM || '').trim() || 'N/A',
-                homePitcher: (apiGame.B_PIT_P_NM || '').trim() || 'N/A',
-                awayScore: parseInt(apiGame.T_SCORE_CN) || 0,
-                homeScore: parseInt(apiGame.B_SCORE_CN) || 0
+                awayPitcher: finalAwayPitcher,
+                homePitcher: finalHomePitcher,
+                awayScore: awayScore,
+                homeScore: homeScore
               };
             });
 
@@ -467,6 +548,135 @@ app.get('/api/schedule', async (req, res) => {
   } catch (error) {
     console.error('Error fetching schedule:', error.message);
     res.status(500).json({ error: 'Failed to fetch schedule' });
+  }
+});
+
+// Debug: 승리투수 변환된 경기 목록
+app.get('/api/debug/pitcher-conversions/:month/:year', async (req, res) => {
+  const { month, year } = req.params;
+  const monthStr = String(month).padStart(2, '0');
+
+  const conversions = [];
+
+  try {
+    const postData = new URLSearchParams({
+      leId: '1',
+      seasonId: year,
+      month: monthStr,
+      teamId: ''
+    });
+
+    const response = await axios.post(
+      'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+      postData.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }
+    );
+
+    const data = response.data;
+    const gameIds = new Set();
+
+    if (data.rows && Array.isArray(data.rows)) {
+      for (let row of data.rows) {
+        if (row.row && Array.isArray(row.row)) {
+          const cells = row.row;
+          for (let j = 3; j < cells.length && cells.length > 5; j++) {
+            if (cells[j] && cells[j].Text) {
+              const $cell = cheerio.load(cells[j].Text);
+              const gameLink = $cell('a').attr('href') || '';
+              if (gameLink) {
+                const gameIdMatch = gameLink.match(/gameId=([^&]+)/);
+                if (gameIdMatch) gameIds.add(gameIdMatch[1]);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 추출한 gameId들에 대해 pitcher 정보 조회
+    const dateGroups = {};
+    for (const gameId of gameIds) {
+      const gameDate = gameId.substring(0, 8);
+      if (!dateGroups[gameDate]) dateGroups[gameDate] = [];
+      dateGroups[gameDate].push(gameId);
+    }
+
+    for (const [gameDate, gameIdsForDate] of Object.entries(dateGroups)) {
+      try {
+        const pitcherRes = await axios.post(
+          'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
+          new URLSearchParams({
+            leId: '1',
+            srId: '0',
+            date: gameDate
+          }).toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx'
+            }
+          }
+        );
+
+        if (pitcherRes.data && pitcherRes.data.game) {
+          pitcherRes.data.game.forEach(apiGame => {
+            const gameId = apiGame.G_ID;
+            if (gameIdsForDate.includes(gameId)) {
+              const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim();
+              const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim();
+              const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+              const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
+              const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
+              const awayStartPitcherId = apiGame.T_PIT_P_ID;
+              const homeStartPitcherId = apiGame.B_PIT_P_ID;
+              const winnerPitcherId = apiGame.W_PIT_P_ID;
+
+              // 승리투수가 있고, 선발투수와 다른 경우
+              if (winnerPitcher && winnerPitcherId) {
+                if (awayScore > homeScore && awayStartPitcherId && winnerPitcherId !== awayStartPitcherId) {
+                  conversions.push({
+                    gameId,
+                    date: gameDate.slice(0, 4) + '-' + gameDate.slice(4, 6) + '-' + gameDate.slice(6),
+                    away: apiGame.AWAY_NM,
+                    home: apiGame.HOME_NM,
+                    score: `${awayScore}-${homeScore}`,
+                    from: awayStartPitcher,
+                    to: winnerPitcher,
+                    team: 'away'
+                  });
+                } else if (homeScore > awayScore && homeStartPitcherId && winnerPitcherId !== homeStartPitcherId) {
+                  conversions.push({
+                    gameId,
+                    date: gameDate.slice(0, 4) + '-' + gameDate.slice(4, 6) + '-' + gameDate.slice(6),
+                    away: apiGame.AWAY_NM,
+                    home: apiGame.HOME_NM,
+                    score: `${awayScore}-${homeScore}`,
+                    from: homeStartPitcher,
+                    to: winnerPitcher,
+                    team: 'home'
+                  });
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching pitcher info for date ${gameDate}:`, error.message);
+      }
+    }
+
+    res.json(conversions);
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch conversions' });
   }
 });
 
@@ -706,124 +916,220 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
-// 투수 통계 조회 - Puppeteer로 KBO GameCenter 페이지에서 테이블 데이터 크롤링
+// 투수 통계 및 라인업 조회
 app.get('/api/pitcher-stats', async (req, res) => {
-  let browser = null;
   try {
     const { awayPitcher, homePitcher, gameId } = req.query;
 
     if (!awayPitcher || !homePitcher) {
-      return res.status(400).json({ awayData: null, homeData: null });
+      return res.status(400).json({ awayData: null, homeData: null, lineup: null });
     }
 
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    // 캐시 확인
+    const cached = getCachedData(gameId);
+    if (cached) {
+      console.log(`Cache hit for gameId: ${gameId}`);
+      return res.json(cached);
+    }
+
+    const browser = await getBrowser();
     const page = await browser.newPage();
 
-    console.log(`Fetching pitcher stats for: ${awayPitcher} vs ${homePitcher}`);
+    try {
+      console.log(`Fetching pitcher stats and lineup for: ${awayPitcher} vs ${homePitcher}`);
 
-    // KBO GameCenter 페이지 로드
-    await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
-      waitUntil: 'networkidle0',
-      timeout: 15000
-    });
+      // KBO GameCenter 페이지 로드
+      await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
+        waitUntil: 'networkidle0',
+        timeout: 15000
+      });
 
-    // 페이지 로드 대기
-    await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // gameId에 해당하는 게임 찾고 클릭해서 프리뷰 활성화
-    if (gameId) {
-      const activated = await page.evaluate((gId) => {
-        const gameItem = document.querySelector(`li[g_id="${gId}"]`);
-        if (gameItem) {
-          gameItem.click();
-          return true;
-        }
-        return false;
-      }, gameId);
+      // 게임 클릭
+      if (gameId) {
+        await page.evaluate((gId) => {
+          const gameItem = document.querySelector(`li[g_id="${gId}"]`);
+          if (gameItem) gameItem.click();
+        }, gameId);
 
-      console.log(`Game activated: ${activated}`);
-
-      // 프리뷰 렌더링 대기
-      await new Promise(resolve => setTimeout(resolve, 1500));
-    }
-
-    // 페이지 HTML 캡처 (디버그)
-    const pageHtml = await page.content();
-    console.log('Page HTML length:', pageHtml.length);
-    console.log('Contains preview:', pageHtml.includes('preview'));
-    console.log('Contains table:', pageHtml.includes('<table'));
-
-    // 프리뷰 테이블에서 데이터 추출
-    const pitcherData = await page.evaluate((awayName, homeName) => {
-      const result = { awayData: null, homeData: null };
-
-      // 모든 가능한 컨테이너 찾기
-      const allDivs = document.querySelectorAll('div[class*="preview"], div[class*="detail"], div[class*="info"]');
-      console.log(`Found ${allDivs.length} potential containers`);
-
-      // 모든 테이블 찾기
-      const allTables = document.querySelectorAll('table');
-      console.log(`Total tables in page: ${allTables.length}`);
-
-      // 각 테이블 구조 확인
-      for (let i = 0; i < allTables.length; i++) {
-        const table = allTables[i];
-        const rows = table.querySelectorAll('tbody tr');
-        console.log(`Table ${i}: ${rows.length} rows`);
-
-        for (let row of rows) {
-          const cells = row.querySelectorAll('td');
-          console.log(`Row has ${cells.length} cells`);
-
-          if (cells.length < 2) continue;
-
-          const pitcherCell = cells[0].textContent.trim();
-          console.log(`Cell content: "${pitcherCell}"`);
-
-          // 각 셀에서 필요한 정보 추출
-          // KBO 테이블 순서: 평균자책점, WAR, 경기, 선발평균이닝, QS, WHIP
-          let era = '', war = '', games = '', startAvgInning = '', qs = '', whip = '';
-
-          if (cells.length >= 2) era = cells[1].textContent.trim();
-          if (cells.length >= 3) war = cells[2].textContent.trim();
-          if (cells.length >= 4) games = cells[3].textContent.trim();
-          if (cells.length >= 5) startAvgInning = cells[4].textContent.trim();
-          if (cells.length >= 6) qs = cells[5].textContent.trim();
-          if (cells.length >= 7) whip = cells[6].textContent.trim();
-
-          // 투수 이름으로 매칭
-          if (!result.awayData && pitcherCell.includes(awayName)) {
-            result.awayData = { pitcherName: pitcherCell, era, war, games, startAvgInning, qs, whip };
-            console.log(`Matched away pitcher: ${awayName}`);
-          }
-
-          if (!result.homeData && pitcherCell.includes(homeName)) {
-            result.homeData = { pitcherName: pitcherCell, era, war, games, startAvgInning, qs, whip };
-            console.log(`Matched home pitcher: ${homeName}`);
-          }
-
-          if (result.awayData && result.homeData) return result;
-        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      return result;
-    }, awayPitcher, homePitcher);
+      // 병렬로 투수 통계와 라인업 데이터 추출
+      const [pitcherData, lineupData] = await Promise.all([
+        extractPitcherStats(page, awayPitcher, homePitcher),
+        extractLineup(page)
+      ]);
 
-    console.log('API Response received');
-    console.log('Final data:', pitcherData);
+      const responseData = {
+        awayData: pitcherData.awayData || null,
+        homeData: pitcherData.homeData || null,
+        lineup: lineupData
+      };
 
-    res.json({
-      awayData: pitcherData.awayData || null,
-      homeData: pitcherData.homeData || null
-    });
+      // 캐시에 저장
+      cacheData(gameId, responseData);
 
+      res.json(responseData);
+    } finally {
+      await page.close();
+    }
   } catch (error) {
     console.error('Error in /api/pitcher-stats:', error.message);
-    res.json({ awayData: null, homeData: null });
-  } finally {
-    if (browser) await browser.close();
+    res.json({ awayData: null, homeData: null, lineup: null });
   }
 });
+
+async function extractPitcherStats(page, awayPitcher, homePitcher) {
+  return page.evaluate((awayName, homeName) => {
+    const result = { awayData: null, homeData: null };
+    const allTables = document.querySelectorAll('table');
+
+    for (let table of allTables) {
+      const rows = table.querySelectorAll('tbody tr');
+
+      for (let row of rows) {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 2) continue;
+
+        const pitcherCell = cells[0];
+        let pitcherName = '';
+        let style = '';
+        let record = '';
+
+        const nameSpan = pitcherCell.querySelector('span.name');
+        if (nameSpan) {
+          pitcherName = nameSpan.textContent.trim();
+        } else {
+          pitcherName = pitcherCell.childNodes[0]?.textContent?.trim() || '';
+        }
+
+        const styleSpan = pitcherCell.querySelector('span.style');
+        if (styleSpan) {
+          style = styleSpan.textContent.trim();
+        }
+
+        const recordDiv = pitcherCell.querySelector('div.record');
+        if (recordDiv) {
+          record = recordDiv.textContent.trim();
+        }
+
+        let era = '', war = '', games = '', startAvgInning = '', qs = '', whip = '';
+        if (cells.length >= 2) era = cells[1].textContent.trim();
+        if (cells.length >= 3) war = cells[2].textContent.trim();
+        if (cells.length >= 4) games = cells[3].textContent.trim();
+        if (cells.length >= 5) startAvgInning = cells[4].textContent.trim();
+        if (cells.length >= 6) qs = cells[5].textContent.trim();
+        if (cells.length >= 7) whip = cells[6].textContent.trim();
+
+        if (!result.awayData && (pitcherName.includes(awayName) || awayName.includes(pitcherName))) {
+          result.awayData = { pitcherName, style, record, era, war, games, startAvgInning, qs, whip };
+        }
+
+        if (!result.homeData && (pitcherName.includes(homeName) || homeName.includes(pitcherName))) {
+          result.homeData = { pitcherName, style, record, era, war, games, startAvgInning, qs, whip };
+        }
+
+        if (result.awayData && result.homeData) return result;
+      }
+    }
+
+    return result;
+  }, awayPitcher, homePitcher);
+}
+
+async function extractLineup(page) {
+  // 라인업 탭 클릭 (javascript:setGameDetailSection('LINEUP') 방식)
+  await page.evaluate(() => {
+    // setGameDetailSection 함수 직접 호출
+    if (typeof setGameDetailSection === 'function') {
+      setGameDetailSection('LINEUP');
+      return true;
+    }
+
+    // 또는 라인업 분석 링크 찾기
+    const links = document.querySelectorAll('a');
+    for (let link of links) {
+      if (link.textContent.includes('라인업')) {
+        link.click();
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // 라인업 데이터 추출
+  return page.evaluate(() => {
+    const result = {
+      warSummary: {},
+      awayLineup: [],
+      homeLineup: []
+    };
+
+    // WAR 합산 데이터 추출
+    const warElements = {
+      tableSetter: { away: null, home: null },
+      cleanUp: { away: null, home: null },
+      bottom: { away: null, home: null }
+    };
+
+    const txtElements = document.querySelectorAll('[id^="txt"]');
+    for (let el of txtElements) {
+      const id = el.id;
+      const text = el.textContent.trim();
+
+      if (id === 'txtLeftTableSetter') warElements.tableSetter.away = parseFloat(text) || 0;
+      if (id === 'txtRightTableSetter') warElements.tableSetter.home = parseFloat(text) || 0;
+      if (id === 'txtLeftCleanUp') warElements.cleanUp.away = parseFloat(text) || 0;
+      if (id === 'txtRightCleanUp') warElements.cleanUp.home = parseFloat(text) || 0;
+      if (id === 'txtLeftBottom') warElements.bottom.away = parseFloat(text) || 0;
+      if (id === 'txtRightBottom') warElements.bottom.home = parseFloat(text) || 0;
+    }
+
+    result.warSummary = warElements;
+
+    // 선수 라인업 테이블 추출
+    const tables = document.querySelectorAll('.tbl-type04 table');
+
+    if (tables.length >= 1) {
+      const awayTable = tables[0];
+      const awayRows = awayTable.querySelectorAll('tbody tr');
+      awayRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+          result.awayLineup.push({
+            order: parseInt(cells[0].textContent.trim()),
+            position: cells[1].textContent.trim(),
+            name: cells[2].textContent.trim(),
+            war: parseFloat(cells[3].textContent.trim()) || 0
+          });
+        }
+      });
+    }
+
+    if (tables.length >= 2) {
+      const homeTable = tables[1];
+      const homeRows = homeTable.querySelectorAll('tbody tr');
+      homeRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+          result.homeLineup.push({
+            order: parseInt(cells[0].textContent.trim()),
+            position: cells[1].textContent.trim(),
+            name: cells[2].textContent.trim(),
+            war: parseFloat(cells[3].textContent.trim()) || 0
+          });
+        }
+      });
+    }
+
+    return result;
+  });
+}
 
 
 // 투수 WPA 조회

@@ -275,3 +275,38 @@
   justify-content: center;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .schedule__status {
+    background-color: #626ABD;
+    color: white;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    min-width: 55px;
+  }
+
+  .schedule__status::before {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .schedule__status.schedule__game--finished {
+    background-color: #2f6f64;
+    color: white;
+  }
+
+  .schedule__status.schedule__game--scheduled {
+    background-color: #626ABD;
+    color: white;
+  }
+
+  .schedule__status.schedule__game--live {
+    background-color: #e57373;
+    color: white;
+  }
+
+  .schedule__status.schedule__game--cancelled {
+    background-color: #e57373;
+    color: white;
+  }
+}
+
