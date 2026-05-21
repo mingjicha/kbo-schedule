@@ -405,7 +405,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherTab = document.createElement('button');
       pitcherTab.className = 'game-detail__tab active';
-      pitcherTab.textContent = '선발투수';
+      pitcherTab.textContent = '선발투수 †';
 
       const lineupTab = document.createElement('button');
       lineupTab.className = 'game-detail__tab';
@@ -437,6 +437,8 @@ function createGameCard(game, date, isToday) {
         lineupTab.classList.remove('active');
         pitcherContent.classList.add('active');
         lineupContent.classList.remove('active');
+        pitcherTab.textContent = '선발투수 †';
+        lineupTab.textContent = '라인업';
       });
 
       lineupTab.addEventListener('click', () => {
@@ -444,6 +446,8 @@ function createGameCard(game, date, isToday) {
         pitcherTab.classList.remove('active');
         lineupContent.classList.add('active');
         pitcherContent.classList.remove('active');
+        lineupTab.textContent = '라인업 †';
+        pitcherTab.textContent = '선발투수';
       });
 
       loadPitcherComparison(game, pitcherContent).catch(error => {
