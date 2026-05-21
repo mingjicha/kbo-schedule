@@ -12,7 +12,8 @@ const stadiumNames = {
   '사직': '사직',
   '대구': '대구',
   '문학': '문학',
-  '청주': '청주'
+  '청주': '청주',
+  '포항': '포항'
 };
 
 function getWeatherIcon(code) {

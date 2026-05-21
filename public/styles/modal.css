@@ -26,6 +26,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   scrollbar-width: none;
   margin: auto;
+  padding: 20px;
 }
 
 .modal__content::-webkit-scrollbar {
@@ -34,9 +35,9 @@
 
 .modal__header {
   display: flex;
+  padding-bottom: 15px;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
   border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
@@ -135,8 +136,8 @@
 }
 
 .modal__body {
+  padding-top: 15px;
   overflow-x: auto;
-  padding: 10px 20px;
 }
 
 .modal__no-data {
@@ -240,7 +241,7 @@
 }
 
 .modal__body--weather {
-  padding: 15px 20px;
+  padding-top: 15px;
   flex: 1;
   display: flex;
   align-items: center;
@@ -356,7 +357,6 @@
 .game-detail__pitcher-card {
   flex: 1;
   border: none;
-  /* border-top: 1px solid #eee; */
   border-bottom: 1px solid #eee;
   display: flex;
   flex-direction: column;
@@ -456,7 +456,6 @@
 .game-detail__stats-table th {
   padding: 5px 6px;
   text-align: center;
-  /* border-bottom: 2px solid #ddd; */
   color: #333;
   white-space: nowrap;
   font-size: 1.2rem;
@@ -479,7 +478,6 @@
 
 .game-detail__stats-table th.pitcher-info-col {
   text-align: center;
-  /* border-bottom: 2px solid #ddd; */
   padding: 5px 6px;
   background-color: transparent;
   width: 150px;
@@ -738,8 +736,6 @@
 .lineup__team-header {
   display: flex;
   align-items: center;
-  /* gap: 8px; */
-  /* margin: 0 0 15px 0; */
   font-size: 1.35rem;
   font-weight: 600;
 }
@@ -775,7 +771,6 @@
   text-align: center;
   font-weight: 600;
   font-size: 1.2rem;
-  /* border-bottom: 2px solid #ddd; */
 }
 
 .lineup-table tbody td {

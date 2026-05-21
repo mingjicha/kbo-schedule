@@ -24,6 +24,19 @@ KBO 공식 데이터와 AI 기반 분석을 결합하여 한국야구 경기 일
 - **Axios** — HTTP 요청 처리
 - **Cheerio** — HTML 파싱
 
+### 크롤링 방식
+
+**Axios + Cheerio (정적 크롤링)**
+- KBO 공식 ASMX API에 POST 요청으로 경기 일정 JSON 수신 (`GetScheduleList`, `GetKboGameList`)
+- 팀 순위 페이지 HTML 파싱 (`TeamRankDaily.aspx`)
+- 투수 WPA 데이터 파싱
+
+**Puppeteer (동적 크롤링)**
+- KBO GameCenter 헤드리스 브라우저 접근
+- 투수 통계 추출 (ERA, WAR, WHIP, QS 등)
+- 라인업 데이터 추출
+- 브라우저 인스턴스 싱글톤 재사용 + 5분 캐시 적용
+
 ### 프론트엔드
 - **HTML5 / CSS3** — 페이지 구조 및 반응형 스타일링
 - **Vanilla JavaScript (ES6+)** — UI 동작 및 상태 관리

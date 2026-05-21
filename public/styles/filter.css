@@ -68,8 +68,8 @@
 }
 
 .filter__btn[data-team="HT"]:hover {
-  border-color: #00205B;
-  color: #00205B;
+  border-color: #8f1622;
+  color: #8f1622;
 }
 
 .filter__btn[data-team="OB"]:hover {
@@ -147,12 +147,12 @@
 }
 
 .filter__btn[data-team="HT"] {
-  color: #00205B;
-  border-color: #00205B;
+  color: #8f1622;
+  border-color: #8f1622;
 }
 
 .filter__btn[data-team="HT"]:hover {
-  background-color: rgba(0, 32, 91, 0.1);
+  background-color: rgba(143, 22, 34, 0.1);
 }
 
 .filter__btn[data-team="OB"] {
@@ -260,12 +260,12 @@
 }
 
 .filter__btn[data-team="HT"].active {
-  background-color: #00205B;
-  border-color: #00205B;
+  background-color: #8f1622;
+  border-color: #8f1622;
 }
 
 .filter__btn[data-team="HT"].active:hover {
-  background-color: #00205B;
+  background-color: #8f1622;
   color: white;
 }
 
