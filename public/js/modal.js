@@ -73,6 +73,7 @@ async function loadWeather(forceRefresh = false) {
         const response = await fetch(`/api/weather?stadium=${encodeURIComponent(stadium)}`);
         const data = await response.json();
         weatherDataList.push(data);
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         console.error(`날씨 조회 실패: ${stadium}`, error);
       }
