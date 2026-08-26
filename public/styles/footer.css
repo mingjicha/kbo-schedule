@@ -182,6 +182,10 @@
   animation: livePulse 1.5s ease-in-out infinite;
 }
 
+.quick-menu__item--scroll-top {
+  display: none;
+}
+
 @keyframes livePulse {
   0%, 100% {
     opacity: 1;
@@ -190,5 +194,126 @@
   50% {
     opacity: 0.7;
     transform: scale(1.1);
+  }
+}
+
+/* Mobile: bottom bar quick menu */
+@media (max-width: 768px) {
+  .quick-menu {
+    position: fixed;
+    top: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 20px;
+    right: 20px;
+    transform: none;
+    flex-direction: row;
+    gap: 0;
+    width: auto;
+    justify-content: space-around;
+    background-color: white;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px -6px rgba(25, 31, 40, 0.14);
+    padding: 6px 0;
+  }
+
+  .quick-menu__item {
+    width: auto;
+    height: auto;
+    flex: 1;
+    border-radius: 0;
+    background-color: transparent !important;
+    color: #666;
+    box-shadow: none;
+    animation: none;
+    gap: 2px;
+    padding: 4px 0;
+  }
+
+  .quick-menu__item[data-action="today"] i {
+    color: #626ABD;
+  }
+
+  .quick-menu__item[data-action="rank"] i {
+    color: #F9D366;
+  }
+
+  .quick-menu__item[data-action="weather"] i {
+    color: #2f6f64;
+  }
+
+  .quick-menu__item i {
+    font-size: 1.3rem;
+    animation: none;
+  }
+
+  .quick-menu__item span {
+    font-size: 0.7rem;
+  }
+
+  .quick-menu__item--scroll-top {
+    display: none;
+    color: #B0B8C1;
+  }
+
+  .quick-menu__item--scroll-top.show {
+    display: flex;
+  }
+
+  .scroll-top-btn {
+    display: none;
+  }
+
+  .app-footer {
+    background-color: #F2F4F6;
+    border-top: none;
+    padding: 32px 20px calc(20px + 84px + env(safe-area-inset-bottom));
+  }
+
+  .app-footer__content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0 0 20px;
+    border-bottom: 1px solid #E5E8EB;
+  }
+
+  .app-footer__section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #191F28;
+    margin-bottom: 0;
+  }
+
+  .app-footer__section h4 {
+    margin-bottom: 8px;
+  }
+
+  .app-footer__logo {
+    height: 16px;
+  }
+
+  .app-footer__section p {
+    font-size: 0.8rem;
+    color: #8B95A1;
+  }
+
+  .app-footer__links {
+    gap: 12px;
+  }
+
+  .app-footer__links a {
+    font-size: 0.8rem;
+    color: #8B95A1;
+  }
+
+  .app-footer__bottom {
+    padding: 20px 0 0;
+    text-align: left;
+  }
+
+  .app-footer__bottom p {
+    font-size: 0.7rem;
+    color: #B0B8C1;
+    line-height: 1.6;
   }
 }

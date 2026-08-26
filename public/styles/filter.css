@@ -1,10 +1,11 @@
 /* Filter Section */
 .filter {
   background-color: white;
+  width: 100%;
 }
 
 .filter__content {
-  padding: 20px;
+  padding: 0;
 }
 
 .filter__teams {
@@ -287,4 +288,137 @@
 .filter__btn[data-team="WO"].active:hover {
   background-color: #A60134;
   color: white;
+}
+
+/* 모바일: 팀 필터 트리거 + 바텀시트 */
+.filter__summary {
+  display: none;
+}
+
+.team-sheet-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .filter {
+    background-color: transparent;
+  }
+
+  .filter__content {
+    padding: 0;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .filter__summary {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1.5vw, 8px);
+    padding: clamp(6px, 1.6vw, 8px) clamp(10px, 2.8vw, 14px);
+    border: none;
+    border-radius: 100px;
+    background-color: white;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    font-weight: 700;
+    color: #191F28;
+    cursor: pointer;
+  }
+
+  .filter__summary-dot {
+    width: clamp(12px, 3vw, 14px);
+    height: clamp(12px, 3vw, 14px);
+    border-radius: 50%;
+    background-color: #333;
+    flex-shrink: 0;
+  }
+
+  .filter__summary i {
+    font-size: 0.75rem;
+    color: #999;
+  }
+
+  .filter__teams {
+    display: none;
+  }
+
+  .team-sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 1100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .team-sheet-overlay.show {
+    display: flex;
+  }
+
+  .team-sheet {
+    width: 100%;
+    max-width: min(90vw, 480px);
+    background-color: white;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: 16px;
+  }
+
+  .team-sheet__handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: #ddd;
+    margin: 10px auto 6px;
+  }
+
+  .team-sheet__title {
+    padding: clamp(4px, 1.5vw, 6px) clamp(16px, 5vw, 20px) 14px;
+    font-size: clamp(1rem, 3vw, 1.1rem);
+    font-weight: 700;
+    color: #333;
+  }
+
+  .team-sheet__list {
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  .team-sheet__item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 3vw, 12px);
+    padding: clamp(7px, 2vw, 10px) clamp(16px, 5vw, 20px);
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    color: #333;
+    cursor: pointer;
+  }
+
+  .team-sheet__item-logo {
+    width: clamp(22px, 5.5vw, 26px);
+    height: clamp(22px, 5.5vw, 26px);
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .team-sheet__item-name {
+    flex: 1;
+  }
+
+  .team-sheet__item-name--all {
+    font-weight: 700;
+  }
+
+  .team-sheet__item i {
+    font-size: 1.2rem;
+    color: #626ABD;
+    display: none;
+  }
+
+  .team-sheet__item.active i {
+    display: block;
+  }
 }

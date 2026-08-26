@@ -1,49 +1,19 @@
 let loadedMonths = new Set();
 
-function renderSkeletonLoader(cardCount = 5) {
-  const skeletonCard = `
-    <div class="schedule__game schedule__game--scheduled">
-      <div class="schedule__info">
-        <div class="schedule__skeleton--time"></div>
-        <div class="schedule__skeleton--stadium"></div>
-        <div class="schedule__teams">
-          <div class="schedule__team">
-            <span class="schedule__skeleton--team-name"></span>
-            <div class="schedule__skeleton--pitcher"></div>
-          </div>
-          <div class="schedule__skeleton--logo"></div>
-          <div class="schedule__skeleton--score"></div>
-          <div class="schedule__skeleton--logo"></div>
-          <div class="schedule__team">
-            <span class="schedule__skeleton--team-name"></span>
-            <div class="schedule__skeleton--pitcher"></div>
-          </div>
-        </div>
-      </div>
-      <div class="schedule__skeleton--status"></div>
-    </div>
-  `;
+function buildStatusHTML(status, symbol) {
+  return symbol
+    ? `${status} <span class="schedule__status-symbol">${symbol}</span>`
+    : status;
+}
 
-  const cardsHTML = skeletonCard.repeat(cardCount);
-
-  const skeletonDay = `
-    <div class="schedule__day">
-      <h3 class="schedule__date-header schedule__date-header--skeleton"></h3>
-      ${cardsHTML}
-    </div>
-  `;
-
-  const skeletonHTML = `
+function renderSkeletonLoader() {
+  return `
     <div class="loading">
-      <div class="schedule__list">
-        ${skeletonDay}
-        ${skeletonDay}
-        ${skeletonDay}
-        ${skeletonDay}
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">로딩 중이다냥! <span class="symbol-font">†</span></span>
       </div>
     </div>
   `;
-  return skeletonHTML;
 }
 
 async function loadSchedule(scrollToDate = null) {
@@ -363,18 +333,18 @@ function createGameCard(game, date, isToday) {
   const statusBadge = document.createElement('div');
   statusBadge.className = 'schedule__status ' + statusClass;
 
-  let statusText = finalStatus;
+  let statusSymbol = '';
   if (finalStatus === '종료') {
-    statusText += ' ♤';
+    statusSymbol = '♤';
   } else if (finalStatus === '예정') {
-    statusText += ' ¢';
+    statusSymbol = '¢';
   } else if (finalStatus === '취소') {
-    statusText += ' £';
+    statusSymbol = '£';
   } else if (finalStatus === '진행중') {
-    statusText += ' †';
+    statusSymbol = '†';
   }
 
-  statusBadge.innerHTML = statusText;
+  statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
 
   gameInfo.appendChild(statusBadge);
 
@@ -405,11 +375,11 @@ function createGameCard(game, date, isToday) {
 
       const pitcherTab = document.createElement('button');
       pitcherTab.className = 'game-detail__tab active';
-      pitcherTab.textContent = '선발투수 †';
+      pitcherTab.innerHTML = buildStatusHTML('선발투수', '†');
 
       const lineupTab = document.createElement('button');
       lineupTab.className = 'game-detail__tab';
-      lineupTab.textContent = '라인업';
+      lineupTab.innerHTML = buildStatusHTML('라인업', '');
 
       tabContainer.appendChild(pitcherTab);
       tabContainer.appendChild(lineupTab);
@@ -419,7 +389,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! <span class="symbol-font">†</span></span></div></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
@@ -437,8 +407,8 @@ function createGameCard(game, date, isToday) {
         lineupTab.classList.remove('active');
         pitcherContent.classList.add('active');
         lineupContent.classList.remove('active');
-        pitcherTab.textContent = '선발투수 †';
-        lineupTab.textContent = '라인업';
+        pitcherTab.innerHTML = buildStatusHTML('선발투수', '†');
+        lineupTab.innerHTML = buildStatusHTML('라인업', '');
       });
 
       lineupTab.addEventListener('click', () => {
@@ -446,13 +416,13 @@ function createGameCard(game, date, isToday) {
         pitcherTab.classList.remove('active');
         lineupContent.classList.add('active');
         pitcherContent.classList.remove('active');
-        lineupTab.textContent = '라인업 †';
-        pitcherTab.textContent = '선발투수';
+        lineupTab.innerHTML = buildStatusHTML('라인업', '†');
+        pitcherTab.innerHTML = buildStatusHTML('선발투수', '');
       });
 
       loadPitcherComparison(game, pitcherContent).catch(error => {
         console.error('Error loading game detail:', error);
-        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없다냥! †</div>';
+        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
       });
 
       loadLineup(game, lineupContent).catch(error => {
@@ -576,7 +546,7 @@ function updateGameStatuses() {
 
     if (statusBadge.textContent.includes('취소')) {
       if (!statusBadge.textContent.includes('£')) {
-        statusBadge.textContent = '취소 £';
+        statusBadge.innerHTML = buildStatusHTML('취소', '£');
       }
       return;
     }
@@ -586,22 +556,26 @@ function updateGameStatuses() {
     const gameDateTime = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
     const gameEndTime = new Date(gameDateTime.getTime() + 4 * 60 * 60 * 1000);
 
-    let newStatus = statusBadge.textContent.replace(' ♤', '').replace(' ¢', '').replace(' £', '');
+    let newStatus = statusBadge.textContent.replace(' ♤', '').replace(' ¢', '').replace(' £', '').replace(' ♧', '').trim();
+    let newSymbol = '';
     let newClass = card.className.replace('schedule__game ', '').trim();
 
     if (statusBadge.textContent.includes('종료')) {
-      newStatus = '종료 ♤';
+      newStatus = '종료';
+      newSymbol = '♤';
       newClass = 'schedule__game--finished';
     } else if (now >= gameDateTime && now < gameEndTime) {
-      newStatus = '진행중 ♧';
+      newStatus = '진행중';
+      newSymbol = '♧';
       newClass = 'schedule__game--live';
     } else if (now < gameDateTime) {
-      newStatus = '예정 ¢';
+      newStatus = '예정';
+      newSymbol = '¢';
       newClass = 'schedule__game--scheduled';
     }
 
-    if (statusBadge.textContent !== newStatus) {
-      statusBadge.textContent = newStatus;
+    if (statusBadge.textContent.trim() !== `${newStatus} ${newSymbol}`.trim()) {
+      statusBadge.innerHTML = buildStatusHTML(newStatus, newSymbol);
       card.className = 'schedule__game ' + newClass;
 
       const scoreDiv = card.querySelector('.schedule__score');

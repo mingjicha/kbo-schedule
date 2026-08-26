@@ -796,6 +796,9 @@ app.get('/api/team-rank', async (req, res) => {
             }
           }
 
+          // 연속 기록 추출 (예: "2승", "1패")
+          const streak = cells.length >= 10 ? $(cells[9]).text().trim() : '-';
+
           // 순위가 숫자이고 팀명이 있을 때만 추가
           if (rank && /^\d+$/.test(rank.trim())) {
             ranks.push({
@@ -807,7 +810,8 @@ app.get('/api/team-rank', async (req, res) => {
               draws,
               winRate,
               gameDiff,
-              recent10: recent10 || '-'
+              recent10: recent10 || '-',
+              streak: streak || '-'
             });
           }
         }

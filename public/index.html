@@ -55,7 +55,12 @@
       <!-- Filter: Team Selection -->
       <aside class="filter">
         <div class="filter__content">
-          <div class="filter__teams">
+          <button type="button" id="filterSummaryBtn" class="filter__summary" aria-expanded="false">
+            <span class="filter__summary-dot" id="filterSummaryDot"></span>
+            <span id="filterSummaryText">전체</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="filter__teams" id="filterTeams">
             <button class="filter__btn active" data-team="">전체</button>
             <button class="filter__btn" data-team="LG">LG</button>
             <button class="filter__btn" data-team="HH">한화</button>
@@ -72,11 +77,20 @@
       </aside>
     </div>
 
+    <!-- Bottom Sheet: Team Selection (mobile) -->
+    <div id="teamSheetOverlay" class="team-sheet-overlay">
+      <div class="team-sheet" role="dialog" aria-modal="true" aria-labelledby="teamSheetTitle">
+        <div class="team-sheet__handle"></div>
+        <div class="team-sheet__title" id="teamSheetTitle">어떤 팀을 볼까요?</div>
+        <div class="team-sheet__list" id="teamSheetList"></div>
+      </div>
+    </div>
+
     <!-- Main Content: Schedule -->
     <main class="main">
       <div id="scheduleContainer" class="schedule">
         <div class="loading">
-          <p>경기 일정을 불러오는 중이라냥! †</p>
+          <p>경기 일정을 불러오는 중이라냥! <span class="symbol-font">†</span></p>
         </div>
       </div>
     </main>
@@ -98,6 +112,10 @@
       <button class="quick-menu__item" id="weatherMenuBtn" data-action="weather" aria-label="날씨">
         <i class="bi bi-cloud-sun"></i>
         <span>WEATHER</span>
+      </button>
+      <button class="quick-menu__item quick-menu__item--scroll-top" id="scrollTopMenuBtn" aria-label="상단으로 이동">
+        <i class="bi bi-chevron-up"></i>
+        <span>TOP</span>
       </button>
     </div>
 

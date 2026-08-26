@@ -1,20 +1,22 @@
 // Scroll To Top Button
 const scrollTopBtn = document.getElementById('scrollTopBtn');
+const scrollTopMenuBtn = document.getElementById('scrollTopMenuBtn');
 
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 300) {
-    scrollTopBtn.classList.add('show');
-  } else {
-    scrollTopBtn.classList.remove('show');
-  }
+  const shouldShow = window.scrollY > 300;
+  scrollTopBtn.classList.toggle('show', shouldShow);
+  if (scrollTopMenuBtn) scrollTopMenuBtn.classList.toggle('show', shouldShow);
 });
 
-scrollTopBtn.addEventListener('click', () => {
+function scrollToTop() {
   window.scrollTo({
     top: 0,
     behavior: 'smooth'
   });
-});
+}
+
+scrollTopBtn.addEventListener('click', scrollToTop);
+if (scrollTopMenuBtn) scrollTopMenuBtn.addEventListener('click', scrollToTop);
 
 // Year Navigation
 const prevYearBtn = document.getElementById('prevYearBtn');
@@ -34,15 +36,101 @@ nextYearBtn.addEventListener('click', () => {
 
 // Team Filter
 const teamTabs = document.querySelectorAll('.filter__btn');
+const filterSummaryBtn = document.getElementById('filterSummaryBtn');
+const filterSummaryText = document.getElementById('filterSummaryText');
+const filterSummaryDot = document.getElementById('filterSummaryDot');
+const teamSheetOverlay = document.getElementById('teamSheetOverlay');
+const teamSheetList = document.getElementById('teamSheetList');
+
+function updateFilterSummary() {
+  const activeBtn = document.querySelector('.filter__btn.active');
+  if (!activeBtn) return;
+
+  if (filterSummaryText) {
+    filterSummaryText.textContent = activeBtn.dataset.team ? activeBtn.textContent : '전체';
+  }
+  if (filterSummaryDot) {
+    filterSummaryDot.style.backgroundColor = activeBtn.dataset.team
+      ? (teamColors[activeBtn.textContent] || '#333')
+      : '#333';
+  }
+  document.querySelectorAll('.team-sheet__item').forEach(item => {
+    item.classList.toggle('active', item.dataset.team === activeBtn.dataset.team);
+  });
+}
+
+function selectTeam(team) {
+  teamTabs.forEach(t => t.classList.toggle('active', t.dataset.team === team));
+  currentTeam = team;
+  applyTeamFilter();
+  updateFilterSummary();
+  closeTeamSheet();
+}
 
 teamTabs.forEach(tab => {
   tab.addEventListener('click', (e) => {
-    teamTabs.forEach(t => t.classList.remove('active'));
-    e.target.classList.add('active');
-    currentTeam = e.target.dataset.team;
-    applyTeamFilter();
+    selectTeam(e.target.dataset.team);
   });
 });
+
+function renderTeamSheet() {
+  if (!teamSheetList) return;
+  teamSheetList.innerHTML = '';
+
+  teamTabs.forEach(tab => {
+    const team = tab.dataset.team;
+    const name = tab.textContent;
+
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'team-sheet__item' + (tab.classList.contains('active') ? ' active' : '');
+    item.dataset.team = team;
+
+    const logoSrc = teamLogos[name];
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'team-sheet__item-name' + (logoSrc ? '' : ' team-sheet__item-name--all');
+    nameSpan.textContent = name;
+
+    const check = document.createElement('i');
+    check.className = 'bi bi-check-lg';
+
+    if (logoSrc) {
+      const logo = document.createElement('img');
+      logo.className = 'team-sheet__item-logo';
+      logo.src = logoSrc;
+      logo.alt = name;
+      item.appendChild(logo);
+    }
+    item.appendChild(nameSpan);
+    item.appendChild(check);
+
+    item.addEventListener('click', () => selectTeam(team));
+
+    teamSheetList.appendChild(item);
+  });
+}
+
+function openTeamSheet() {
+  renderTeamSheet();
+  if (teamSheetOverlay) teamSheetOverlay.classList.add('show');
+  if (filterSummaryBtn) filterSummaryBtn.setAttribute('aria-expanded', 'true');
+}
+
+function closeTeamSheet() {
+  if (teamSheetOverlay) teamSheetOverlay.classList.remove('show');
+  if (filterSummaryBtn) filterSummaryBtn.setAttribute('aria-expanded', 'false');
+}
+
+if (filterSummaryBtn) {
+  filterSummaryBtn.addEventListener('click', openTeamSheet);
+}
+
+if (teamSheetOverlay) {
+  teamSheetOverlay.addEventListener('click', (e) => {
+    if (e.target === teamSheetOverlay) closeTeamSheet();
+  });
+}
 
 // Quick Menu
 const quickMenuItems = document.querySelectorAll('.quick-menu__item');
@@ -98,6 +186,8 @@ async function goToToday() {
   if (allTeamBtn) {
     allTeamBtn.classList.add('active');
   }
+  updateFilterSummary();
+  closeTeamSheet();
 
   const scheduleContainer = document.getElementById('scheduleContainer');
   scheduleContainer.innerHTML = renderSkeletonLoader();

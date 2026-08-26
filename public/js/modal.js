@@ -39,7 +39,7 @@ async function loadWeather(forceRefresh = false) {
       return;
     }
 
-    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! <span class="symbol-font">†</span></span></div></div>';
 
     const today = new Date();
     const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
@@ -103,12 +103,8 @@ function renderWeatherCards(weatherDataList) {
       <div class="modal__weather-desc">${data.weatherDesc}</div>
       <div class="modal__weather-details">
         <div class="modal__weather-detail-item">
-          <div class="modal__weather-detail-label">최고</div>
-          <div class="modal__weather-detail-value">${Math.round(data.temperatureMax)}°C</div>
-        </div>
-        <div class="modal__weather-detail-item">
-          <div class="modal__weather-detail-label">최저</div>
-          <div class="modal__weather-detail-value">${Math.round(data.temperatureMin)}°C</div>
+          <div class="modal__weather-detail-label">최고/최저</div>
+          <div class="modal__weather-detail-value">${Math.round(data.temperatureMax)}°/${Math.round(data.temperatureMin)}°</div>
         </div>
         <div class="modal__weather-detail-item">
           <div class="modal__weather-detail-label">풍속</div>
@@ -126,7 +122,24 @@ function renderWeatherCards(weatherDataList) {
     </div>
   `).join('');
 
-  weatherContainer.innerHTML = `<div class="modal__weather-cards">${cardsHtml}</div>`;
+  const listHtml = weatherDataList.map(data => `
+    <div class="modal__weather-row">
+      <span class="modal__weather-row-icon">${getWeatherIcon(data.weatherCode)}</span>
+      <div class="modal__weather-row-main">
+        <div class="modal__weather-row-stadium">${data.stadium}</div>
+        <div class="modal__weather-row-desc">${data.weatherDesc} · 최고 ${Math.round(data.temperatureMax)}° 최저 ${Math.round(data.temperatureMin)}°</div>
+      </div>
+      <div class="modal__weather-row-stats">
+        <div class="modal__weather-row-temp">${data.temperature}°C</div>
+        <div class="modal__weather-row-sub">습도 ${data.humidity}% · ${data.windspeed}m/s</div>
+      </div>
+    </div>
+  `).join('');
+
+  weatherContainer.innerHTML = `
+    <div class="modal__weather-cards">${cardsHtml}</div>
+    <div class="modal__weather-list">${listHtml}</div>
+  `;
 }
 
 async function loadTeamRank() {
@@ -134,7 +147,7 @@ async function loadTeamRank() {
   const rankDate = document.getElementById('rankDate');
 
   try {
-    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! †</span></div></div>';
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! <span class="symbol-font">†</span></span></div></div>';
 
     const response = await fetch('/api/team-rank');
     const data = await response.json();
@@ -182,15 +195,46 @@ async function loadTeamRank() {
           <td>${rank.draws}</td>
           <td>${rank.winRate}</td>
           <td>${rank.gameDiff}</td>
-          <td>-</td>
+          <td>${rank.streak || '-'}</td>
           <td class="modal__recent-games">${rank.recent10 || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
 
+      const list = document.createElement('div');
+      list.className = 'modal__rank-list';
+      data.ranks.forEach(rank => {
+        const teamColor = teamColors[rank.teamName] || '#333';
+        const teamLogo = teamLogos[rank.teamName] || '';
+        const streakText = rank.streak || '-';
+
+        const item = document.createElement('div');
+        item.className = 'modal__rank-item';
+        item.innerHTML = `
+          <div class="modal__rank-item-row">
+            <span class="modal__rank-item-rank">${rank.rank}</span>
+            ${teamLogo ? `<img src="${teamLogo}" alt="${rank.teamName}" class="modal__rank-item-logo">` : ''}
+            <div class="modal__rank-item-team">
+              <div class="modal__rank-item-name" style="color: ${teamColor};">${rank.teamName}</div>
+              <div class="modal__rank-item-record">${rank.games}경기 ${rank.wins}승 ${rank.losses}패 ${rank.draws}무</div>
+            </div>
+            <div class="modal__rank-item-streak">
+              <div class="modal__rank-item-streak-value">${streakText}</div>
+              <div class="modal__rank-item-streak-label">연속</div>
+            </div>
+            <div class="modal__rank-item-stats">
+              <div class="modal__rank-item-winrate">${rank.winRate}</div>
+              <div class="modal__rank-item-gamediff">게임차 ${rank.gameDiff}</div>
+            </div>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
       rankTableContainer.innerHTML = '';
       rankTableContainer.appendChild(table);
+      rankTableContainer.appendChild(list);
     } else {
       rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없습니다.</div>';
     }
@@ -198,6 +242,93 @@ async function loadTeamRank() {
     console.error('Error loading team rank:', error);
     rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없습니다.</div>';
   }
+}
+
+function renderPitcherCard(pitcherName, teamName, pitcherData, statClasses) {
+  const logo = teamLogosDetail[teamName] || '';
+  const logoSizeClass = teamName === '롯데' ? 'small-logo' : (teamName === 'NC' ? 'large-logo' : '');
+  const record = pitcherData.record ? pitcherData.record.replace(/VS/g, ' VS') : '-';
+
+  return `
+    <div class="game-detail__pitcher-card">
+      <div class="game-detail__pitcher-header">
+        <table class="game-detail__stats-table">
+          <thead>
+            <tr>
+              <th class="pitcher-info-col">
+                <div>
+                  <img src="${logo}" alt="${teamName}" class="pitcher-info-logo ${logoSizeClass}">
+                  <span>선발투수</span>
+                </div>
+              </th>
+              <th>평균자책점</th>
+              <th>WAR</th>
+              <th>경기</th>
+              <th>선발평균이닝</th>
+              <th>QS</th>
+              <th>WHIP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pitcher-info-col">
+                <div class="game-detail__pitcher-info">
+                  <div class="game-detail__pitcher-name">
+                    <div class="name-wrap">
+                      <span class="name">${pitcherName}</span>
+                      ${pitcherData.style ? `<span class="style">${pitcherData.style}</span>` : ''}
+                    </div>
+                    <div class="record">${record}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="${statClasses.era}">${pitcherData.era || '-'}</td>
+              <td class="${statClasses.war}">${pitcherData.war || '-'}</td>
+              <td class="${statClasses.games}">${pitcherData.games || '-'}</td>
+              <td class="${statClasses.inning}">${pitcherData.startAvgInning || '-'}</td>
+              <td class="${statClasses.qs}">${pitcherData.qs || '-'}</td>
+              <td class="${statClasses.whip}">${pitcherData.whip || '-'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="game-detail__pitcher-stat-cards">
+        <div class="game-detail__pitcher-stat-header">
+          <img src="${logo}" alt="${teamName}" class="pitcher-info-logo ${logoSizeClass}">
+          <div>
+            <div class="game-detail__pitcher-stat-name">${pitcherName}${pitcherData.style ? ` <span class="style">${pitcherData.style}</span>` : ''}</div>
+            <div class="game-detail__pitcher-stat-record">${record}</div>
+          </div>
+        </div>
+        <div class="game-detail__stat-grid">
+          <div class="game-detail__stat-tile ${statClasses.era}">
+            <span class="game-detail__stat-label">평균자책점</span>
+            <span class="game-detail__stat-value">${pitcherData.era || '-'}</span>
+          </div>
+          <div class="game-detail__stat-tile ${statClasses.war}">
+            <span class="game-detail__stat-label">WAR</span>
+            <span class="game-detail__stat-value">${pitcherData.war || '-'}</span>
+          </div>
+          <div class="game-detail__stat-tile ${statClasses.whip}">
+            <span class="game-detail__stat-label">WHIP</span>
+            <span class="game-detail__stat-value">${pitcherData.whip || '-'}</span>
+          </div>
+          <div class="game-detail__stat-tile ${statClasses.games}">
+            <span class="game-detail__stat-label">경기</span>
+            <span class="game-detail__stat-value">${pitcherData.games || '-'}</span>
+          </div>
+          <div class="game-detail__stat-tile ${statClasses.inning}">
+            <span class="game-detail__stat-label">선발평균이닝</span>
+            <span class="game-detail__stat-value">${pitcherData.startAvgInning || '-'}</span>
+          </div>
+          <div class="game-detail__stat-tile ${statClasses.qs}">
+            <span class="game-detail__stat-label">QS</span>
+            <span class="game-detail__stat-value">${pitcherData.qs || '-'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderPitcherComparison(data, game, container) {
@@ -226,105 +357,19 @@ function renderPitcherComparison(data, game, container) {
     const inningClass = getBetterStatClass(data.awayData.startAvgInning, data.homeData.startAvgInning);
     const qsClass = getBetterStatClass(data.awayData.qs, data.homeData.qs);
     const whipClass = getBetterStatClass(data.awayData.whip, data.homeData.whip, true);
-    const winsClass = getBetterStatClass(data.awayData.wins, data.homeData.wins);
+
+    const awayStatClasses = { era: eraClass.away, war: warClass.away, games: gamesClass.away, inning: inningClass.away, qs: qsClass.away, whip: whipClass.away };
+    const homeStatClasses = { era: eraClass.home, war: warClass.home, games: gamesClass.home, inning: inningClass.home, qs: qsClass.home, whip: whipClass.home };
 
     const html = `
       <div class="game-detail__pitchers">
-        ${data.awayData ? `
-          <div class="game-detail__pitcher-card">
-            <div class="game-detail__pitcher-header">
-              <table class="game-detail__stats-table">
-                <thead>
-                  <tr>
-                    <th class="pitcher-info-col">
-                      <div>
-                        <img src="${teamLogosDetail[game.awayTeam] || ''}" alt="${game.awayTeam}" class="pitcher-info-logo ${game.awayTeam === '롯데' ? 'small-logo' : ''} ${game.awayTeam === 'NC' ? 'large-logo' : ''}">
-                        <span>선발투수</span>
-                      </div>
-                    </th>
-                    <th>평균자책점</th>
-                    <th>WAR</th>
-                    <th>경기</th>
-                    <th>선발평균이닝</th>
-                    <th>QS</th>
-                    <th>WHIP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pitcher-info-col">
-                      <div class="game-detail__pitcher-info">
-                        <div class="game-detail__pitcher-name">
-                          <div class="name-wrap">
-                            <span class="name">${game.awayPitcher}</span>
-                            ${data.awayData.style ? `<span class="style">${data.awayData.style}</span>` : ''}
-                          </div>
-                          <div class="record">${data.awayData.record ? data.awayData.record.replace(/VS/g, ' VS') : '-'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="${eraClass.away}">${data.awayData.era || '-'}</td>
-                    <td class="${warClass.away}">${data.awayData.war || '-'}</td>
-                    <td class="${gamesClass.away}">${data.awayData.games || '-'}</td>
-                    <td class="${inningClass.away}">${data.awayData.startAvgInning || '-'}</td>
-                    <td class="${qsClass.away}">${data.awayData.qs || '-'}</td>
-                    <td class="${whipClass.away}">${data.awayData.whip || '-'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ` : ''}
-        ${data.homeData ? `
-          <div class="game-detail__pitcher-card">
-            <div class="game-detail__pitcher-header">
-              <table class="game-detail__stats-table">
-                <thead>
-                  <tr>
-                    <th class="pitcher-info-col">
-                      <div>
-                        <img src="${teamLogosDetail[game.homeTeam] || ''}" alt="${game.homeTeam}" class="pitcher-info-logo ${game.homeTeam === '롯데' ? 'small-logo' : ''} ${game.homeTeam === 'NC' ? 'large-logo' : ''}">
-                        <span>선발투수</span>
-                      </div>
-                    </th>
-                    <th>평균자책점</th>
-                    <th>WAR</th>
-                    <th>경기</th>
-                    <th>선발평균이닝</th>
-                    <th>QS</th>
-                    <th>WHIP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pitcher-info-col">
-                      <div class="game-detail__pitcher-info">
-                        <div class="game-detail__pitcher-name">
-                          <div class="name-wrap">
-                            <span class="name">${game.homePitcher}</span>
-                            ${data.homeData.style ? `<span class="style">${data.homeData.style}</span>` : ''}
-                          </div>
-                          <div class="record">${data.homeData.record ? data.homeData.record.replace(/VS/g, ' VS') : '-'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="${eraClass.home}">${data.homeData.era || '-'}</td>
-                    <td class="${warClass.home}">${data.homeData.war || '-'}</td>
-                    <td class="${gamesClass.home}">${data.homeData.games || '-'}</td>
-                    <td class="${inningClass.home}">${data.homeData.startAvgInning || '-'}</td>
-                    <td class="${qsClass.home}">${data.homeData.qs || '-'}</td>
-                    <td class="${whipClass.home}">${data.homeData.whip || '-'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ` : ''}
+        ${data.awayData ? renderPitcherCard(game.awayPitcher, game.awayTeam, data.awayData, awayStatClasses) : ''}
+        ${data.homeData ? renderPitcherCard(game.homePitcher, game.homeTeam, data.homeData, homeStatClasses) : ''}
       </div>
     `;
     container.innerHTML = html;
   } else {
-    container.innerHTML = '<div class="modal__no-data">투수 정보를 찾을 수 없다냥! †</div>';
+    container.innerHTML = '<div class="modal__no-data">투수 정보를 찾을 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
@@ -344,7 +389,7 @@ async function loadPitcherComparison(game, container) {
     renderPitcherComparison(data, game, container);
   } catch (error) {
     console.error('Error loading pitcher comparison:', error);
-    container.innerHTML = '<div class="modal__no-data">투수 정보를 불러올 수 없다냥! †</div>';
+    container.innerHTML = '<div class="modal__no-data">투수 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
@@ -363,120 +408,148 @@ async function loadLineup(game, container) {
     if (data.lineup) {
       renderLineup(data.lineup, game, container);
     } else {
-      container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! †</div>';
+      container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
     }
   } catch (error) {
     console.error('Error loading lineup:', error);
-    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! †</div>';
+    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
+}
+
+function renderLineupTeamTable(teamName, players) {
+  const logoSizeClass = teamName === '롯데' ? 'small-logo' : (teamName === 'NC' ? 'large-logo' : '');
+  return `
+    <div class="lineup__team-header">
+      <img src="${teamLogosDetail[teamName] || ''}" alt="${teamName}" class="lineup__team-logo ${logoSizeClass}">
+      <span>${teamName}</span>
+    </div>
+    <table class="lineup-table">
+      <thead>
+        <tr>
+          <th>타순</th>
+          <th>포지션</th>
+          <th>선수명</th>
+          <th>WAR</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${players.map(player => `
+          <tr>
+            <td>${player.order}</td>
+            <td>${player.position}</td>
+            <td>${player.name}</td>
+            <td>${player.war.toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <ul class="lineup__list">
+      ${players.map(player => `
+        <li class="lineup__list-item">
+          <span class="lineup__list-order">${player.order}</span>
+          <span class="lineup__list-position">${player.position}</span>
+          <span class="lineup__list-name">${player.name}</span>
+          <span class="lineup__list-war">${player.war.toFixed(2)}</span>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+
+function getLineupBarColor(teamName, opponentName, fallback) {
+  // 두산(#1d1838)과 KT(#232323)는 둘 다 어두운 색이라 막대에서 구분이 안 되므로 두산만 밝은 남색으로 대체
+  if (teamName === '두산' && opponentName === 'KT') {
+    return '#3b5bdb';
+  }
+  return teamColors[teamName] || fallback;
+}
+
+function renderWarSummaryRow(label, away, home, awayTeam, homeTeam, maxWar) {
+  const awayPct = (away / maxWar * 100).toFixed(2);
+  const homePct = (home / maxWar * 100).toFixed(2);
+  const awayColor = getLineupBarColor(awayTeam, homeTeam, '#4a90e2');
+  const homeColor = getLineupBarColor(homeTeam, awayTeam, '#e24a4a');
+  return `
+    <li>
+      <div class="graph away" style="color: ${awayColor};">
+        <span class="away-value">${away.toFixed(2)}&nbsp;&nbsp;</span>
+        <span class="bar-bg away" style="width: ${awayPct}%; background-color: ${awayColor};"></span>
+      </div>
+      <span class="label">${label}</span>
+      <div class="graph home" style="color: ${homeColor};">
+        <span class="bar-bg home" style="width: ${homePct}%; background-color: ${homeColor};"></span>
+        <span class="home-value">&nbsp;&nbsp;${home.toFixed(2)}</span>
+      </div>
+      <div class="lineup__war-row">
+        <span class="lineup__war-label">${label}</span>
+        <div class="lineup__war-bar-wrap">
+          <span class="lineup__war-value away" style="color: ${awayColor};">${away.toFixed(2)}</span>
+          <div class="lineup__war-bar">
+            <div class="lineup__war-bar-fill away" style="width: ${awayPct}%; background-color: ${awayColor};"></div>
+            <div class="lineup__war-bar-fill home" style="width: ${homePct}%; background-color: ${homeColor};"></div>
+          </div>
+          <span class="lineup__war-value home" style="color: ${homeColor};">${home.toFixed(2)}</span>
+        </div>
+      </div>
+    </li>
+  `;
 }
 
 function renderLineup(lineup, game, container) {
   if (!lineup) {
-    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! †</div>';
+    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
     return;
   }
+
+  const maxWar = Math.max(
+    lineup.warSummary.tableSetter.away,
+    lineup.warSummary.tableSetter.home,
+    lineup.warSummary.cleanUp.away,
+    lineup.warSummary.cleanUp.home,
+    lineup.warSummary.bottom.away,
+    lineup.warSummary.bottom.home,
+    0.01
+  );
 
   const html = `
     <div class="game-detail__lineup">
       <div class="lineup__war-summary">
         <h4>WAR 합산</h4>
         <ul class="lineup-data">
-          <li>
-            <div class="graph away">
-              <span class="away-value">${lineup.warSummary.tableSetter.away.toFixed(2)}&nbsp;&nbsp;</span>
-              <span class="bar-bg away" style="width: ${(lineup.warSummary.tableSetter.away / 5 * 100).toFixed(2)}%"></span>
-            </div>
-            <span class="label">테이블세터</span>
-            <div class="graph home">
-              <span class="bar-bg home" style="width: ${(lineup.warSummary.tableSetter.home / 5 * 100).toFixed(2)}%"></span>
-              <span class="home-value">&nbsp;&nbsp;${lineup.warSummary.tableSetter.home.toFixed(2)}</span>
-            </div>
-          </li>
-          <li>
-            <div class="graph away">
-              <span class="away-value">${lineup.warSummary.cleanUp.away.toFixed(2)}&nbsp;&nbsp;</span>
-              <span class="bar-bg away" style="width: ${(lineup.warSummary.cleanUp.away / 5 * 100).toFixed(2)}%"></span>
-            </div>
-            <span class="label">중심타선</span>
-            <div class="graph home">
-              <span class="bar-bg home" style="width: ${(lineup.warSummary.cleanUp.home / 5 * 100).toFixed(2)}%"></span>
-              <span class="home-value">&nbsp;&nbsp;${lineup.warSummary.cleanUp.home.toFixed(2)}</span>
-            </div>
-          </li>
-          <li>
-            <div class="graph away">
-              <span class="away-value">${lineup.warSummary.bottom.away.toFixed(2)}&nbsp;&nbsp;</span>
-              <span class="bar-bg away" style="width: ${(lineup.warSummary.bottom.away / 5 * 100).toFixed(2)}%"></span>
-            </div>
-            <span class="label">하위타선</span>
-            <div class="graph home">
-              <span class="bar-bg home" style="width: ${(lineup.warSummary.bottom.home / 5 * 100).toFixed(2)}%"></span>
-              <span class="home-value">&nbsp;&nbsp;${lineup.warSummary.bottom.home.toFixed(2)}</span>
-            </div>
-          </li>
+          ${renderWarSummaryRow('테이블세터', lineup.warSummary.tableSetter.away, lineup.warSummary.tableSetter.home, game.awayTeam, game.homeTeam, maxWar)}
+          ${renderWarSummaryRow('중심타선', lineup.warSummary.cleanUp.away, lineup.warSummary.cleanUp.home, game.awayTeam, game.homeTeam, maxWar)}
+          ${renderWarSummaryRow('하위타선', lineup.warSummary.bottom.away, lineup.warSummary.bottom.home, game.awayTeam, game.homeTeam, maxWar)}
         </ul>
       </div>
 
+      <div class="lineup__team-tabs">
+        <button type="button" class="lineup__team-tab active" data-team="away">${game.awayTeam}</button>
+        <button type="button" class="lineup__team-tab" data-team="home">${game.homeTeam}</button>
+      </div>
+
       <div class="lineup__players">
-        <div class="lineup__team away">
-          <div class="lineup__team-header">
-            <img src="${teamLogosDetail[game.awayTeam] || ''}" alt="${game.awayTeam}" class="lineup__team-logo ${game.awayTeam === '롯데' ? 'small-logo' : ''} ${game.awayTeam === 'NC' ? 'large-logo' : ''}">
-            <span>${game.awayTeam}</span>
-          </div>
-          <table class="lineup-table">
-            <thead>
-              <tr>
-                <th>타순</th>
-                <th>포지션</th>
-                <th>선수명</th>
-                <th>WAR</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${lineup.awayLineup.map(player => `
-                <tr>
-                  <td>${player.order}</td>
-                  <td>${player.position}</td>
-                  <td>${player.name}</td>
-                  <td>${player.war.toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div class="lineup__team away active">
+          ${renderLineupTeamTable(game.awayTeam, lineup.awayLineup)}
         </div>
 
         <div class="lineup__team home">
-          <div class="lineup__team-header">
-            <img src="${teamLogosDetail[game.homeTeam] || ''}" alt="${game.homeTeam}" class="lineup__team-logo ${game.homeTeam === '롯데' ? 'small-logo' : ''} ${game.homeTeam === 'NC' ? 'large-logo' : ''}">
-            <span>${game.homeTeam}</span>
-          </div>
-          <table class="lineup-table">
-            <thead>
-              <tr>
-                <th>타순</th>
-                <th>포지션</th>
-                <th>선수명</th>
-                <th>WAR</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${lineup.homeLineup.map(player => `
-                <tr>
-                  <td>${player.order}</td>
-                  <td>${player.position}</td>
-                  <td>${player.name}</td>
-                  <td>${player.war.toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+          ${renderLineupTeamTable(game.homeTeam, lineup.homeLineup)}
         </div>
       </div>
     </div>
   `;
 
   container.innerHTML = html;
+
+  const teamTabs = container.querySelectorAll('.lineup__team-tab');
+  const teamPanels = container.querySelectorAll('.lineup__team');
+  teamTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      teamTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      teamPanels.forEach(p => p.classList.toggle('active', p.classList.contains(tab.dataset.team)));
+    });
+  });
 }
 
 // Modal controls

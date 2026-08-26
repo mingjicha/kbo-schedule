@@ -214,22 +214,22 @@
 
 /* Status Badge */
 .schedule__status {
-  padding: 4px 12px;
   border-radius: 24px;
-  font-size: 0.875rem;
   font-weight: 700;
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  min-width: 60px;
   text-align: center;
-  background-color: #f3f3f3;
   color: #757575;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-size: 1rem;
+}
+
+.schedule__status-symbol {
+  font-family: 'OwnglyphParkDaHyun', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
 }
 
 .schedule__status::before {
@@ -275,38 +275,148 @@
   justify-content: center;
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 768px) {
+  .schedule {
+    padding: 0 10px 40px 10px;
+  }
+
+  /* 2단 레이아웃: 1행 = 시간/구장 + 상태, 2행 = 팀 대결 */
+  .schedule__game {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .schedule__info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 6px;
+    column-gap: 6px;
+  }
+
+  .schedule__time {
+    order: 1;
+  }
+
+  .schedule__stadium {
+    order: 2;
+  }
+
   .schedule__status {
-    background-color: #626ABD;
-    color: white;
-    padding: 6px 14px;
-    font-size: 0.8rem;
-    min-width: 55px;
+    order: 3;
+    margin-left: auto;
+    min-width: 0;
+    padding: 0;
+    font-size: 0.7rem;
   }
 
-  .schedule__status::before {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+  .schedule__teams {
+    order: 4;
+    flex-basis: 100%;
+    width: 100%;
+    gap: 24px;
   }
 
-  .schedule__status.schedule__game--finished {
-    background-color: #2f6f64;
-    color: white;
+  .schedule__team-name {
+    min-width: 0;
+    font-size: 1rem;
   }
 
-  .schedule__status.schedule__game--scheduled {
-    background-color: #626ABD;
-    color: white;
+  .schedule__pitcher {
+    min-width: 0;
+    font-size: 0.75rem;
   }
 
-  .schedule__status.schedule__game--live {
-    background-color: #e57373;
-    color: white;
+  .schedule__score {
+    min-width: 44px;
+    font-size: 1.2rem;
   }
 
-  .schedule__status.schedule__game--cancelled {
-    background-color: #e57373;
-    color: white;
+  .schedule__logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .schedule__teams {
+    order: 4;
+  }
+
+  /* 날짜 그룹: 박스 없는 얇은 헤더로 */
+  .schedule__day {
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
+    border: none;
+  }
+
+  .schedule__day.schedule__day--today {
+    background-color: transparent;
+    border: none;
+  }
+
+  .schedule__date-header {
+    padding: 0 4px 12px;
+    margin-bottom: 0;
+    border-bottom: none;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #6B7684;
+  }
+
+  .schedule__today-badge {
+    background-color: #EEEFF9;
+    color: #4C54A0;
+    padding: 3px 9px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  /* 경기 카드: 개별 라운드 카드 */
+  .schedule__game {
+    background-color: white;
+    border: 1.5px solid transparent;
+    border-radius: 20px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    min-height: 0;
+  }
+
+  .schedule__game.schedule__game--finished,
+  .schedule__game.schedule__game--cancelled {
+    background-color: white;
+  }
+
+  .schedule__game:hover {
+    box-shadow: none;
+  }
+
+  .schedule__day.schedule__day--today .schedule__game {
+    background-color: white;
+    border: 1.5px solid #EEEFF9;
+  }
+
+  .schedule__time {
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .schedule__day.schedule__day--today .schedule__time {
+    color: #4C54A0;
+  }
+
+  .schedule__stadium {
+    font-size: 0.85rem;
+  }
+
+  .schedule__score {
+    font-size: 1.375rem;
+    font-weight: 800;
+  }
+
+  .schedule__score.schedule__game--live,
+  .schedule__score.schedule__game--finished {
+    font-size: 1.375rem;
   }
 }
 
