@@ -226,6 +226,8 @@
   justify-content: center;
   gap: 5px;
   font-size: 1rem;
+  background-color: #F2F4F6;
+  padding: 4px 10px;
 }
 
 .schedule__status-symbol {
@@ -306,7 +308,7 @@
     order: 3;
     margin-left: auto;
     min-width: 0;
-    padding: 0;
+    padding: 3px;
     font-size: 0.7rem;
   }
 
