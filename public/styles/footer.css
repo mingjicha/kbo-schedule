@@ -213,7 +213,7 @@
     background-color: white;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -4px 16px -6px rgba(25, 31, 40, 0.12);
-    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    padding: 4px 0 calc(2px + env(safe-area-inset-bottom) * 0.5);
   }
 
   .quick-menu__item {
@@ -225,8 +225,8 @@
     color: #B0B8C1;
     box-shadow: none;
     animation: none;
-    gap: 4px;
-    padding: 7px 0;
+    gap: 3px;
+    padding: 5px 0;
   }
 
   .quick-menu__item i {
@@ -307,14 +307,15 @@
     display: flex;
   }
 
-  .scroll-top-btn {
+  .scroll-top-btn,
+  .scroll-top-btn.show {
     display: none;
   }
 
   .app-footer {
     background-color: #F2F4F6;
     border-top: none;
-    padding: 32px clamp(10px, 4vw, 32px) calc(24px + 80px + env(safe-area-inset-bottom));
+    padding: 32px clamp(10px, 4vw, 32px) calc(24px + 62px + env(safe-area-inset-bottom) * 0.5);
   }
 
   .app-footer__content {
