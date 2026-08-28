@@ -319,13 +319,19 @@
     gap: 24px;
   }
 
+  .schedule__team {
+    width: 64px;
+  }
+
   .schedule__team-name {
     min-width: 0;
+    width: 100%;
     font-size: 1rem;
   }
 
   .schedule__pitcher {
     min-width: 0;
+    width: 100%;
     font-size: 0.75rem;
   }
 
