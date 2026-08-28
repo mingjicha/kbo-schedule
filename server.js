@@ -343,8 +343,8 @@ app.get('/api/schedule', async (req, res) => {
             let noteText = note ? note.replace(/<[^>]*>/g, '').trim() : '';
             noteText = noteText.replace(/&nbsp;/g, ' ').trim();
 
-            if (noteText === '취소' || noteText === '우천취소' || noteText === '기타' ||
-                noteText.includes('취소') || noteText.includes('우천')) {
+            // 비고란에 사유가 적혀 있으면 취소 (우천취소/폭염취소/그라운드사정 등)
+            if (noteText && noteText !== '-') {
               finalStatus = '취소';
               awayScore = null;
               homeScore = null;

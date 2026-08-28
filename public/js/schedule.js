@@ -73,9 +73,9 @@ function getGameStatus(game) {
     return '취소';
   }
 
+  // 비고란에 사유가 적혀 있으면 취소 (우천취소/폭염취소/그라운드사정 등)
   const noteText = game.note ? game.note.replace(/<[^>]*>/g, '').trim() : '';
-  if (noteText === '취소' || noteText === '우천취소' || noteText === '기타' ||
-      noteText.includes('취소') || noteText.includes('우천')) {
+  if (noteText && noteText !== '-') {
     return '취소';
   }
 
