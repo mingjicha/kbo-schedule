@@ -70,7 +70,8 @@ async function loadWeather(forceRefresh = false) {
     const weatherDataList = [];
     for (const stadium of stadiums) {
       try {
-        const response = await fetch(`/api/weather?stadium=${encodeURIComponent(stadium)}`);
+        const weatherUrl = `/api/weather?stadium=${encodeURIComponent(stadium)}` + (forceRefresh ? '&refresh=1' : '');
+        const response = await fetch(weatherUrl);
         const data = await response.json();
         weatherDataList.push(data);
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -142,14 +143,14 @@ function renderWeatherCards(weatherDataList) {
   `;
 }
 
-async function loadTeamRank() {
+async function loadTeamRank(forceRefresh = false) {
   const rankTableContainer = document.getElementById('rankTableContainer');
   const rankDate = document.getElementById('rankDate');
 
   try {
     rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이다냥! <span class="symbol-font">†</span></span></div></div>';
 
-    const response = await fetch('/api/team-rank');
+    const response = await fetch(forceRefresh ? '/api/team-rank?refresh=1' : '/api/team-rank');
     const data = await response.json();
 
     const dateStr = data.date || '기준일 미정';
@@ -417,10 +418,9 @@ async function loadLineup(game, container) {
 }
 
 function renderLineupTeamTable(teamName, players) {
-  const logoSizeClass = teamName === '롯데' ? 'small-logo' : (teamName === 'NC' ? 'large-logo' : '');
   return `
     <div class="lineup__team-header">
-      <img src="${teamLogosDetail[teamName] || ''}" alt="${teamName}" class="lineup__team-logo ${logoSizeClass}">
+      <img src="${teamLogos[teamName] || ''}" alt="${teamName}" class="lineup__team-logo">
       <span>${teamName}</span>
     </div>
     <table class="lineup-table">
@@ -484,8 +484,10 @@ function renderWarSummaryRow(label, away, home, awayTeam, homeTeam, maxWar) {
         <span class="lineup__war-label">${label}</span>
         <div class="lineup__war-bar-wrap">
           <span class="lineup__war-value away" style="color: ${awayColor};">${away.toFixed(2)}</span>
-          <div class="lineup__war-bar">
+          <div class="lineup__war-bar lineup__war-bar--away">
             <div class="lineup__war-bar-fill away" style="width: ${awayPct}%; background-color: ${awayColor};"></div>
+          </div>
+          <div class="lineup__war-bar lineup__war-bar--home">
             <div class="lineup__war-bar-fill home" style="width: ${homePct}%; background-color: ${homeColor};"></div>
           </div>
           <span class="lineup__war-value home" style="color: ${homeColor};">${home.toFixed(2)}</span>
@@ -511,6 +513,9 @@ function renderLineup(lineup, game, container) {
     0.01
   );
 
+  const awayTabColor = getLineupBarColor(game.awayTeam, game.homeTeam, '#4a90e2');
+  const homeTabColor = getLineupBarColor(game.homeTeam, game.awayTeam, '#e24a4a');
+
   const html = `
     <div class="game-detail__lineup">
       <div class="lineup__war-summary">
@@ -523,8 +528,8 @@ function renderLineup(lineup, game, container) {
       </div>
 
       <div class="lineup__team-tabs">
-        <button type="button" class="lineup__team-tab active" data-team="away">${game.awayTeam}</button>
-        <button type="button" class="lineup__team-tab" data-team="home">${game.homeTeam}</button>
+        <button type="button" class="lineup__team-tab active" data-team="away" style="--tab-color: ${awayTabColor};">${game.awayTeam}</button>
+        <button type="button" class="lineup__team-tab" data-team="home" style="--tab-color: ${homeTabColor};">${game.homeTeam}</button>
       </div>
 
       <div class="lineup__players">
@@ -559,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rankModal = document.getElementById('rankModal');
 
   if (refreshRankBtn) {
-    refreshRankBtn.addEventListener('click', loadTeamRank);
+    refreshRankBtn.addEventListener('click', () => loadTeamRank(true));
   }
 
   if (closeRankBtn) {

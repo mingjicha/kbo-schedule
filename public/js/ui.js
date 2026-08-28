@@ -50,9 +50,16 @@ function updateFilterSummary() {
     filterSummaryText.textContent = activeBtn.dataset.team ? activeBtn.textContent : '전체';
   }
   if (filterSummaryDot) {
-    filterSummaryDot.style.backgroundColor = activeBtn.dataset.team
-      ? (teamColors[activeBtn.textContent] || '#333')
-      : '#333';
+    const logoSrc = teamLogos[activeBtn.textContent];
+    if (activeBtn.dataset.team && logoSrc) {
+      filterSummaryDot.style.display = 'block';
+      filterSummaryDot.style.backgroundColor = 'transparent';
+      filterSummaryDot.style.backgroundImage = `url(${logoSrc})`;
+    } else {
+      filterSummaryDot.style.display = 'none';
+      filterSummaryDot.style.backgroundImage = 'none';
+      filterSummaryDot.style.backgroundColor = '#333';
+    }
   }
   document.querySelectorAll('.team-sheet__item').forEach(item => {
     item.classList.toggle('active', item.dataset.team === activeBtn.dataset.team);
@@ -224,3 +231,16 @@ async function goToToday() {
 }
 
 todayBtn.addEventListener('click', goToToday);
+
+// Lock body scroll while any modal/overlay is open
+const openOverlaySelector = '.modal.show, .team-sheet-overlay.show';
+
+function syncBodyScrollLock() {
+  document.body.classList.toggle('body--no-scroll', !!document.querySelector(openOverlaySelector));
+}
+
+new MutationObserver(syncBodyScrollLock).observe(document.body, {
+  attributes: true,
+  attributeFilter: ['class'],
+  subtree: true
+});

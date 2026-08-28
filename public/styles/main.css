@@ -279,7 +279,7 @@
 
 @media (max-width: 768px) {
   .schedule {
-    padding: 0 10px 40px 10px;
+    padding: 0 10px 0px 10px;
   }
 
   /* 2단 레이아웃: 1행 = 시간/구장 + 상태, 2행 = 팀 대결 */
@@ -308,7 +308,7 @@
     order: 3;
     margin-left: auto;
     min-width: 0;
-    padding: 3px;
+    padding: 3px 6px 3px 6px;
     font-size: 0.7rem;
   }
 
@@ -394,8 +394,8 @@
   }
 
   .schedule__day.schedule__day--today .schedule__game {
-    background-color: white;
-    border: 1.5px solid #EEEFF9;
+    background-color: #EEEFF9;
+    border: 1.5px solid #626ABD;
   }
 
   .schedule__time {

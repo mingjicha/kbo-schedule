@@ -26,7 +26,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   scrollbar-width: none;
   margin: auto;
-  padding: 20px;
+  padding: 0 20px 20px;
 }
 
 .modal__content::-webkit-scrollbar {
@@ -35,7 +35,8 @@
 
 .modal__header {
   display: flex;
-  padding-bottom: 15px;
+  margin: 0 -20px;
+  padding: 20px 20px 15px;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #eee;
@@ -138,6 +139,10 @@
 .modal__body {
   padding-top: 15px;
   overflow-x: auto;
+}
+
+.modal--rank .modal__body {
+  padding-top: 0;
 }
 
 .modal__no-data {
@@ -250,6 +255,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  scrollbar-width: none;
+}
+
+.modal__body--weather::-webkit-scrollbar {
+  display: none;
 }
 
 .modal__weather-cards {
@@ -746,6 +756,28 @@
     width: 100%;
   }
 
+  .modal__header h3 {
+    font-size: 1.15rem;
+  }
+
+  .modal__badge {
+    font-size: 0.95rem;
+    padding: 5px 11px;
+  }
+
+  .modal__date {
+    font-size: 0.8rem;
+  }
+
+  .modal__btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .modal__btn i {
+    font-size: 0.85rem;
+  }
+
   .lineup__team-tabs {
     display: flex;
     gap: 8px;
@@ -765,8 +797,8 @@
   }
 
   .lineup__team-tab.active {
-    background-color: #333;
-    border-color: #333;
+    background-color: var(--tab-color, #333);
+    border-color: var(--tab-color, #333);
     color: white;
   }
 
@@ -883,6 +915,14 @@
     overflow: hidden;
   }
 
+  .lineup__war-bar--away {
+    justify-content: flex-end;
+  }
+
+  .lineup__war-bar--home {
+    justify-content: flex-start;
+  }
+
   .lineup__war-bar-fill.away {
     background-color: #4a90e2;
   }
@@ -962,6 +1002,37 @@
 
   .game-detail__stat-tile.stat-highlight .game-detail__stat-value {
     color: #a92424;
+  }
+
+  .game-detail__tabs {
+    border-radius: 16px;
+    padding: 2px;
+    margin-bottom: 20px;
+  }
+
+  .game-detail__tab {
+    padding: 0px 6px;
+    font-size: 0.85rem;
+    border-radius: 16px;
+  }
+
+  .lineup__war-summary {
+    padding: 12px;
+  }
+
+  .lineup__war-summary h4 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+  }
+
+  .lineup__team-header {
+    font-size: 1rem;
+    gap: 6px;
+  }
+
+  .lineup__team-logo {
+    width: 20px;
+    height: 20px;
   }
 
   .modal__rank-table {

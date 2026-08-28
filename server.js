@@ -52,12 +52,28 @@ function getCachedData(gameId) {
 
 function cacheData(gameId, data) {
   gameDataCache[gameId] = data;
-  // 캐시 5분 유지
+  // 캐시 20분 유지 (Puppeteer 크롤링은 무거우므로 오래 재사용)
   setTimeout(() => {
     delete gameDataCache[gameId];
-  }, 5 * 60 * 1000);
+  }, 20 * 60 * 1000);
 }
 
+// 범용 응답 캐시 (schedule / team-rank / weather 용)
+const responseCache = {};
+
+function getResponseCache(key) {
+  const entry = responseCache[key];
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    delete responseCache[key];
+    return null;
+  }
+  return entry.data;
+}
+
+function setResponseCache(key, data, ttlMs) {
+  responseCache[key] = { data, expiresAt: Date.now() + ttlMs };
+}
 
 function parseGameInfo(playHtml, gameId = '') {
   if (!playHtml) return {
@@ -217,6 +233,12 @@ app.get('/api/schedule', async (req, res) => {
     const year = req.query.year || new Date().getFullYear();
     const month = String(req.query.month || new Date().getMonth() + 1).padStart(2, '0');
     const team = req.query.team || '';
+
+    const cacheKey = `schedule:${year}:${month}:${team}`;
+    const cached = getResponseCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
 
     const postData = new URLSearchParams({
       leId: '1',
@@ -544,6 +566,13 @@ app.get('/api/schedule', async (req, res) => {
       }
     });
 
+    // 조회한 달이 이번 달이면 경기가 진행 중일 수 있으므로 짧게, 아니면 길게 캐시
+    const now = new Date();
+    const isCurrentMonth = String(now.getFullYear()) === String(year) &&
+      String(now.getMonth() + 1).padStart(2, '0') === month;
+    const ttlMs = isCurrentMonth ? 3 * 60 * 1000 : 60 * 60 * 1000;
+    setResponseCache(cacheKey, schedule, ttlMs);
+
     res.json(schedule);
   } catch (error) {
     console.error('Error fetching schedule:', error.message);
@@ -728,6 +757,14 @@ app.get('/api/game-detail/:gameId', async (req, res) => {
 // 팀 순위 조회
 app.get('/api/team-rank', async (req, res) => {
   try {
+    const cacheKey = 'team-rank';
+    if (!req.query.refresh) {
+      const cached = getResponseCache(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+    }
+
     const url = 'https://www.koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx';
     const response = await axios.get(url, {
       headers: {
@@ -823,10 +860,12 @@ app.get('/api/team-rank', async (req, res) => {
       }
     });
 
-    res.json({
+    const rankResult = {
       date: dateText,
       ranks: ranks
-    });
+    };
+    setResponseCache(cacheKey, rankResult, 30 * 60 * 1000);
+    res.json(rankResult);
 
   } catch (error) {
     console.error('Error fetching team rank:', error.message);
@@ -892,6 +931,14 @@ app.get('/api/weather', async (req, res) => {
       return res.status(400).json({ error: '유효하지 않은 경기장명' });
     }
 
+    const cacheKey = `weather:${stadium}`;
+    if (!req.query.refresh) {
+      const cached = getResponseCache(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+    }
+
     const { lat, lon } = stadiumCoords[stadium];
     const url = `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${lat}&longitude=${lon}` +
@@ -903,7 +950,7 @@ app.get('/api/weather', async (req, res) => {
     const current = response.data.current;
     const daily = response.data.daily;
 
-    res.json({
+    const weatherResult = {
       stadium,
       temperature: Math.round(current.temperature_2m),
       temperatureMax: daily.temperature_2m_max[0],
@@ -914,7 +961,9 @@ app.get('/api/weather', async (req, res) => {
       humidity: current.relative_humidity_2m,
       precipitation: current.precipitation,
       precipitationSum: daily.precipitation_sum[0]
-    });
+    };
+    setResponseCache(cacheKey, weatherResult, 10 * 60 * 1000);
+    res.json(weatherResult);
   } catch (error) {
     console.error('Error fetching weather:', error.message);
     res.status(500).json({ error: 'Failed to fetch weather' });

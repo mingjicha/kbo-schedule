@@ -41,6 +41,10 @@ body {
   height: 100%;
 }
 
+body.body--no-scroll {
+  overflow: hidden;
+}
+
 /* Layout */
 .app-wrapper {
   max-width: 960px;
@@ -171,5 +175,23 @@ body {
   .app-wrapper,
   .app {
     background-color: #F2F4F6;
+  }
+
+  .loading {
+    font-size: 0.85rem;
+    padding: 30px 20px;
+    min-height: 150px;
+  }
+
+  .spinner-border {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 14px;
+  }
+
+  .loading .visually-hidden,
+  .loading .spinner-border + span,
+  .loading .spinner-border ~ * {
+    font-size: 0.85rem;
   }
 }
