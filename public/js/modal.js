@@ -63,7 +63,7 @@ async function loadWeather(forceRefresh = false) {
     weatherDate.textContent = `${todayYear}년 ${month}월 ${day}일 기준`;
 
     if (stadiums.size === 0) {
-      weatherContainer.innerHTML = '<div class="modal__no-weather-data">오늘 예정된 경기가 없습니다.</div>';
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">오늘은 예정된 경기가 없다냥! <span class="symbol-font">†</span></div>';
       return;
     }
 
@@ -81,7 +81,7 @@ async function loadWeather(forceRefresh = false) {
     }
 
     if (weatherDataList.length === 0) {
-      weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없습니다.</div>';
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
       return;
     }
 
@@ -89,7 +89,7 @@ async function loadWeather(forceRefresh = false) {
     renderWeatherCards(weatherDataList);
   } catch (error) {
     console.error('Error loading weather:', error);
-    weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없습니다.</div>';
+    weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
@@ -123,19 +123,29 @@ function renderWeatherCards(weatherDataList) {
     </div>
   `).join('');
 
-  const listHtml = weatherDataList.map(data => `
+  const listHtml = weatherDataList.map(data => {
+    const rainChip = data.precipitation > 0
+      ? `<span class="modal__weather-chip modal__weather-chip--rain">${data.precipitation}mm</span>`
+      : '';
+    return `
     <div class="modal__weather-row">
       <span class="modal__weather-row-icon">${getWeatherIcon(data.weatherCode)}</span>
       <div class="modal__weather-row-main">
         <div class="modal__weather-row-stadium">${data.stadium}</div>
-        <div class="modal__weather-row-desc">${data.weatherDesc} · 최고 ${Math.round(data.temperatureMax)}° 최저 ${Math.round(data.temperatureMin)}°</div>
+        <div class="modal__weather-row-desc">${data.weatherDesc}</div>
+        <div class="modal__weather-row-meta">
+          <span class="modal__weather-chip">습도 ${data.humidity}%</span>
+          <span class="modal__weather-chip">${data.windspeed}m/s</span>
+          ${rainChip}
+        </div>
       </div>
       <div class="modal__weather-row-stats">
-        <div class="modal__weather-row-temp">${data.temperature}°C</div>
-        <div class="modal__weather-row-sub">습도 ${data.humidity}% · ${data.windspeed}m/s</div>
+        <div class="modal__weather-row-temp">${data.temperature}°</div>
+        <div class="modal__weather-row-range">${Math.round(data.temperatureMax)}° / ${Math.round(data.temperatureMin)}°</div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   weatherContainer.innerHTML = `
     <div class="modal__weather-cards">${cardsHtml}</div>
@@ -206,42 +216,47 @@ async function loadTeamRank(forceRefresh = false) {
       const list = document.createElement('div');
       list.className = 'modal__rank-list';
       data.ranks.forEach(rank => {
-        const teamColor = teamColors[rank.teamName] || '#333';
         const teamLogo = teamLogos[rank.teamName] || '';
         const streakText = rank.streak || '-';
+        const rankNum = parseInt(rank.rank, 10);
+        const gameDiffText = rankNum === 1 ? '-' : `${rank.gameDiff} 게임차`;
 
         const item = document.createElement('div');
-        item.className = 'modal__rank-item';
+        item.className = 'modal__rank-item' + (rankNum <= 5 ? ' modal__rank-item--top' : '');
         item.innerHTML = `
           <div class="modal__rank-item-row">
             <span class="modal__rank-item-rank">${rank.rank}</span>
             ${teamLogo ? `<img src="${teamLogo}" alt="${rank.teamName}" class="modal__rank-item-logo">` : ''}
             <div class="modal__rank-item-team">
-              <div class="modal__rank-item-name" style="color: ${teamColor};">${rank.teamName}</div>
+              <div class="modal__rank-item-name">${rank.teamName}</div>
               <div class="modal__rank-item-record">${rank.games}경기 ${rank.wins}승 ${rank.losses}패 ${rank.draws}무</div>
             </div>
-            <div class="modal__rank-item-streak">
-              <div class="modal__rank-item-streak-value">${streakText}</div>
-              <div class="modal__rank-item-streak-label">연속</div>
-            </div>
+            <span class="modal__rank-item-streak">${streakText}</span>
             <div class="modal__rank-item-stats">
               <div class="modal__rank-item-winrate">${rank.winRate}</div>
-              <div class="modal__rank-item-gamediff">게임차 ${rank.gameDiff}</div>
+              <div class="modal__rank-item-gamediff">${gameDiffText}</div>
             </div>
           </div>
         `;
         list.appendChild(item);
+
+        if (rankNum === 5) {
+          const divider = document.createElement('div');
+          divider.className = 'modal__rank-divider';
+          divider.textContent = '가을야구 진출권';
+          list.appendChild(divider);
+        }
       });
 
       rankTableContainer.innerHTML = '';
       rankTableContainer.appendChild(table);
       rankTableContainer.appendChild(list);
     } else {
-      rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없습니다.</div>';
+      rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
     }
   } catch (error) {
     console.error('Error loading team rank:', error);
-    rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없습니다.</div>';
+    rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 

@@ -18,19 +18,31 @@
         <p>한국야구 최고의 리그, KBO</p>
       </div>
 
+      <div id="controlsMountDesktop" class="controls-mount"></div>
+
       <input type="text" id="calendarInput" class="d-none">
     </div>
   </header>
 
+  <!-- Bottom Sheet: Calendar (mobile) -->
+  <div id="calendarSheetOverlay" class="calendar-sheet-overlay">
+    <div class="calendar-sheet">
+      <div class="calendar-sheet__handle"></div>
+      <div class="calendar-sheet__title">날짜를 선택하세요</div>
+      <div id="calendarSheetMount"></div>
+      <div class="calendar-sheet__legend">
+        <span class="calendar-sheet__legend-dot"></span>
+        <span>경기가 있는 날</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MAIN SECTION ==================== -->
   <div class="app-wrapper">
     <div class="app">
-    <!-- Header Controls: Year, Calendar, Today Button -->
+    <!-- Header Controls: Year, Calendar -->
     <div class="app__header-section">
-      <div class="controls">
-        <button id="todayBtn" class="btn btn--today" aria-label="최근">
-          <i class="bi bi-clock-history"></i> 최근
-        </button>
+      <div id="controls" class="controls">
         <div class="year-selector">
           <button id="prevYearBtn" class="btn btn--year" aria-label="이전 연도">
             &lt;
@@ -41,7 +53,8 @@
           </button>
         </div>
         <button id="calendarBtn" class="btn btn--calendar" aria-label="달력">
-          <i class="bi bi-calendar3"></i> 달력
+          <i class="bi bi-calendar3"></i>
+          <span class="btn--calendar__label">달력</span>
         </button>
       </div>
 

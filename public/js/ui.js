@@ -167,9 +167,7 @@ quickMenuItems.forEach(item => {
   });
 });
 
-// Today Button
-const todayBtn = document.getElementById('todayBtn');
-
+// Today (quick menu)
 async function goToToday() {
   const today = new Date();
   const todayYear = today.getFullYear();
@@ -179,7 +177,6 @@ async function goToToday() {
   currentYear = todayYear;
   currentMonth = todayMonth;
   yearDisplay.textContent = currentYear;
-  currentTeam = '';
 
   document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
   const monthStr = String(todayMonth).padStart(2, '0');
@@ -188,12 +185,6 @@ async function goToToday() {
     activeTab.classList.add('active');
   }
 
-  document.querySelectorAll('.filter__btn').forEach(btn => btn.classList.remove('active'));
-  const allTeamBtn = document.querySelector('.filter__btn[data-team=""]');
-  if (allTeamBtn) {
-    allTeamBtn.classList.add('active');
-  }
-  updateFilterSummary();
   closeTeamSheet();
 
   const scheduleContainer = document.getElementById('scheduleContainer');
@@ -203,8 +194,7 @@ async function goToToday() {
     const todaySchedule = await loadMonthData(todayMonth, todayYear);
 
     if (todaySchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘 경기 일정이 없습니다.</div>';
-      alert('오늘 경기는 없다냥! †');
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘은 경기가 없다냥! <span class="symbol-font">†</span></div>';
       return;
     }
 
@@ -226,21 +216,56 @@ async function goToToday() {
     }, 100);
   } catch (error) {
     console.error('Error loading today schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
-todayBtn.addEventListener('click', goToToday);
-
 // Lock body scroll while any modal/overlay is open
-const openOverlaySelector = '.modal.show, .team-sheet-overlay.show';
+const openOverlaySelector = '.modal.show, .team-sheet-overlay.show, .calendar-sheet-overlay.show';
 
 function syncBodyScrollLock() {
   document.body.classList.toggle('body--no-scroll', !!document.querySelector(openOverlaySelector));
 }
 
-new MutationObserver(syncBodyScrollLock).observe(document.body, {
+// Highlight the quick-menu item whose modal is currently open
+const quickMenuActionModals = {
+  rank: document.getElementById('rankModal'),
+  weather: document.getElementById('weatherModal')
+};
+
+function syncQuickMenuActive() {
+  quickMenuItems.forEach(item => {
+    const action = item.dataset.action;
+    const modal = quickMenuActionModals[action];
+    item.classList.toggle('active', !!(modal && modal.classList.contains('show')));
+  });
+}
+
+new MutationObserver(() => {
+  syncBodyScrollLock();
+  syncQuickMenuActive();
+}).observe(document.body, {
   attributes: true,
   attributeFilter: ['class'],
   subtree: true
 });
+
+// Move year/calendar controls into the header on mobile (one line next to
+// the title), back into the header section (above month tabs) on desktop
+// — same element, no duplicate IDs.
+const controlsEl = document.getElementById('controls');
+const controlsMountDesktop = document.getElementById('controlsMountDesktop');
+const headerSectionEl = document.querySelector('.app__header-section');
+const mobileMql = window.matchMedia('(max-width: 768px)');
+
+function placeControls() {
+  if (!controlsEl || !controlsMountDesktop || !headerSectionEl) return;
+  if (mobileMql.matches) {
+    controlsMountDesktop.appendChild(controlsEl);
+  } else {
+    headerSectionEl.insertBefore(controlsEl, headerSectionEl.firstChild);
+  }
+}
+
+placeControls();
+mobileMql.addEventListener('change', placeControls);

@@ -153,11 +153,11 @@
 }
 
 .quick-menu__item[data-action="rank"] {
-  background-color: #F9D366;
+  background-color: #2C3E64;
 }
 
 .quick-menu__item[data-action="rank"]:hover {
-  background-color: #f4ca52;
+  background-color: #243352;
 }
 
 .quick-menu__item[data-action="weather"] {
@@ -202,31 +202,49 @@
   .quick-menu {
     position: fixed;
     top: auto;
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 20px;
-    right: 20px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     transform: none;
     flex-direction: row;
     gap: 0;
-    width: auto;
+    width: 100%;
     justify-content: space-around;
     background-color: white;
-    border-radius: 24px;
-    box-shadow: 0 8px 24px -6px rgba(25, 31, 40, 0.14);
-    padding: 6px 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 16px -6px rgba(25, 31, 40, 0.12);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
   }
 
   .quick-menu__item {
     width: auto;
     height: auto;
     flex: 1;
-    border-radius: 0;
+    border-radius: 16px;
     background-color: transparent !important;
-    color: #666;
+    color: #B0B8C1;
     box-shadow: none;
     animation: none;
-    gap: 2px;
-    padding: 4px 0;
+    gap: 4px;
+    padding: 7px 0;
+  }
+
+  .quick-menu__item i {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #F2F4F6;
+    font-size: 1.0625rem;
+    animation: none;
+  }
+
+  .quick-menu__item span {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #B0B8C1;
   }
 
   .quick-menu__item[data-action="today"] i {
@@ -234,20 +252,50 @@
   }
 
   .quick-menu__item[data-action="rank"] i {
-    color: #F9D366;
+    color: #2C3E64;
   }
 
   .quick-menu__item[data-action="weather"] i {
     color: #2f6f64;
   }
 
-  .quick-menu__item i {
-    font-size: 1.3rem;
-    animation: none;
+  .quick-menu__item.active {
+    background-color: #F5F4FC !important;
   }
 
-  .quick-menu__item span {
-    font-size: 0.7rem;
+  .quick-menu__item.active i {
+    background-color: #626ABD;
+    color: white;
+  }
+
+  .quick-menu__item[data-action="rank"].active {
+    background-color: #EEF1F6 !important;
+  }
+
+  .quick-menu__item[data-action="rank"].active i {
+    background-color: #2C3E64;
+    color: white;
+  }
+
+  .quick-menu__item[data-action="weather"].active {
+    background-color: #EAF3F1 !important;
+  }
+
+  .quick-menu__item[data-action="weather"].active i {
+    background-color: #2f6f64;
+    color: white;
+  }
+
+  .quick-menu__item.active span {
+    color: #626ABD;
+  }
+
+  .quick-menu__item[data-action="rank"].active span {
+    color: #2C3E64;
+  }
+
+  .quick-menu__item[data-action="weather"].active span {
+    color: #2f6f64;
   }
 
   .quick-menu__item--scroll-top {
@@ -266,7 +314,7 @@
   .app-footer {
     background-color: #F2F4F6;
     border-top: none;
-    padding: 32px 20px calc(20px + 84px + env(safe-area-inset-bottom));
+    padding: 32px clamp(10px, 4vw, 32px) calc(24px + 80px + env(safe-area-inset-bottom));
   }
 
   .app-footer__content {
@@ -281,7 +329,7 @@
     margin-bottom: 8px;
     font-size: 1rem;
     font-weight: 700;
-    color: #191F28;
+    color: #333;
   }
 
   .app-footer__section h4 {

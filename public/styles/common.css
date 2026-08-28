@@ -67,9 +67,9 @@ body.body--no-scroll {
 .app__header-section {
   display: flex;
   flex-direction: column;
-  padding: 20px;
   align-items: center;
-  gap: 20px;
+  padding: 20px 0;
+  background-color: white;
 }
 
 /* Utilities */
@@ -167,8 +167,18 @@ body.body--no-scroll {
 
 @media (max-width: 768px) {
   .app__header-section {
-    gap: 10px;
-    padding-top: 4px;
+    gap: 0;
+    background-color: transparent;
+    padding: 0;
+    width: 100%;
+  }
+
+  .app__header-section .nav {
+    order: 1;
+  }
+
+  .app__header-section .filter {
+    order: 2;
   }
 
   body,

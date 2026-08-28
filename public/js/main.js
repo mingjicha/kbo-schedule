@@ -30,7 +30,7 @@ async function initializeApp() {
     await loadWeather();
   } catch (error) {
     console.error('Error initializing app:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 

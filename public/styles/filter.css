@@ -13,6 +13,7 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
+  padding: 20px 0;
 }
 
 .filter__btn {
@@ -32,58 +33,7 @@
   background-color: #f5f5f5;
 }
 
-/* 팀별 hover 상태 색상 */
-.filter__btn[data-team="LG"]:hover {
-  border-color: #C8102E;
-  color: #C8102E;
-}
-
-.filter__btn[data-team="HH"]:hover {
-  border-color: #F37222;
-  color: #F37222;
-}
-
-.filter__btn[data-team="SK"]:hover {
-  border-color: #E50021;
-  color: #E50021;
-}
-
-.filter__btn[data-team="SS"]:hover {
-  border-color: #0066B3;
-  color: #0066B3;
-}
-
-.filter__btn[data-team="NC"]:hover {
-  border-color: #00275A;
-  color: #00275A;
-}
-
-.filter__btn[data-team="KT"]:hover {
-  border-color: #000000;
-  color: #000000;
-}
-
-.filter__btn[data-team="LT"]:hover {
-  border-color: #00295F;
-  color: #00295F;
-}
-
-.filter__btn[data-team="HT"]:hover {
-  border-color: #8f1622;
-  color: #8f1622;
-}
-
-.filter__btn[data-team="OB"]:hover {
-  border-color: #131F43;
-  color: #131F43;
-}
-
-.filter__btn[data-team="WO"]:hover {
-  border-color: #A60134;
-  color: #A60134;
-}
-
-/* 팀별 글꼴 색상 (비활성) */
+/* 팀별 글꼴 색상 (비활성) + hover 배경 */
 .filter__btn[data-team="LG"] {
   color: #C8102E;
   border-color: #C8102E;
@@ -305,7 +255,7 @@
   }
 
   .filter__content {
-    padding: 0;
+    padding: 10px clamp(10px, 4vw, 32px);
     display: flex;
     justify-content: flex-start;
   }
@@ -313,15 +263,14 @@
   .filter__summary {
     display: flex;
     align-items: center;
-    gap: clamp(6px, 1.5vw, 8px);
-    padding: clamp(6px, 1.6vw, 8px) clamp(10px, 2.8vw, 14px);
+    gap: 6px;
+    padding: 6px 10px;
     border: none;
     border-radius: 100px;
     background-color: white;
-    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    font-size: 0.8rem;
     font-weight: 700;
-    color: #191F28;
-    cursor: pointer;
+    color: #333;
   }
 
   .filter__summary-dot {
@@ -361,7 +310,7 @@
 
   .team-sheet {
     width: 100%;
-    max-width: min(90vw, 480px);
+    max-width: 95vw;
     background-color: white;
     border-radius: 20px 20px 0 0;
     padding-bottom: 16px;
@@ -377,8 +326,8 @@
 
   .team-sheet__title {
     padding: clamp(4px, 1.5vw, 6px) clamp(16px, 5vw, 20px) 14px;
-    font-size: clamp(1rem, 3vw, 1.1rem);
-    font-weight: 700;
+    font-size: 1.05rem;
+    font-weight: 800;
     color: #333;
   }
 
@@ -391,19 +340,18 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: clamp(8px, 3vw, 12px);
-    padding: clamp(7px, 2vw, 10px) clamp(16px, 5vw, 20px);
+    gap: 3vw;
+    padding: 2vw 5vw;
     border: none;
     background: none;
     text-align: left;
-    font-size: clamp(0.9rem, 3vw, 1rem);
+    font-size: 0.875rem;
     color: #333;
-    cursor: pointer;
   }
 
   .team-sheet__item-logo {
-    width: clamp(22px, 5.5vw, 26px);
-    height: clamp(22px, 5.5vw, 26px);
+    width: 22px;
+    height: 22px;
     object-fit: contain;
     flex-shrink: 0;
   }
@@ -417,7 +365,7 @@
   }
 
   .team-sheet__item i {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: #626ABD;
     display: none;
   }

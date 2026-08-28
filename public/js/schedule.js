@@ -31,7 +31,7 @@ async function loadSchedule(scrollToDate = null) {
     loadedMonths.add(defaultMonthStr);
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없다냥! <span class="symbol-font">†</span></div>';
       return;
     }
 
@@ -42,7 +42,7 @@ async function loadSchedule(scrollToDate = null) {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
@@ -180,11 +180,11 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
 
   if (scrollToDate) {
     setTimeout(() => {
-      const dateHeader = gameList.querySelector(`[data-date="${scrollToDate}"]`);
+      const dateHeader = document.querySelector(`#scheduleContainer [data-date="${scrollToDate}"]`);
       if (dateHeader) {
         dateHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 50);
+    }, 150);
   }
 
   return gameList;
@@ -442,7 +442,7 @@ async function applyTeamFilter() {
     window.currentScheduleData = defaultSchedule;
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없다냥! <span class="symbol-font">†</span></div>';
       return;
     }
 
@@ -454,7 +454,7 @@ async function applyTeamFilter() {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없습니다.</div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
   }
 }
 
@@ -507,7 +507,7 @@ async function initializeMonthTabsWithLazyLoad() {
         const gameList = renderGamesByMonth(gamesForMonth, null, currentYear);
         scheduleContainer.appendChild(gameList);
       } else {
-        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없습니다.</div>';
+        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없다냥! <span class="symbol-font">†</span></div>';
       }
     });
 

@@ -27,6 +27,10 @@ async function loadCalendarGameDates(year, month) {
   return gameDates;
 }
 
+function isMobileCalendar() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
 function initializeFlatpickr() {
   if (!window.flatpickr) {
     console.error('Flatpickr not loaded');
@@ -39,13 +43,21 @@ function initializeFlatpickr() {
 
   const calendarBtn = document.getElementById('calendarBtn');
   const calendarInput = document.getElementById('calendarInput');
+  const calendarSheetOverlay = document.getElementById('calendarSheetOverlay');
+  const calendarSheetMount = document.getElementById('calendarSheetMount');
+
+  function closeCalendarSheet() {
+    if (calendarSheetOverlay) calendarSheetOverlay.classList.remove('show');
+    if (fpInstance) fpInstance.close();
+  }
 
   fpInstance = window.flatpickr(calendarInput, {
     mode: 'single',
     locale: 'ko',
     dateFormat: 'Y-m-d',
-    defaultDate: today,
     position: 'below center',
+    disableMobile: true,
+    monthSelectorType: 'static',
     onChange: async (selectedDates) => {
       if (selectedDates.length > 0) {
         const date = selectedDates[0];
@@ -55,9 +67,9 @@ function initializeFlatpickr() {
         currentYear = date.getFullYear();
         currentDay = date.getDate();
         document.getElementById('yearDisplay').textContent = currentYear;
+        closeCalendarSheet();
         const dateStr = month + '.' + day;
-        loadSchedule(dateStr);
-        fpInstance.close();
+        await loadSchedule(dateStr);
       }
     },
     onOpen: async () => {
@@ -95,7 +107,17 @@ function initializeFlatpickr() {
 
     calendarDisplayYear = currentYear;
     calendarDisplayMonth = currentMonth;
-    fpInstance.setDate(today);
+    fpInstance.jumpToDate(new Date(currentYear, currentMonth - 1, 1));
+
+    if (isMobileCalendar()) {
+      if (calendarSheetOverlay) calendarSheetOverlay.classList.add('show');
+      fpInstance.open();
+      if (calendarSheetMount && fpInstance.calendarContainer) {
+        calendarSheetMount.appendChild(fpInstance.calendarContainer);
+      }
+      return;
+    }
+
     fpInstance.open();
 
     setTimeout(() => {
@@ -108,6 +130,12 @@ function initializeFlatpickr() {
       }
     }, 0);
   });
+
+  if (calendarSheetOverlay) {
+    calendarSheetOverlay.addEventListener('click', (e) => {
+      if (e.target === calendarSheetOverlay) closeCalendarSheet();
+    });
+  }
 }
 
 function updateCalendarDisabledDates(schedule) {
