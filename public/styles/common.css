@@ -45,6 +45,137 @@ body.body--no-scroll {
   overflow: hidden;
 }
 
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: calc(20px + 70px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(80vw, 340px);
+  padding: 14px 20px;
+  border-radius: 24px;
+  background-color: rgba(139, 149, 161, 0.92);
+  color: white;
+  font-size: 0.9375rem;
+  box-shadow: 0 6px 18px -4px rgba(25, 31, 40, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1.2, 0.36, 1), visibility 0.25s;
+  z-index: 1200;
+}
+
+.toast__glyph {
+  font-size: 1.0625rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toast:not(.show) {
+  transition: opacity 0.18s ease, transform 0.22s ease-in, visibility 0.22s;
+}
+
+.toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast:not(.show) {
+    transform: translateX(-50%) translateY(0);
+    transition: opacity 0.15s ease, visibility 0.15s;
+  }
+}
+
+/* Onboarding Coachmark */
+.onboarding {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+}
+
+.onboarding.show {
+  display: block;
+}
+
+.onboarding__spotlight {
+  position: absolute;
+  border-radius: 100px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.62);
+  transition: all 0.25s ease;
+  pointer-events: none;
+}
+
+.onboarding__coach {
+  position: absolute;
+  background-color: white;
+  border-radius: 14px;
+  padding: 14px 16px;
+  max-width: 250px;
+  box-shadow: 0 8px 22px -6px rgba(25, 31, 40, 0.3);
+  transition: all 0.25s ease;
+}
+
+.onboarding__arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: white;
+  transform: rotate(45deg);
+}
+
+.onboarding__step {
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: #626ABD;
+  margin-bottom: 3px;
+}
+
+.onboarding__title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #191F28;
+  margin-bottom: 4px;
+}
+
+.onboarding__desc {
+  font-size: 0.75rem;
+  color: #6B7684;
+  line-height: 1.5;
+}
+
+.onboarding__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.onboarding__skip {
+  border: none;
+  background: none;
+  font-size: 0.75rem;
+  color: #B0B8C1;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.onboarding__next {
+  border: none;
+  background-color: #626ABD;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 7px 16px;
+  cursor: pointer;
+}
+
 /* Layout */
 .app-wrapper {
   max-width: 960px;

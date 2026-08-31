@@ -24,6 +24,24 @@
     </div>
   </header>
 
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Onboarding Coachmark -->
+  <div id="onboarding" class="onboarding">
+    <div id="onboardingSpotlight" class="onboarding__spotlight"></div>
+    <div id="onboardingCoach" class="onboarding__coach">
+      <div id="onboardingArrow" class="onboarding__arrow"></div>
+      <div id="onboardingStep" class="onboarding__step"></div>
+      <div id="onboardingTitle" class="onboarding__title"></div>
+      <div id="onboardingDesc" class="onboarding__desc"></div>
+      <div class="onboarding__actions">
+        <button type="button" id="onboardingSkip" class="onboarding__skip">건너뛰기</button>
+        <button type="button" id="onboardingNext" class="onboarding__next">다음</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Sheet: Calendar (mobile) -->
   <div id="calendarSheetOverlay" class="calendar-sheet-overlay">
     <div class="calendar-sheet">
@@ -103,7 +121,7 @@
     <main class="main">
       <div id="scheduleContainer" class="schedule">
         <div class="loading">
-          <p>경기 일정을 불러오는 중이라냥! <span class="symbol-font">†</span></p>
+          <p>경기 일정을 불러오는 중이에요 <span class="symbol-font">†</span></p>
         </div>
       </div>
     </main>
@@ -155,7 +173,7 @@
           </div>
         </div>
         <div id="rankTableContainer" class="modal__body">
-          <div class="modal__no-data">로딩 중이다냥! †</div>
+          <div class="modal__no-data">로딩 중이에요 <span class="symbol-font">†</span></div>
         </div>
       </div>
     </div>
@@ -182,7 +200,7 @@
           </div>
         </div>
         <div id="weatherContainer" class="modal__body modal__body--weather">
-          <div class="modal__no-data">로딩 중이다냥! †</div>
+          <div class="modal__no-data">로딩 중이에요 <span class="symbol-font">†</span></div>
         </div>
       </div>
     </div>
@@ -242,6 +260,7 @@
   <script src="js/schedule.js"></script>
   <script src="js/modal.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/onboarding.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,3 +1,23 @@
+// Toast
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+
+function showToast(message, symbol = '', glyph = '') {
+  if (!toastEl) return;
+
+  const text = symbol
+    ? `${message} <span class="symbol-font">${symbol}</span>`
+    : message;
+  const glyphHtml = glyph ? `<span class="toast__glyph">${glyph}</span>` : '';
+  toastEl.innerHTML = `${glyphHtml}<span>${text}</span>`;
+  toastEl.classList.add('show');
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastEl.classList.remove('show');
+  }, 2200);
+}
+
 // Scroll To Top Button
 const scrollTopBtn = document.getElementById('scrollTopBtn');
 const scrollTopMenuBtn = document.getElementById('scrollTopMenuBtn');
@@ -194,7 +214,8 @@ async function goToToday() {
     const todaySchedule = await loadMonthData(todayMonth, todayYear);
 
     if (todaySchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘은 경기가 없다냥! <span class="symbol-font">†</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘은 예정된 경기가 없어요 <span class="symbol-font">†</span></div>';
+      showToast('오늘은 예정된 경기가 없어요', '', '😿');
       return;
     }
 
@@ -206,22 +227,27 @@ async function goToToday() {
     setTimeout(() => {
       const todayDateStr = `${String(todayMonth).padStart(2, '0')}.${String(todayDay).padStart(2, '0')}`;
       const allDays = document.querySelectorAll('.schedule__day');
+      let found = false;
       for (let dayDiv of allDays) {
         const header = dayDiv.querySelector('.schedule__date-header');
         if (header && header.getAttribute('data-date').startsWith(todayDateStr)) {
           dayDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          found = true;
           break;
         }
+      }
+      if (!found) {
+        showToast('오늘은 예정된 경기가 없어요', '', '😿');
       }
     }, 100);
   } catch (error) {
     console.error('Error loading today schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없다냥! <span class="symbol-font">†</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';
   }
 }
 
 // Lock body scroll while any modal/overlay is open
-const openOverlaySelector = '.modal.show, .team-sheet-overlay.show, .calendar-sheet-overlay.show';
+const openOverlaySelector = '.modal.show, .team-sheet-overlay.show, .calendar-sheet-overlay.show, .onboarding.show';
 
 function syncBodyScrollLock() {
   document.body.classList.toggle('body--no-scroll', !!document.querySelector(openOverlaySelector));
