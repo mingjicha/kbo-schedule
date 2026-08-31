@@ -15,20 +15,41 @@ async function initializeApp() {
   initializeFlatpickr();
 
   try {
-    const defaultMonthStr = String(currentMonth).padStart(2, '0');
-
     await initializeMonthTabsWithLazyLoad();
 
-    const defaultSchedule = await loadMonthData(currentMonth);
-    window.currentScheduleData = defaultSchedule;
-    loadedMonths.add(defaultMonthStr);
+    let schedule = await loadMonthData(currentMonth);
 
-    const gameList = renderGamesByMonth(defaultSchedule, null, currentYear);
+    // 이번 달에 남은 경기가 없으면 다음 달로 넘어간다
+    if (!hasUpcomingGame(schedule, currentYear) && currentMonth < 10) {
+      const nextMonth = currentMonth + 1;
+      const nextSchedule = await loadMonthData(nextMonth, currentYear);
+      if (nextSchedule.length > 0) {
+        currentMonth = nextMonth;
+        schedule = nextSchedule;
+        setActiveMonthTab(currentMonth);
+      }
+    }
+
+    window.currentScheduleData = schedule;
+    loadedMonths.add(String(currentMonth).padStart(2, '0'));
+
+    const focus = findFocusDate(groupByDate(schedule), currentYear);
+    setFocusDateInfo(focus, currentYear);
+    const focusDate = focus ? focus.date : null;
+
+    // 온보딩이 뜰 때는 좌표가 흔들리지 않도록 스크롤을 온보딩 이후로 미룬다
+    const willShowOnboarding = shouldShowOnboarding();
+    const gameList = renderGamesByMonth(
+      schedule,
+      willShowOnboarding ? null : focusDate,
+      currentYear,
+      true
+    );
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(gameList);
 
     await loadWeather();
-    maybeStartOnboarding();
+    maybeStartOnboarding(willShowOnboarding ? () => scrollToDateHeader(focusDate, true) : null);
   } catch (error) {
     console.error('Error initializing app:', error);
     scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';

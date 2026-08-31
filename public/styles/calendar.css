@@ -175,6 +175,13 @@
     flex-shrink: 0;
   }
 
+  /* 시트가 열려 있는 동안에는 flatpickr가 스스로 닫혀도 달력이 계속 보이도록 한다 */
+  .calendar-sheet-overlay.show .flatpickr-calendar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
   .calendar-sheet .flatpickr-calendar {
     position: static !important;
     width: 100% !important;

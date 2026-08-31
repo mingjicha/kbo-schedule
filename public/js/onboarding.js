@@ -45,13 +45,14 @@ const basicSteps = [
 
 const previewStep = {
   target: () => document.querySelector('.schedule__day--today .schedule__game'),
-  title: '오늘 경기는 눌러보세요',
+  title: '예정된 경기는 눌러보세요',
   desc: '선발투수 기록과 라인업을 미리 확인할 수 있어요.',
   key: ONBOARDING_PREVIEW_KEY
 };
 
 let currentStep = 0;
 let activeSteps = [];
+let onFinishCallback = null;
 
 function positionCoachmark(target) {
   const rect = target.getBoundingClientRect();
@@ -141,12 +142,22 @@ function finishOnboarding() {
   activeSteps.forEach(step => {
     if (step.key) markDone(step.key);
   });
+
+  if (onFinishCallback) {
+    const cb = onFinishCallback;
+    onFinishCallback = null;
+    setTimeout(cb, 100);
+  }
 }
 
-function startOnboarding(steps) {
+function startOnboarding(steps, onFinish) {
   activeSteps = steps.filter(step => step.target());
-  if (activeSteps.length === 0) return;
+  if (activeSteps.length === 0) {
+    if (onFinish) onFinish();
+    return;
+  }
 
+  onFinishCallback = onFinish || null;
   currentStep = 0;
   onboardingEl.classList.add('show');
   document.body.classList.add('body--no-scroll');
@@ -172,14 +183,19 @@ if (onboardingEl) {
   });
 }
 
-function maybeStartOnboarding() {
+function shouldShowOnboarding() {
+  return !(isDone(ONBOARDING_KEY) && isDone(ONBOARDING_PREVIEW_KEY));
+}
+
+function maybeStartOnboarding(onFinish) {
+  if (!shouldShowOnboarding()) {
+    if (onFinish) onFinish();
+    return;
+  }
+
   const basicDone = isDone(ONBOARDING_KEY);
-  const previewDone = isDone(ONBOARDING_PREVIEW_KEY);
-
-  if (basicDone && previewDone) return;
-
   // 기본 안내를 아직 못 봤으면 전체를, 봤으면 남은 프리뷰 안내만 보여준다
   const steps = basicDone ? [previewStep] : basicSteps.concat(previewStep);
 
-  setTimeout(() => startOnboarding(steps), 600);
+  setTimeout(() => startOnboarding(steps, onFinish), 600);
 }

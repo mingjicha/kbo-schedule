@@ -220,6 +220,7 @@ async function goToToday() {
     }
 
     window.currentScheduleData = todaySchedule;
+    setFocusDateInfo(findFocusDate(groupByDate(todaySchedule), todayYear), todayYear);
     scheduleContainer.innerHTML = '';
     const gameList = renderGamesByMonth(todaySchedule, null, todayYear);
     scheduleContainer.appendChild(gameList);

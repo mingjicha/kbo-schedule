@@ -136,6 +136,23 @@ function initializeFlatpickr() {
       if (e.target === calendarSheetOverlay) closeCalendarSheet();
     });
   }
+
+  // 앱을 백그라운드에 뒀다 돌아오면 flatpickr가 스스로 닫혀 시트가 비어 보인다
+  function restoreCalendarSheet() {
+    if (!calendarSheetOverlay || !calendarSheetOverlay.classList.contains('show')) return;
+    if (!fpInstance || fpInstance.isOpen) return;
+
+    fpInstance.open();
+    if (calendarSheetMount && fpInstance.calendarContainer) {
+      calendarSheetMount.appendChild(fpInstance.calendarContainer);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') restoreCalendarSheet();
+  });
+
+  window.addEventListener('pageshow', restoreCalendarSheet);
 }
 
 function updateCalendarDisabledDates(schedule) {

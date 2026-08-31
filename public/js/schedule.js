@@ -114,27 +114,78 @@ function getGameStatus(game) {
   return '종료';
 }
 
-function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
+// 오늘 이후(오늘 포함) 경기가 하나라도 있는지
+function hasUpcomingGame(games, year) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+  return games.some(game => {
+    const dateOnly = game.date.split('(')[0].trim();
+    const [m, d] = dateOnly.split('.');
+    return new Date(year, parseInt(m) - 1, parseInt(d)).getTime() >= today;
+  });
+}
+
+function setActiveMonthTab(month) {
+  const monthStr = String(month).padStart(2, '0');
+  document.querySelectorAll('.nav__tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.month === monthStr);
+  });
+}
+
+// 앱 진입 시 한 번 정해지는 기준일 (오늘 또는 다음 경기일)
+// 다른 달을 열어도 이 날짜에만 배지를 붙인다
+let focusDateInfo = null;
+
+function setFocusDateInfo(focus, year) {
+  focusDateInfo = focus ? { date: focus.date, type: focus.type, year } : null;
+}
+
+// 오늘 경기가 있으면 오늘, 없으면 앞으로 가장 가까운 경기일을 찾는다
+function findFocusDate(grouped, year) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  let todayKey = null;
+  let nextKey = null;
+  let nextTime = Infinity;
+
+  Object.keys(grouped).forEach(date => {
+    const dateOnly = date.split('(')[0].trim();
+    const [m, d] = dateOnly.split('.');
+    const time = new Date(year, parseInt(m) - 1, parseInt(d)).getTime();
+
+    if (time === today.getTime()) {
+      todayKey = dateOnly;
+    } else if (time > today.getTime() && time < nextTime) {
+      nextTime = time;
+      nextKey = dateOnly;
+    }
+  });
+
+  if (todayKey) return { date: todayKey, type: 'today' };
+  if (nextKey) return { date: nextKey, type: 'next' };
+  return null;
+}
+
+function renderGamesByMonth(games, scrollToDate = null, year = currentYear, instantScroll = false) {
   const scheduleContainer = document.getElementById('scheduleContainer');
   const grouped = groupByDate(games);
   const gameList = document.createElement('div');
   gameList.className = 'schedule__list';
+
+  // 배지는 앱 진입 시 정해진 기준일에만 붙인다 (다른 달을 열어도 새로 생기지 않음)
+  const focus = focusDateInfo && focusDateInfo.year === year ? focusDateInfo : null;
 
   Object.keys(grouped).forEach(date => {
     const dayDiv = document.createElement('div');
     dayDiv.className = 'schedule__day';
 
     const dateOnly = date.split('(')[0].trim();
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const isToday = focus && focus.type === 'today' && focus.date === dateOnly;
+    const isNext = focus && focus.type === 'next' && focus.date === dateOnly;
 
-    const dateParts = dateOnly.split('.');
-    const gameMonth = parseInt(dateParts[0]);
-    const gameDay = parseInt(dateParts[1]);
-    const gameDate = new Date(year, gameMonth - 1, gameDay);
-    const isToday = gameDate.getTime() === today.getTime();
-
-    if (isToday) {
+    if (isToday || isNext) {
       dayDiv.classList.add('schedule__day--today');
     }
 
@@ -146,6 +197,9 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
     if (isToday) {
       header.classList.add('schedule__date-header--today');
       header.innerHTML = `${formattedDate} <span class="schedule__today-badge">today</span>`;
+    } else if (isNext) {
+      header.classList.add('schedule__date-header--today');
+      header.innerHTML = `${formattedDate} <span class="schedule__today-badge">next</span>`;
     } else {
       header.textContent = formattedDate;
     }
@@ -171,7 +225,7 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
         }
       }
 
-      const gameCard = createGameCard(game, date, isToday);
+      const gameCard = createGameCard(game, date, isToday || isNext);
       dayDiv.appendChild(gameCard);
     });
 
@@ -179,15 +233,18 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear) {
   });
 
   if (scrollToDate) {
-    setTimeout(() => {
-      const dateHeader = document.querySelector(`#scheduleContainer [data-date="${scrollToDate}"]`);
-      if (dateHeader) {
-        dateHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 150);
+    setTimeout(() => scrollToDateHeader(scrollToDate, instantScroll), 150);
   }
 
   return gameList;
+}
+
+function scrollToDateHeader(dateStr, instant = false) {
+  if (!dateStr) return;
+  const dateHeader = document.querySelector(`#scheduleContainer [data-date="${dateStr}"]`);
+  if (dateHeader) {
+    dateHeader.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+  }
 }
 
 function createGameCard(game, date, isToday) {
@@ -357,19 +414,12 @@ function createGameCard(game, date, isToday) {
     const gameDetailContainer = document.getElementById('gameDetailContainer');
     const gameDetailTitle = document.getElementById('gameDetailTitle');
 
-    const dateStr = date.split('(')[0].trim();
-    const [month, day] = dateStr.split('.');
-    const gameDateTime = new Date(currentYear, parseInt(month) - 1, parseInt(day));
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const isTodayGame = gameDateTime.getTime() === today.getTime();
-
-    if (!isTodayGame) return;
+    if (!isToday) return;
 
     gameDetailModal.classList.add('show');
     gameDetailTitle.innerHTML = '<h3><span class="modal__badge">Preview</span></h3>';
 
-    if (isTodayGame) {
+    if (isToday) {
       const tabContainer = document.createElement('div');
       tabContainer.className = 'game-detail__tabs';
 
