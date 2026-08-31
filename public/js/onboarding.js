@@ -12,9 +12,21 @@ const descEl = document.getElementById('onboardingDesc');
 const skipBtn = document.getElementById('onboardingSkip');
 const nextBtn = document.getElementById('onboardingNext');
 
+function isVisible(el) {
+  return !!el && el.getBoundingClientRect().height > 0;
+}
+
+// 모바일은 팀 선택 버튼, 데스크톱은 팀 버튼 목록을 가리킨다
+function getTeamFilterTarget() {
+  const summary = document.getElementById('filterSummaryBtn');
+  if (isVisible(summary)) return summary;
+  const teams = document.getElementById('filterTeams');
+  return isVisible(teams) ? teams : null;
+}
+
 const basicSteps = [
   {
-    target: () => document.getElementById('filterSummaryBtn'),
+    target: getTeamFilterTarget,
     title: '보고 싶은 팀만 골라보세요',
     desc: '응원하는 팀 경기만 모아서 볼 수 있어요.'
   },
