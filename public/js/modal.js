@@ -45,11 +45,16 @@ async function loadWeather(forceRefresh = false) {
     const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
     const todayYear = today.getFullYear();
 
+    // 오늘 경기가 없으면 다음 경기일(next) 구장의 날씨를 보여준다
+    const focus = typeof focusDateInfo !== 'undefined' && focusDateInfo ? focusDateInfo : null;
+    const targetDate = focus ? focus.date : todayStr;
+    const isFutureDate = targetDate !== todayStr;
+
     const stadiums = new Set();
     if (window.currentScheduleData && Array.isArray(window.currentScheduleData)) {
       window.currentScheduleData.forEach(game => {
         const gameDate = game.date.split('(')[0];
-        if (gameDate === todayStr) {
+        if (gameDate === targetDate) {
           if (game.stadium) {
             const stadiumKey = Object.keys(stadiumNames).find(key => game.stadium.includes(key));
             if (stadiumKey) stadiums.add(stadiumKey);
@@ -58,19 +63,23 @@ async function loadWeather(forceRefresh = false) {
       });
     }
 
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-    weatherDate.textContent = `${todayYear}년 ${month}월 ${day}일 기준`;
+    const [targetMonth, targetDay] = targetDate.split('.');
+    weatherDate.textContent = `${todayYear}년 ${parseInt(targetMonth)}월 ${parseInt(targetDay)}일 기준`;
 
     if (stadiums.size === 0) {
-      weatherContainer.innerHTML = '<div class="modal__no-weather-data">오늘은 예정된 경기가 없어요 <span class="symbol-font">†</span></div>';
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">예정된 경기가 없어요 <span class="symbol-font">†</span></div>';
       return;
     }
+
+    // 미래 경기일이면 그날 예보를 요청한다
+    const dateParam = isFutureDate
+      ? `&date=${todayYear}-${targetMonth}-${targetDay}`
+      : '';
 
     const weatherDataList = [];
     for (const stadium of stadiums) {
       try {
-        const weatherUrl = `/api/weather?stadium=${encodeURIComponent(stadium)}` + (forceRefresh ? '&refresh=1' : '');
+        const weatherUrl = `/api/weather?stadium=${encodeURIComponent(stadium)}${dateParam}` + (forceRefresh ? '&refresh=1' : '');
         const response = await fetch(weatherUrl);
         const data = await response.json();
         weatherDataList.push(data);

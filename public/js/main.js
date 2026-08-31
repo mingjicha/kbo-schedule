@@ -48,6 +48,9 @@ async function initializeApp() {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(gameList);
 
+    // 화면이 다 그려진 뒤, 눌러볼 수 있는 경기의 프리뷰를 백그라운드에서 미리 받아둔다
+    warmupPreviews(schedule, focusDate);
+
     await loadWeather();
     maybeStartOnboarding(willShowOnboarding ? () => scrollToDateHeader(focusDate, true) : null);
   } catch (error) {

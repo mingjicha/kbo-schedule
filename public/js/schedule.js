@@ -239,6 +239,23 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear, inst
   return gameList;
 }
 
+// 프리뷰를 열 수 있는 경기(today/next)의 데이터를 서버가 미리 준비하도록 요청한다
+function warmupPreviews(schedule, focusDate) {
+  if (!focusDate) return;
+
+  const games = schedule
+    .filter(g => g.date.startsWith(focusDate) && g.gameId && g.awayPitcher && g.homePitcher)
+    .map(g => ({ gameId: g.gameId, awayPitcher: g.awayPitcher, homePitcher: g.homePitcher }));
+
+  if (games.length === 0) return;
+
+  fetch('/api/preview-warmup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ games })
+  }).catch(() => {});
+}
+
 function scrollToDateHeader(dateStr, instant = false) {
   if (!dateStr) return;
   const dateHeader = document.querySelector(`#scheduleContainer [data-date="${dateStr}"]`);

@@ -52,10 +52,10 @@ function getCachedData(gameId) {
 
 function cacheData(gameId, data) {
   gameDataCache[gameId] = data;
-  // 캐시 20분 유지 (Puppeteer 크롤링은 무거우므로 오래 재사용)
+  // 캐시 2시간 유지 (Puppeteer 크롤링이 무거워 오래 재사용한다)
   setTimeout(() => {
     delete gameDataCache[gameId];
-  }, 20 * 60 * 1000);
+  }, 2 * 60 * 60 * 1000);
 }
 
 // 범용 응답 캐시 (schedule / team-rank / weather 용)
@@ -931,7 +931,10 @@ app.get('/api/weather', async (req, res) => {
       return res.status(400).json({ error: '유효하지 않은 경기장명' });
     }
 
-    const cacheKey = `weather:${stadium}`;
+    // date=YYYY-MM-DD 가 오면 그날 예보를, 없으면 현재 날씨를 돌려준다
+    const requestedDate = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : null;
+
+    const cacheKey = `weather:${stadium}:${requestedDate || 'today'}`;
     if (!req.query.refresh) {
       const cached = getResponseCache(cacheKey);
       if (cached) {
@@ -940,26 +943,47 @@ app.get('/api/weather', async (req, res) => {
     }
 
     const { lat, lon } = stadiumCoords[stadium];
-    const url = `https://api.open-meteo.com/v1/forecast` +
+    let url = `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,weathercode,windspeed_10m,precipitation,relative_humidity_2m` +
       `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum` +
-      `&timezone=Asia/Seoul&forecast_days=1`;
+      `&hourly=temperature_2m,weathercode,windspeed_10m,precipitation,relative_humidity_2m` +
+      `&timezone=Asia/Seoul`;
+
+    url += requestedDate
+      ? `&start_date=${requestedDate}&end_date=${requestedDate}`
+      : `&forecast_days=1`;
 
     const response = await axios.get(url);
-    const current = response.data.current;
     const daily = response.data.daily;
+
+    // 미래 날짜는 경기 시각(18시)에 가까운 시간대 예보를 사용한다
+    let snapshot;
+    if (requestedDate && response.data.hourly) {
+      const hourly = response.data.hourly;
+      const idx = hourly.time.findIndex(t => t.endsWith('T18:00'));
+      const i = idx >= 0 ? idx : 0;
+      snapshot = {
+        temperature_2m: hourly.temperature_2m[i],
+        weathercode: hourly.weathercode[i],
+        windspeed_10m: hourly.windspeed_10m[i],
+        precipitation: hourly.precipitation[i],
+        relative_humidity_2m: hourly.relative_humidity_2m[i]
+      };
+    } else {
+      snapshot = response.data.current;
+    }
 
     const weatherResult = {
       stadium,
-      temperature: Math.round(current.temperature_2m),
+      temperature: Math.round(snapshot.temperature_2m),
       temperatureMax: daily.temperature_2m_max[0],
       temperatureMin: daily.temperature_2m_min[0],
-      weatherCode: current.weathercode,
-      weatherDesc: getWeatherDescription(current.weathercode),
-      windspeed: current.windspeed_10m,
-      humidity: current.relative_humidity_2m,
-      precipitation: current.precipitation,
+      weatherCode: snapshot.weathercode,
+      weatherDesc: getWeatherDescription(snapshot.weathercode),
+      windspeed: snapshot.windspeed_10m,
+      humidity: snapshot.relative_humidity_2m,
+      precipitation: snapshot.precipitation,
       precipitationSum: daily.precipitation_sum[0]
     };
     setResponseCache(cacheKey, weatherResult, 10 * 60 * 1000);
@@ -971,21 +995,16 @@ app.get('/api/weather', async (req, res) => {
 });
 
 // 투수 통계 및 라인업 조회
-app.get('/api/pitcher-stats', async (req, res) => {
-  try {
-    const { awayPitcher, homePitcher, gameId } = req.query;
+// 같은 경기를 동시에 여러 번 크롤링하지 않도록 진행 중인 작업을 공유한다
+const pendingPreviews = {};
 
-    if (!awayPitcher || !homePitcher) {
-      return res.status(400).json({ awayData: null, homeData: null, lineup: null });
-    }
+async function fetchGamePreview(awayPitcher, homePitcher, gameId) {
+  const cached = getCachedData(gameId);
+  if (cached) return cached;
 
-    // 캐시 확인
-    const cached = getCachedData(gameId);
-    if (cached) {
-      console.log(`Cache hit for gameId: ${gameId}`);
-      return res.json(cached);
-    }
+  if (pendingPreviews[gameId]) return pendingPreviews[gameId];
 
+  const task = (async () => {
     const browser = await getBrowser();
     const page = await browser.newPage();
 
@@ -1009,13 +1028,14 @@ app.get('/api/pitcher-stats', async (req, res) => {
         }, gameId);
 
         // 투수 기록 테이블이 채워질 때까지 기다린다
+        // 아직 발표 전인 경기는 끝내 나타나지 않으므로 오래 기다리지 않는다
         await page.waitForFunction(() => {
           const tables = document.querySelectorAll('table');
           for (const t of tables) {
             if (t.querySelectorAll('tbody tr').length > 0) return true;
           }
           return false;
-        }, { timeout: 10000 }).catch(() => {});
+        }, { timeout: 4000 }).catch(() => {});
       }
 
       // 병렬로 투수 통계와 라인업 데이터 추출
@@ -1030,17 +1050,52 @@ app.get('/api/pitcher-stats', async (req, res) => {
         lineup: lineupData
       };
 
-      // 캐시에 저장
       cacheData(gameId, responseData);
-
-      res.json(responseData);
+      return responseData;
     } finally {
       await page.close();
+      delete pendingPreviews[gameId];
     }
+  })();
+
+  pendingPreviews[gameId] = task;
+  return task;
+}
+
+app.get('/api/pitcher-stats', async (req, res) => {
+  try {
+    const { awayPitcher, homePitcher, gameId } = req.query;
+
+    if (!awayPitcher || !homePitcher) {
+      return res.status(400).json({ awayData: null, homeData: null, lineup: null });
+    }
+
+    const data = await fetchGamePreview(awayPitcher, homePitcher, gameId);
+    res.json(data);
   } catch (error) {
     console.error('Error in /api/pitcher-stats:', error.message);
     res.json({ awayData: null, homeData: null, lineup: null });
   }
+});
+
+// 프리뷰 미리 채우기 — 응답을 기다리지 않고 백그라운드에서 순차적으로 캐시를 채운다
+app.post('/api/preview-warmup', express.json(), (req, res) => {
+  const games = Array.isArray(req.body && req.body.games) ? req.body.games.slice(0, 6) : [];
+
+  // 요청은 즉시 끝내고 수집은 뒤에서 진행한다
+  res.json({ accepted: games.length });
+
+  (async () => {
+    for (const g of games) {
+      if (!g || !g.gameId || !g.awayPitcher || !g.homePitcher) continue;
+      if (getCachedData(g.gameId)) continue;
+      try {
+        await fetchGamePreview(g.awayPitcher, g.homePitcher, g.gameId);
+      } catch (e) {
+        console.error('Warmup failed for', g.gameId, e.message);
+      }
+    }
+  })();
 });
 
 async function extractPitcherStats(page, awayPitcher, homePitcher) {
@@ -1123,10 +1178,11 @@ async function extractLineup(page) {
   });
 
   // WAR 합산 값이 채워지면 라인업 렌더링이 끝난 것으로 본다
+  // 라인업 미발표 경기는 값이 오지 않으므로 짧게 끊는다
   await page.waitForFunction(() => {
     const el = document.querySelector('#txtLeftTableSetter');
     return el && el.textContent.trim() !== '';
-  }, { timeout: 10000 }).catch(() => {});
+  }, { timeout: 4000 }).catch(() => {});
 
   // 라인업 데이터 추출
   return page.evaluate(() => {
