@@ -220,7 +220,12 @@ async function goToToday() {
     }
 
     window.currentScheduleData = todaySchedule;
-    setFocusDateInfo(findFocusDate(groupByDate(todaySchedule), todayYear), todayYear);
+    // 오늘 경기가 실제로 있을 때만 기준일을 갱신한다
+    // (없으면 앱 진입 시 정해진 next 기준일을 그대로 유지)
+    const todayFocus = findFocusDate(groupByDate(todaySchedule), todayYear);
+    if (todayFocus && todayFocus.type === 'today') {
+      setFocusDateInfo(todayFocus, todayYear);
+    }
     scheduleContainer.innerHTML = '';
     const gameList = renderGamesByMonth(todaySchedule, null, todayYear);
     scheduleContainer.appendChild(gameList);
