@@ -993,12 +993,13 @@ app.get('/api/pitcher-stats', async (req, res) => {
       console.log(`Fetching pitcher stats and lineup for: ${awayPitcher} vs ${homePitcher}`);
 
       // KBO GameCenter 페이지 로드
+      // networkidle0은 광고·트래킹까지 기다려 느리므로, 필요한 요소가 나타나면 바로 진행한다
       await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
-        waitUntil: 'networkidle0',
+        waitUntil: 'domcontentloaded',
         timeout: 15000
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await page.waitForSelector('li[g_id]', { timeout: 10000 });
 
       // 게임 클릭
       if (gameId) {
@@ -1007,7 +1008,14 @@ app.get('/api/pitcher-stats', async (req, res) => {
           if (gameItem) gameItem.click();
         }, gameId);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 투수 기록 테이블이 채워질 때까지 기다린다
+        await page.waitForFunction(() => {
+          const tables = document.querySelectorAll('table');
+          for (const t of tables) {
+            if (t.querySelectorAll('tbody tr').length > 0) return true;
+          }
+          return false;
+        }, { timeout: 10000 }).catch(() => {});
       }
 
       // 병렬로 투수 통계와 라인업 데이터 추출
@@ -1114,7 +1122,11 @@ async function extractLineup(page) {
     return false;
   });
 
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  // WAR 합산 값이 채워지면 라인업 렌더링이 끝난 것으로 본다
+  await page.waitForFunction(() => {
+    const el = document.querySelector('#txtLeftTableSetter');
+    return el && el.textContent.trim() !== '';
+  }, { timeout: 10000 }).catch(() => {});
 
   // 라인업 데이터 추출
   return page.evaluate(() => {
