@@ -25,6 +25,20 @@ const teamLogosDetail = {
   '키움': '/images/logos/initial_WO_s.png'
 };
 
+// 우승 배너 같은 곳에서 쓰는 구단 정식 명칭
+const teamFullNames = {
+  'LG': 'LG 트윈스',
+  '한화': '한화 이글스',
+  'SSG': 'SSG 랜더스',
+  '삼성': '삼성 라이온즈',
+  'NC': 'NC 다이노스',
+  'KT': 'KT 위즈',
+  '롯데': '롯데 자이언츠',
+  'KIA': 'KIA 타이거즈',
+  '두산': '두산 베어스',
+  '키움': '키움 히어로즈'
+};
+
 const teamColors = {
   'LG': '#C8102E',
   '한화': '#e76c1b',

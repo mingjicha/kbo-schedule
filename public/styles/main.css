@@ -427,3 +427,70 @@
   }
 }
 
+
+/* 한국시리즈 우승 배너 (포스트시즌 > 한국시리즈에서 시리즈가 끝났을 때) */
+.champion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: #FBF6E6;
+  border: 1px solid #F0E6C8;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 6px 0 16px 0;
+}
+
+.champion__ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #F5EDD5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  flex-shrink: 0;
+}
+
+.champion__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.champion__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #B08D2F;
+  letter-spacing: 0.02em;
+}
+
+.champion__team {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #191F28;
+  margin-top: 2px;
+}
+
+.champion__meta {
+  font-size: 0.8125rem;
+  color: #8B95A1;
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .champion {
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+
+  .champion__ico {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
+  }
+
+  .champion__team {
+    font-size: 1rem;
+  }
+}

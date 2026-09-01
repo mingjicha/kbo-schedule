@@ -37,6 +37,27 @@ function prefetchNeighborMonths(year, month) {
   });
 }
 
+// 포스트시즌을 보는 중이면 해당 시리즈 경기일만 고를 수 있게 한다
+async function loadPostseasonGameDates(year) {
+  const cacheKey = `ps-${year}`;
+  if (calendarGameDatesCache[cacheKey]) return calendarGameDatesCache[cacheKey];
+
+  // 선택된 시리즈만이 아니라 와일드카드~한국시리즈 전체 날짜를 모은다
+  const dates = new Set();
+  const seriesKeys = ['wc', 'sp', 'pl', 'ks'];
+  try {
+    const all = await Promise.all(seriesKeys.map(k => loadSeriesData(k, year).catch(() => [])));
+    all.flat().forEach(game => {
+      const m = game.date.match(/(\d{2})\.(\d{2})/);
+      if (m) dates.add(`${year}-${m[1]}-${m[2]}`);
+    });
+  } catch (e) {
+    // 실패하면 빈 집합을 돌려 달력을 그대로 둔다
+  }
+  calendarGameDatesCache[cacheKey] = dates;
+  return dates;
+}
+
 function isMobileCalendar() {
   return window.matchMedia('(max-width: 768px)').matches;
 }
@@ -78,11 +99,22 @@ function initializeFlatpickr() {
         currentDay = date.getDate();
         document.getElementById('yearDisplay').textContent = currentYear;
         closeCalendarSheet();
+
+        // 포스트시즌을 보는 중이면 정규시즌으로 돌아가지 않는다
+        if (typeof postseasonMode !== 'undefined' && postseasonMode) {
+          scrollToDateHeader(month + '.' + day, true);
+          return;
+        }
+
         const dateStr = month + '.' + day;
         await loadSchedule(dateStr);
       }
     },
     onOpen: async () => {
+      if (typeof postseasonMode !== 'undefined' && postseasonMode) {
+        applyGameDateMarks(await loadPostseasonGameDates(currentYear));
+        return;
+      }
       // 캐시가 있으면 기다리지 않고 바로 칠한다
       const key = `${calendarDisplayYear}-${String(calendarDisplayMonth).padStart(2, '0')}`;
       if (calendarGameDatesCache[key]) {
@@ -98,6 +130,11 @@ function initializeFlatpickr() {
       calendarDisplayMonth = newMonth;
       calendarDisplayYear = newYear;
 
+      if (typeof postseasonMode !== 'undefined' && postseasonMode) {
+        applyGameDateMarks(await loadPostseasonGameDates(currentYear));
+        return;
+      }
+
       const key = `${newYear}-${String(newMonth).padStart(2, '0')}`;
       if (calendarGameDatesCache[key]) {
         applyGameDateMarks(calendarGameDatesCache[key]);
@@ -110,13 +147,21 @@ function initializeFlatpickr() {
     }
   });
 
-  calendarBtn.addEventListener('click', (e) => {
+  calendarBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
     calendarDisplayYear = currentYear;
     calendarDisplayMonth = currentMonth;
-    fpInstance.jumpToDate(new Date(currentYear, currentMonth - 1, 1));
-    prefetchNeighborMonths(currentYear, currentMonth);
+
+    // 포스트시즌은 경기가 실제로 있는 첫 달로 열어준다
+    if (typeof postseasonMode !== 'undefined' && postseasonMode) {
+      const dates = await loadPostseasonGameDates(currentYear);
+      const months = [...dates].map(d => parseInt(d.split('-')[1], 10));
+      if (months.length > 0) calendarDisplayMonth = Math.min(...months);
+    }
+
+    fpInstance.jumpToDate(new Date(calendarDisplayYear, calendarDisplayMonth - 1, 1));
+    prefetchNeighborMonths(calendarDisplayYear, calendarDisplayMonth);
 
     if (isMobileCalendar()) {
       if (calendarSheetOverlay) calendarSheetOverlay.classList.add('show');

@@ -374,3 +374,51 @@
     display: block;
   }
 }
+
+/* 포스트시즌 토글
+   PC 는 팀 버튼 줄 맨 오른쪽, 모바일은 '전체' 드롭다운과 같은 줄 맨 오른쪽 */
+.filter__postseason {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  margin-left: 12px;
+}
+
+/* 꺼진 상태는 항상 흰색을 유지한다.
+   클릭 후 마우스가 버튼 위에 남아 회색으로 보이는 걸 막는다 */
+.filter__postseason:not(.active):hover {
+  border-color: #999;
+  background-color: white;
+}
+
+.filter__postseason.active,
+.filter__postseason.active:hover {
+  background-color: #626ABD;
+  border-color: #626ABD;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .filter__postseason {
+    margin-left: auto;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 100px;
+    background-color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #8B95A1;
+  }
+
+  .filter__postseason.active,
+  .filter__postseason.active:hover {
+    background-color: #626ABD;
+    color: white;
+  }
+}

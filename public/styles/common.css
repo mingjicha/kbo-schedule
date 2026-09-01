@@ -11,11 +11,26 @@
   font-family: 'OwnglyphParkDaHyun';
   src: url('/fonts/symbol-ownglyph.woff2') format('woff2');
   font-weight: normal;
-  font-display: swap;
+  /* 이 폰트의 기호는 고양이 그림이라 대체 폰트로 보이면 전혀 다른 글자가 된다.
+     swap 은 로딩 전 잠시 ♤ 같은 기본 글자를 보여주므로 block 으로 기다리게 한다 */
+  font-display: block;
 }
 
 .symbol-font {
   font-family: 'OwnglyphParkDaHyun', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+}
+
+/* 기호 앞 간격은 margin 으로만 준다.
+   HTML 에 공백까지 두면 두 번 띄어졌다 */
+.symbol-font {
+  margin-left: 0.35em;
+}
+
+/* 글자 사이에 끼어있거나 단독으로 쓰이는 곳은 간격을 뺀다 */
+.schedule__status-symbol,
+.toast .symbol-font,
+.modal__badge .symbol-font {
+  margin-left: 0;
 }
 
 /* Bootstrap 에서 쓰던 유틸리티를 직접 정의해 CDN 의존을 없앱다 */

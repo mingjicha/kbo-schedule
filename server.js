@@ -241,13 +241,24 @@ function parseGameInfo(playHtml, gameId = '') {
   };
 }
 
+// 포스트시즌 시리즈 (KBO srId). 경기는 10~11월에 열린다
+const POSTSEASON_SERIES = {
+  wc: { srId: '4', name: '와일드카드' },
+  sp: { srId: '3', name: '준플레이오프' },
+  pl: { srId: '5', name: '플레이오프' },
+  ks: { srId: '7', name: '한국시리즈' }
+};
+
 app.get('/api/schedule', async (req, res) => {
   try {
     const year = req.query.year || new Date().getFullYear();
     const month = String(req.query.month || new Date().getMonth() + 1).padStart(2, '0');
     const team = req.query.team || '';
+    // 포스트시즌은 시리즈별로 srId 가 다르다 (0=정규시즌)
+    const series = POSTSEASON_SERIES[req.query.series] ? req.query.series : '';
+    const srIdList = series ? POSTSEASON_SERIES[series].srId : '0';
 
-    const cacheKey = `schedule:${year}:${month}:${team}`;
+    const cacheKey = `schedule:${year}:${month}:${team}:${srIdList}`;
     const cached = getResponseCache(cacheKey);
     if (cached) {
       return res.json(cached);
@@ -255,7 +266,7 @@ app.get('/api/schedule', async (req, res) => {
 
     const postData = new URLSearchParams({
       leId: '1',
-      srIdList: '0',
+      srIdList,
       seasonId: year,
       gameMonth: month,
       teamId: team
@@ -420,7 +431,7 @@ app.get('/api/schedule', async (req, res) => {
           'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
           new URLSearchParams({
             leId: '1',
-            srId: '0',
+            srId: srIdList,
             date: gameDate
           }).toString(),
           {
@@ -438,6 +449,7 @@ app.get('/api/schedule', async (req, res) => {
                 const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
                 const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
                 const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+                const loserPitcher = (apiGame.L_PIT_P_NM || '').trim();
                 const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
                 const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
                 const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
@@ -448,19 +460,13 @@ app.get('/api/schedule', async (req, res) => {
                 let finalAwayPitcher = awayStartPitcher;
                 let finalHomePitcher = homeStartPitcher;
 
-                // 승리투수가 있으면 승리투수 사용 (세이브 상관없이)
-                if (winnerPitcher && winnerPitcherId) {
-                  if (awayScore > homeScore) {
-                    // 어웨이팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
-                    if (awayStartPitcherId && winnerPitcherId !== awayStartPitcherId) {
-                      finalAwayPitcher = winnerPitcher;
-                    }
-                  } else if (homeScore > awayScore) {
-                    // 홈팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
-                    if (homeStartPitcherId && winnerPitcherId !== homeStartPitcherId) {
-                      finalHomePitcher = winnerPitcher;
-                    }
-                  }
+                // 이긴 쪽은 승리투수, 진 쪽은 패전투수를 보여준다
+                if (awayScore > homeScore) {
+                  if (winnerPitcher) finalAwayPitcher = winnerPitcher;
+                  if (loserPitcher) finalHomePitcher = loserPitcher;
+                } else if (homeScore > awayScore) {
+                  if (winnerPitcher) finalHomePitcher = winnerPitcher;
+                  if (loserPitcher) finalAwayPitcher = loserPitcher;
                 }
 
                 if (gameId) {
@@ -500,7 +506,7 @@ app.get('/api/schedule', async (req, res) => {
             'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
             new URLSearchParams({
               leId: '1',
-              srId: '0',
+              srId: srIdList,
               date: gameDate
             }).toString(),
             {
@@ -520,6 +526,7 @@ app.get('/api/schedule', async (req, res) => {
               const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
               const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
               const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+              const loserPitcher = (apiGame.L_PIT_P_NM || '').trim();
               const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
               const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
               const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
@@ -531,18 +538,13 @@ app.get('/api/schedule', async (req, res) => {
               let finalAwayPitcher = awayStartPitcher;
               let finalHomePitcher = homeStartPitcher;
 
-              if (winnerPitcher && winnerPitcherId) {
-                if (awayScore > homeScore) {
-                  // 어웨이팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
-                  if (awayStartPitcherId && winnerPitcherId !== awayStartPitcherId) {
-                    finalAwayPitcher = winnerPitcher;
-                  }
-                } else if (homeScore > awayScore) {
-                  // 홈팀 승리: 승리투수가 선발투수와 다르면 승리투수 이름 사용
-                  if (homeStartPitcherId && winnerPitcherId !== homeStartPitcherId) {
-                    finalHomePitcher = winnerPitcher;
-                  }
-                }
+              // 이긴 쪽은 승리투수, 진 쪽은 패전투수를 보여준다
+              if (awayScore > homeScore) {
+                if (winnerPitcher) finalAwayPitcher = winnerPitcher;
+                if (loserPitcher) finalHomePitcher = loserPitcher;
+              } else if (homeScore > awayScore) {
+                if (winnerPitcher) finalHomePitcher = winnerPitcher;
+                if (loserPitcher) finalAwayPitcher = loserPitcher;
               }
 
               todayGameMap[key] = {
@@ -590,6 +592,56 @@ app.get('/api/schedule', async (req, res) => {
   } catch (error) {
     console.error('Error fetching schedule:', error.message);
     res.status(500).json({ error: 'Failed to fetch schedule' });
+  }
+});
+
+// 포스트시즌 시리즈 목록과 각 시리즈의 경기 유무
+app.get('/api/postseason', async (req, res) => {
+  try {
+    const year = req.query.year || new Date().getFullYear();
+    const cacheKey = `postseason:${year}`;
+    const cached = getResponseCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const result = [];
+    for (const [key, meta] of Object.entries(POSTSEASON_SERIES)) {
+      let count = 0;
+      // 포스트시즌은 10월과 11월에 걸쳐 열릴 수 있다
+      for (const month of ['10', '11']) {
+        try {
+          const r = await axios.post(
+            'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+            new URLSearchParams({
+              leId: '1',
+              srIdList: meta.srId,
+              seasonId: year,
+              gameMonth: month,
+              teamId: ''
+            }).toString(),
+            {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            }
+          );
+          count += (r.data && Array.isArray(r.data.rows)) ? r.data.rows.length : 0;
+        } catch (e) {
+          // 한 달이 실패해도 나머지로 계속 진행한다
+        }
+      }
+      result.push({ key, name: meta.name, hasGames: count > 0 });
+    }
+
+    setResponseCache(cacheKey, result, 30 * 60 * 1000);
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching postseason list:', error.message);
+    res.status(500).json({ error: 'Failed to fetch postseason list' });
   }
 });
 

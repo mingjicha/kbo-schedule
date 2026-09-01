@@ -1,5 +1,15 @@
 let loadedMonths = new Set();
 
+// 상태별 기호를 한 곳에서 관리한다.
+// 렌더링과 1초마다 도는 updateGameStatuses 가 따로 가지고 있어
+// 화면에 뗄던 기호가 곷바로 바뀌는 문제가 있었다
+const STATUS_SYMBOLS = {
+  '종료': '¢',
+  '예정': '¢',
+  '취소': '£',
+  '진행중': '♤'
+};
+
 function buildStatusHTML(status, symbol) {
   return symbol
     ? `${status} <span class="schedule__status-symbol">${symbol}</span>`
@@ -10,7 +20,7 @@ function renderSkeletonLoader() {
   return `
     <div class="loading">
       <div class="spinner-border" role="status">
-        <span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span>
+        <span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span>
       </div>
     </div>
   `;
@@ -31,7 +41,7 @@ async function loadSchedule(scrollToDate = null) {
     loadedMonths.add(defaultMonthStr);
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요<span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -42,7 +52,7 @@ async function loadSchedule(scrollToDate = null) {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요<span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -345,7 +355,7 @@ function createGameCard(game, date, isToday) {
     const inningDiv = document.createElement('div');
     inningDiv.className = 'schedule__inning-info';
     inningDiv.id = `inning-${game.gameId}`;
-    inningDiv.innerHTML = '로딩 중이에요 <span class="symbol-font">♤</span>';
+    inningDiv.innerHTML = '로딩 중이에요<span class="symbol-font">♤</span>';
     scoreContainer.appendChild(inningDiv);
 
     fetchGameDetail(game.gameId).then(data => {
@@ -407,16 +417,7 @@ function createGameCard(game, date, isToday) {
   const statusBadge = document.createElement('div');
   statusBadge.className = 'schedule__status ' + statusClass;
 
-  let statusSymbol = '';
-  if (finalStatus === '종료') {
-    statusSymbol = '¢';
-  } else if (finalStatus === '예정') {
-    statusSymbol = '¢';
-  } else if (finalStatus === '취소') {
-    statusSymbol = '£';
-  } else if (finalStatus === '진행중') {
-    statusSymbol = '♤';
-  }
+  const statusSymbol = STATUS_SYMBOLS[finalStatus] || '';
 
   statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
 
@@ -456,7 +457,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span></div></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
@@ -489,7 +490,7 @@ function createGameCard(game, date, isToday) {
 
       loadPitcherComparison(game, pitcherContent).catch(error => {
         console.error('Error loading game detail:', error);
-        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
+        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
       });
 
       loadLineup(game, lineupContent).catch(error => {
@@ -503,13 +504,20 @@ function createGameCard(game, date, isToday) {
 
 async function applyTeamFilter() {
   const scheduleContainer = document.getElementById('scheduleContainer');
+
+  // 포스트시즌 보는 중이면 그 시리즈를 다시 그린다
+  if (postseasonMode && postseasonSeries) {
+    await renderSeries(postseasonSeries);
+    return;
+  }
+
   try {
     scheduleContainer.innerHTML = renderSkeletonLoader(1);
     const defaultSchedule = await loadMonthData(currentMonth);
     window.currentScheduleData = defaultSchedule;
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요<span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -521,7 +529,7 @@ async function applyTeamFilter() {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요<span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -574,7 +582,7 @@ async function initializeMonthTabsWithLazyLoad() {
         const gameList = renderGamesByMonth(gamesForMonth, null, currentYear);
         scheduleContainer.appendChild(gameList);
       } else {
-        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
+        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요<span class="symbol-font">♤</span></div>';
       }
     });
 
@@ -612,8 +620,8 @@ function updateGameStatuses() {
     if (!timeText || timeText === '시간미정') return;
 
     if (statusBadge.textContent.includes('취소')) {
-      if (!statusBadge.textContent.includes('£')) {
-        statusBadge.innerHTML = buildStatusHTML('취소', '£');
+      if (!statusBadge.textContent.includes(STATUS_SYMBOLS['취소'])) {
+        statusBadge.innerHTML = buildStatusHTML('취소', STATUS_SYMBOLS['취소']);
       }
       return;
     }
@@ -623,21 +631,23 @@ function updateGameStatuses() {
     const gameDateTime = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
     const gameEndTime = new Date(gameDateTime.getTime() + 4 * 60 * 60 * 1000);
 
-    let newStatus = statusBadge.textContent.replace(' ♤', '').replace(' ¢', '').replace(' £', '').replace(' ♧', '').trim();
+    let newStatus = statusBadge.textContent
+      .replace(/[♤♧¢£]/g, '')
+      .trim();
     let newSymbol = '';
     let newClass = card.className.replace('schedule__game ', '').trim();
 
     if (statusBadge.textContent.includes('종료')) {
       newStatus = '종료';
-      newSymbol = '♤';
+      newSymbol = STATUS_SYMBOLS['종료'];
       newClass = 'schedule__game--finished';
     } else if (now >= gameDateTime && now < gameEndTime) {
       newStatus = '진행중';
-      newSymbol = '♧';
+      newSymbol = STATUS_SYMBOLS['진행중'];
       newClass = 'schedule__game--live';
     } else if (now < gameDateTime) {
       newStatus = '예정';
-      newSymbol = '¢';
+      newSymbol = STATUS_SYMBOLS['예정'];
       newClass = 'schedule__game--scheduled';
     }
 
@@ -654,3 +664,179 @@ function updateGameStatuses() {
 }
 
 setInterval(updateGameStatuses, 1000);
+
+// 한국시리즈 MVP 는 KBO 일정 API 에 없어 직접 채워야 한다.
+// 값이 없는 해는 우승팀과 전적만 표시된다
+const KS_MVP = {};
+
+// ==================== 포스트시즌 ====================
+// 켜면 월 탭이 와일드카드/준PO/PO/한국시리즈로 바뀐다
+let postseasonMode = false;
+let postseasonSeries = null;
+let savedMonthBeforePostseason = null;
+
+async function loadSeriesData(seriesKey, year = currentYear) {
+  // 포스트시즌은 10월과 11월에 걸쳐 열릴 수 있어 두 달을 합친다
+  const months = ['10', '11'];
+  const results = await Promise.all(months.map(async (month) => {
+    const res = await fetch(
+      `/api/schedule?year=${year}&month=${month}&series=${seriesKey}&team=${currentTeam}`
+    );
+    return res.ok ? await res.json() : [];
+  }));
+  return results.flat();
+}
+
+async function renderSeries(seriesKey) {
+  postseasonSeries = seriesKey;
+  const scheduleContainer = document.getElementById('scheduleContainer');
+  scheduleContainer.innerHTML = renderSkeletonLoader();
+
+  const games = await loadSeriesData(seriesKey);
+  window.currentScheduleData = games;
+
+  if (games.length === 0) {
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">아직 경기 일정이 없어요<span class="symbol-font">♤</span></div>';
+    return;
+  }
+
+  scheduleContainer.innerHTML = '';
+
+  // 한국시리즈가 끝난 해라면 우승팀을 맨 위에 보여준다
+  const champ = seriesKey === 'ks' ? getChampionInfo(games) : null;
+  if (champ) scheduleContainer.appendChild(renderChampionBanner(champ));
+
+  scheduleContainer.appendChild(renderGamesByMonth(games, null, currentYear));
+}
+
+// 일정으로 우승팀을 계산한다. 4승을 먼저 채운 팀이 우승
+function getChampionInfo(games) {
+  const wins = {};
+  games.forEach(game => {
+    if (game.status !== '종료' || !game.winner) return;
+    const team = game.winner === 'away' ? game.awayTeam : game.homeTeam;
+    wins[team] = (wins[team] || 0) + 1;
+  });
+
+  const ranked = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+  if (ranked.length === 0) return null;
+
+  const [team, won] = ranked[0];
+  // 아직 시리즈가 끝나지 않았으면 표시하지 않는다
+  if (won < 4) return null;
+
+  const lost = ranked[1] ? ranked[1][1] : 0;
+  return { team, won, lost, mvp: KS_MVP[String(currentYear)] || null };
+}
+
+function renderChampionBanner({ team, mvp }) {
+  const banner = document.createElement('div');
+  banner.className = 'champion';
+
+  const trophy = document.createElement('span');
+  trophy.className = 'champion__ico';
+  trophy.textContent = '\u{1F3C6}';
+  banner.appendChild(trophy);
+
+  const body = document.createElement('div');
+  body.className = 'champion__body';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'champion__eyebrow';
+  eyebrow.textContent = `${currentYear} \ud55c\uad6d\uc2dc\ub9ac\uc988 \uc6b0\uc2b9`;
+  body.appendChild(eyebrow);
+
+  const name = document.createElement('div');
+  name.className = 'champion__team';
+  name.textContent = teamFullNames[team] || team;
+  body.appendChild(name);
+
+  // \uc804\uc801\uc740 \ubc14\ub85c \uc544\ub798 \uacbd\uae30 \ubaa9\ub85d\uc5d0\uc11c \ubcf4\uc774\ubbc0\ub85c \uc0dd\ub7b5\ud558\uace0,
+  // MVP \uac00 \uc788\uc744 \ub54c\ub9cc \ud55c \uc904 \ub354 \ubcf4\uc5ec\uc900\ub2e4
+  if (mvp) {
+    const meta = document.createElement('div');
+    meta.className = 'champion__meta';
+    meta.textContent = `MVP ${mvp}`;
+    body.appendChild(meta);
+  }
+
+  banner.appendChild(body);
+
+  return banner;
+}
+
+async function renderPostseasonTabs() {
+  const monthTabsContainer = document.getElementById('monthTabsContainer');
+  const list = document.createElement('div');
+  list.className = 'nav__tabs-list';
+
+  let seriesList;
+  try {
+    const res = await fetch(`/api/postseason?year=${currentYear}`);
+    seriesList = res.ok ? await res.json() : [];
+  } catch (e) {
+    seriesList = [];
+  }
+
+  if (seriesList.length === 0) {
+    seriesList = [
+      { key: 'wc', name: '와일드카드', hasGames: false },
+      { key: 'sp', name: '준플레이오프', hasGames: false },
+      { key: 'pl', name: '플레이오프', hasGames: false },
+      { key: 'ks', name: '한국시리즈', hasGames: false }
+    ];
+  }
+
+  // 보던 시리즈가 있으면 연도를 바꿔도 그대로 유지한다.
+  // 없으면 경기가 있는 첫 시리즈를 연다
+  const keptSeries = postseasonSeries &&
+    seriesList.some(s => s.key === postseasonSeries) ? postseasonSeries : null;
+  const firstWithGames = seriesList.find(s => s.hasGames);
+  const defaultKey = keptSeries || (firstWithGames ? firstWithGames.key : seriesList[0].key);
+
+  seriesList.forEach(series => {
+    const tab = document.createElement('button');
+    tab.className = 'nav__tab';
+    tab.textContent = series.name;
+    tab.dataset.series = series.key;
+    if (series.key === defaultKey) tab.classList.add('active');
+
+    tab.addEventListener('click', async () => {
+      document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      await renderSeries(series.key);
+    });
+
+    list.appendChild(tab);
+  });
+
+  monthTabsContainer.innerHTML = '';
+  monthTabsContainer.appendChild(list);
+
+  await renderSeries(defaultKey);
+}
+
+async function setPostseasonMode(on) {
+  postseasonMode = on;
+
+  document.querySelectorAll('.filter__postseason').forEach(btn => {
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', String(on));
+  });
+
+  if (on) {
+    savedMonthBeforePostseason = currentMonth;
+    await renderPostseasonTabs();
+    return;
+  }
+
+  // 정규시즌으로 복귀
+  postseasonSeries = null;
+  if (savedMonthBeforePostseason) currentMonth = savedMonthBeforePostseason;
+  await initializeMonthTabsWithLazyLoad();
+  await loadSchedule();
+}
+
+document.querySelectorAll('.filter__postseason').forEach(btn => {
+  btn.addEventListener('click', () => setPostseasonMode(!postseasonMode));
+});
