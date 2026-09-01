@@ -37,10 +37,23 @@ let browserInstance = null;
 const gameDataCache = {};
 
 async function getBrowser() {
+  // 브라우저가 죽은 채로 남아 있으면 이후 요청이 모두 실패하므로 상태를 확인하고 다시 띄운다
+  if (browserInstance && !browserInstance.connected) {
+    try {
+      await browserInstance.close();
+    } catch (e) {
+      // 이미 죽은 프로세스면 무시
+    }
+    browserInstance = null;
+  }
+
   if (!browserInstance) {
     browserInstance = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
+    });
+    browserInstance.on('disconnected', () => {
+      browserInstance = null;
     });
   }
   return browserInstance;
@@ -1053,7 +1066,12 @@ async function fetchGamePreview(awayPitcher, homePitcher, gameId) {
       cacheData(gameId, responseData);
       return responseData;
     } finally {
-      await page.close();
+      // 브라우저가 죽은 뒤라면 page.close()도 실패하므로 정리는 항상 진행되게 한다
+      try {
+        await page.close();
+      } catch (e) {
+        // 이미 닫힌 페이지면 무시
+      }
       delete pendingPreviews[gameId];
     }
   })();
