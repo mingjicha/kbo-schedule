@@ -197,5 +197,6 @@ function maybeStartOnboarding(onFinish) {
   // 기본 안내를 아직 못 봤으면 전체를, 봤으면 남은 프리뷰 안내만 보여준다
   const steps = basicDone ? [previewStep] : basicSteps.concat(previewStep);
 
-  setTimeout(() => startOnboarding(steps, onFinish), 600);
+  // 카드가 그려진 직후라 레이아웃이 잡힐 만큼만 기다린다
+  setTimeout(() => startOnboarding(steps, onFinish), 200);
 }

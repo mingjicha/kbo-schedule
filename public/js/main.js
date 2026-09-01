@@ -48,11 +48,12 @@ async function initializeApp() {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(gameList);
 
-    // 화면이 다 그려진 뒤, 눌러볼 수 있는 경기의 프리뷰를 백그라운드에서 미리 받아둔다
-    warmupPreviews(schedule, focusDate);
-
-    await loadWeather();
+    // 경기 카드가 그려졌으면 온보딩을 바로 띄운다 (날씨 로딩을 기다리지 않는다)
     maybeStartOnboarding(willShowOnboarding ? () => scrollToDateHeader(focusDate, true) : null);
+
+    // 나머지는 백그라운드에서 진행
+    warmupPreviews(schedule, focusDate);
+    loadWeather();
   } catch (error) {
     console.error('Error initializing app:', error);
     scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';
