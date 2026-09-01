@@ -62,6 +62,18 @@
   box-sizing: border-box;
 }
 
+/* 버튼·입력 요소는 폰트를 상속받지 않고 브라우저 기본값(Arial)을 쓴다.
+   Bootstrap 의 리셋이 해주던 일을 직접 명시한다 */
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 /* Base Styles */
 html {
   font-size: 16px;
