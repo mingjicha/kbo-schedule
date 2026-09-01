@@ -1,19 +1,58 @@
 @font-face {
   font-family: 'OngleipParkDahyeon';
-  src: url('/fonts/HakgyoansimDunggeunmisoR.ttf') format('truetype');
+  src: url('/fonts/HakgyoansimDunggeunmisoR.woff2') format('woff2'),
+       url('/fonts/HakgyoansimDunggeunmisoR.ttf') format('truetype');
   font-weight: normal;
   font-display: swap;
 }
 
+/* † 한 글자만 남긴 서브셋 (원본 964KB → 1.5KB) */
 @font-face {
   font-family: 'OwnglyphParkDaHyun';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+  src: url('/fonts/symbol-dagger.woff2') format('woff2');
   font-weight: normal;
   font-display: swap;
 }
 
 .symbol-font {
   font-family: 'OwnglyphParkDaHyun', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
+}
+
+/* Bootstrap 에서 쓰던 유틸리티를 직접 정의해 CDN 의존을 없앱다 */
+.d-none {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: -0.125em;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+  color: #626ABD;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner-border { animation-duration: 1.5s; }
 }
 
 /* Reset */

@@ -1,10 +1,11 @@
-const CACHE_NAME = 'kbo-schedule-v7';
+const CACHE_NAME = 'kbo-schedule-v8';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.json',
   '/styles/index.css',
   '/styles/common.css',
+  '/styles/icons.css',
   '/styles/header.css',
   '/styles/nav.css',
   '/styles/filter.css',
@@ -19,7 +20,8 @@ const APP_SHELL = [
   '/js/ui.js',
   '/js/onboarding.js',
   '/js/main.js',
-  '/fonts/HakgyoansimDunggeunmisoR.ttf',
+  '/fonts/HakgyoansimDunggeunmisoR.woff2',
+  '/fonts/symbol-dagger.woff2',
   '/images/icons/icon-192.png',
   '/images/icons/icon-512.png'
 ];
