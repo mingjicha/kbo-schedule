@@ -1002,8 +1002,11 @@ app.get('/api/weather', async (req, res) => {
     setResponseCache(cacheKey, weatherResult, 10 * 60 * 1000);
     res.json(weatherResult);
   } catch (error) {
-    console.error('Error fetching weather:', error.message);
-    res.status(500).json({ error: 'Failed to fetch weather' });
+    const upstream = error.response
+      ? `HTTP ${error.response.status} ${JSON.stringify(error.response.data).slice(0, 200)}`
+      : error.code || error.message;
+    console.error('Error fetching weather:', upstream);
+    res.status(500).json({ error: 'Failed to fetch weather', detail: upstream });
   }
 });
 
