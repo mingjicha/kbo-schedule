@@ -6,12 +6,37 @@ function buildStatusHTML(status, symbol) {
     : status;
 }
 
-function renderSkeletonLoader() {
-  return `
-    <div class="loading">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span>
+// 실제 경기 카드와 같은 틀을 미리 그려 데이터가 채워질 때 화면이 틀지 않게 한다
+function renderSkeletonLoader(dayCount = 3, gamesPerDay = 3) {
+  const game = `
+    <div class="skeleton__game">
+      <div class="skeleton__line skeleton__line--time"></div>
+      <div class="skeleton__teams">
+        <div class="skeleton__team">
+          <div class="skeleton__logo"></div>
+          <div class="skeleton__line skeleton__line--team"></div>
+        </div>
+        <div class="skeleton__line skeleton__line--score"></div>
+        <div class="skeleton__team">
+          <div class="skeleton__logo"></div>
+          <div class="skeleton__line skeleton__line--team"></div>
+        </div>
       </div>
+      <div class="skeleton__line skeleton__line--status"></div>
+    </div>
+  `;
+
+  const day = `
+    <div class="skeleton__day">
+      <div class="skeleton__line skeleton__line--date"></div>
+      ${game.repeat(gamesPerDay)}
+    </div>
+  `;
+
+  return `
+    <div class="skeleton" role="status" aria-live="polite">
+      <span class="visually-hidden">경기 일정을 불러오는 중이에요 <span class="symbol-font">♤</span></span>
+      ${day.repeat(dayCount)}
     </div>
   `;
 }

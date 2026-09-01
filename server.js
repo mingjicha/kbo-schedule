@@ -1002,11 +1002,8 @@ app.get('/api/weather', async (req, res) => {
     setResponseCache(cacheKey, weatherResult, 10 * 60 * 1000);
     res.json(weatherResult);
   } catch (error) {
-    const upstream = error.response
-      ? `HTTP ${error.response.status} ${JSON.stringify(error.response.data).slice(0, 200)}`
-      : error.code || error.message;
-    console.error('Error fetching weather:', upstream);
-    res.status(500).json({ error: 'Failed to fetch weather', detail: upstream });
+    console.error('Error fetching weather:', error.message);
+    res.status(500).json({ error: 'Failed to fetch weather' });
   }
 });
 
@@ -1025,8 +1022,6 @@ async function fetchGamePreview(awayPitcher, homePitcher, gameId) {
     const page = await browser.newPage();
 
     try {
-      console.log(`Fetching pitcher stats and lineup for: ${awayPitcher} vs ${homePitcher}`);
-
       // KBO GameCenter 페이지 로드
       // networkidle0은 광고·트래킹까지 기다려 느리므로, 필요한 요소가 나타나면 바로 진행한다
       await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
@@ -1318,21 +1313,13 @@ async function getPitcherStats(pitcherName, gameId, year) {
       }
     );
 
-    console.log(`Looking for pitcher: ${pitcherName}, gameId: ${gameId}`);
-    console.log('Game list response:', JSON.stringify(gameListResponse.data).substring(0, 500));
-
     if (gameListResponse.data && gameListResponse.data.game && Array.isArray(gameListResponse.data.game)) {
       const gameData = gameListResponse.data.game.find(g => g.G_ID === gameId);
 
       if (gameData) {
-        console.log('Found game data:', JSON.stringify(gameData).substring(0, 1000));
-
         // 투수 이름과 매칭되는지 확인
         const isPitcherHome = gameData.T_PIT_P_NM === pitcherName || (gameData.T_PIT_P_NM && gameData.T_PIT_P_NM.includes(pitcherName));
         const isPitcherAway = gameData.B_PIT_P_NM === pitcherName || (gameData.B_PIT_P_NM && gameData.B_PIT_P_NM.includes(pitcherName));
-
-        console.log(`Is pitcher home: ${isPitcherHome}, Is pitcher away: ${isPitcherAway}`);
-        console.log(`Home pitcher: ${gameData.T_PIT_P_NM}, Away pitcher: ${gameData.B_PIT_P_NM}`);
 
         if (isPitcherHome) {
           return {
@@ -1363,11 +1350,7 @@ async function getPitcherStats(pitcherName, gameId, year) {
             startAvgInning: gameData.B_PIT_P_STARTIP || '-'
           };
         }
-      } else {
-        console.log('Game not found in list');
       }
-    } else {
-      console.log('No game array in response');
     }
 
     return null;
