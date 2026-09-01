@@ -225,7 +225,7 @@ async function goToToday() {
     const todaySchedule = await loadMonthData(todayMonth, todayYear);
 
     if (todaySchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘은 예정된 경기가 없어요 <span class="symbol-font">†</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">오늘은 예정된 경기가 없어요 <span class="symbol-font">♤</span></div>';
       showToast('오늘은 예정된 경기가 없어요', '', '😿');
       return;
     }
@@ -259,7 +259,7 @@ async function goToToday() {
     }, 100);
   } catch (error) {
     console.error('Error loading today schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 

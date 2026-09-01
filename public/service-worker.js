@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kbo-schedule-v8';
+const CACHE_NAME = 'kbo-schedule-v9';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -21,7 +21,7 @@ const APP_SHELL = [
   '/js/onboarding.js',
   '/js/main.js',
   '/fonts/HakgyoansimDunggeunmisoR.woff2',
-  '/fonts/symbol-dagger.woff2',
+  '/fonts/symbol-ownglyph.woff2',
   '/images/icons/icon-192.png',
   '/images/icons/icon-512.png'
 ];

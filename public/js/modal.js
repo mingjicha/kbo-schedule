@@ -39,7 +39,7 @@ async function loadWeather(forceRefresh = false) {
       return;
     }
 
-    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">†</span></span></div></div>';
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span></div></div>';
 
     const today = new Date();
     const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
@@ -67,7 +67,7 @@ async function loadWeather(forceRefresh = false) {
     weatherDate.textContent = `${todayYear}년 ${parseInt(targetMonth)}월 ${parseInt(targetDay)}일 기준`;
 
     if (stadiums.size === 0) {
-      weatherContainer.innerHTML = '<div class="modal__no-weather-data">예정된 경기가 없어요 <span class="symbol-font">†</span></div>';
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">예정된 경기가 없어요 <span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -90,7 +90,7 @@ async function loadWeather(forceRefresh = false) {
     }
 
     if (weatherDataList.length === 0) {
-      weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+      weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -98,7 +98,7 @@ async function loadWeather(forceRefresh = false) {
     renderWeatherCards(weatherDataList);
   } catch (error) {
     console.error('Error loading weather:', error);
-    weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    weatherContainer.innerHTML = '<div class="modal__no-weather-data">날씨 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -167,7 +167,7 @@ async function loadTeamRank(forceRefresh = false) {
   const rankDate = document.getElementById('rankDate');
 
   try {
-    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">†</span></span></div></div>';
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span></div></div>';
 
     const response = await fetch(forceRefresh ? '/api/team-rank?refresh=1' : '/api/team-rank');
     const data = await response.json();
@@ -261,11 +261,11 @@ async function loadTeamRank(forceRefresh = false) {
       rankTableContainer.appendChild(table);
       rankTableContainer.appendChild(list);
     } else {
-      rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+      rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 데이터를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
     }
   } catch (error) {
     console.error('Error loading team rank:', error);
-    rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    rankTableContainer.innerHTML = '<div class="modal__no-rank-data">순위 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -394,7 +394,7 @@ function renderPitcherComparison(data, game, container) {
     `;
     container.innerHTML = html;
   } else {
-    container.innerHTML = '<div class="modal__no-data">투수 정보를 찾을 수 없어요 <span class="symbol-font">†</span></div>';
+    container.innerHTML = '<div class="modal__no-data">투수 정보를 찾을 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -414,7 +414,7 @@ async function loadPitcherComparison(game, container) {
     renderPitcherComparison(data, game, container);
   } catch (error) {
     console.error('Error loading pitcher comparison:', error);
-    container.innerHTML = '<div class="modal__no-data">투수 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    container.innerHTML = '<div class="modal__no-data">투수 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -433,11 +433,11 @@ async function loadLineup(game, container) {
     if (data.lineup) {
       renderLineup(data.lineup, game, container);
     } else {
-      container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+      container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
     }
   } catch (error) {
     console.error('Error loading lineup:', error);
-    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -523,7 +523,7 @@ function renderWarSummaryRow(label, away, home, awayTeam, homeTeam, maxWar) {
 
 function renderLineup(lineup, game, container) {
   if (!lineup) {
-    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    container.innerHTML = '<div class="modal__no-data">라인업 정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
     return;
   }
 

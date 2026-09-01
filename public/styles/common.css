@@ -6,10 +6,10 @@
   font-display: swap;
 }
 
-/* † 한 글자만 남긴 서브셋 (원본 964KB → 1.5KB) */
+/* ♤ 기호와 상태 뱃지 한글만 남긴 서브셋 (원본 964KB → 14KB) */
 @font-face {
   font-family: 'OwnglyphParkDaHyun';
-  src: url('/fonts/symbol-dagger.woff2') format('woff2');
+  src: url('/fonts/symbol-ownglyph.woff2') format('woff2');
   font-weight: normal;
   font-display: swap;
 }

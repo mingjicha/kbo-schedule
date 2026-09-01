@@ -10,7 +10,7 @@ function renderSkeletonLoader() {
   return `
     <div class="loading">
       <div class="spinner-border" role="status">
-        <span class="visually-hidden">로딩 중이에요 <span class="symbol-font">†</span></span>
+        <span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span>
       </div>
     </div>
   `;
@@ -31,7 +31,7 @@ async function loadSchedule(scrollToDate = null) {
     loadedMonths.add(defaultMonthStr);
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">†</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -42,7 +42,7 @@ async function loadSchedule(scrollToDate = null) {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -345,7 +345,7 @@ function createGameCard(game, date, isToday) {
     const inningDiv = document.createElement('div');
     inningDiv.className = 'schedule__inning-info';
     inningDiv.id = `inning-${game.gameId}`;
-    inningDiv.innerHTML = '로딩 중이에요 <span class="symbol-font">†</span>';
+    inningDiv.innerHTML = '로딩 중이에요 <span class="symbol-font">♤</span>';
     scoreContainer.appendChild(inningDiv);
 
     fetchGameDetail(game.gameId).then(data => {
@@ -409,13 +409,13 @@ function createGameCard(game, date, isToday) {
 
   let statusSymbol = '';
   if (finalStatus === '종료') {
-    statusSymbol = '♤';
+    statusSymbol = '¢';
   } else if (finalStatus === '예정') {
     statusSymbol = '¢';
   } else if (finalStatus === '취소') {
     statusSymbol = '£';
   } else if (finalStatus === '진행중') {
-    statusSymbol = '†';
+    statusSymbol = '♤';
   }
 
   statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
@@ -442,7 +442,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherTab = document.createElement('button');
       pitcherTab.className = 'game-detail__tab active';
-      pitcherTab.innerHTML = buildStatusHTML('선발투수', '†');
+      pitcherTab.innerHTML = buildStatusHTML('선발투수', '♤');
 
       const lineupTab = document.createElement('button');
       lineupTab.className = 'game-detail__tab';
@@ -456,7 +456,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">†</span></span></div></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요 <span class="symbol-font">♤</span></span></div></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
@@ -474,7 +474,7 @@ function createGameCard(game, date, isToday) {
         lineupTab.classList.remove('active');
         pitcherContent.classList.add('active');
         lineupContent.classList.remove('active');
-        pitcherTab.innerHTML = buildStatusHTML('선발투수', '†');
+        pitcherTab.innerHTML = buildStatusHTML('선발투수', '♤');
         lineupTab.innerHTML = buildStatusHTML('라인업', '');
       });
 
@@ -483,13 +483,13 @@ function createGameCard(game, date, isToday) {
         pitcherTab.classList.remove('active');
         lineupContent.classList.add('active');
         pitcherContent.classList.remove('active');
-        lineupTab.innerHTML = buildStatusHTML('라인업', '†');
+        lineupTab.innerHTML = buildStatusHTML('라인업', '♤');
         pitcherTab.innerHTML = buildStatusHTML('선발투수', '');
       });
 
       loadPitcherComparison(game, pitcherContent).catch(error => {
         console.error('Error loading game detail:', error);
-        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+        gameDetailContainer.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
       });
 
       loadLineup(game, lineupContent).catch(error => {
@@ -509,7 +509,7 @@ async function applyTeamFilter() {
     window.currentScheduleData = defaultSchedule;
 
     if (defaultSchedule.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">†</span></div>';
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
       return;
     }
 
@@ -521,7 +521,7 @@ async function applyTeamFilter() {
     updateCalendarDisabledDates(defaultSchedule);
   } catch (error) {
     console.error('Error loading schedule:', error);
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">†</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요 <span class="symbol-font">♤</span></div>';
   }
 }
 
@@ -574,7 +574,7 @@ async function initializeMonthTabsWithLazyLoad() {
         const gameList = renderGamesByMonth(gamesForMonth, null, currentYear);
         scheduleContainer.appendChild(gameList);
       } else {
-        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">†</span></div>';
+        scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요 <span class="symbol-font">♤</span></div>';
       }
     });
 
