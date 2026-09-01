@@ -298,18 +298,26 @@
     color: #2f6f64;
   }
 
-  .quick-menu__item--scroll-top {
-    display: none;
-    color: #B0B8C1;
-  }
-
+  /* 위로가기는 퀵메뉴 안이 아니라 그 위에 떠 있는 원형 버튼으로 둔다 */
+  .quick-menu__item--scroll-top,
   .quick-menu__item--scroll-top.show {
-    display: flex;
+    display: none;
   }
 
-  .scroll-top-btn,
+  .scroll-top-btn {
+    width: 44px;
+    height: 44px;
+    right: 20px;
+    bottom: calc(20px + 70px + 12px + env(safe-area-inset-bottom));
+    background-color: white;
+    color: #6B7684;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 18px -4px rgba(25, 31, 40, 0.22);
+    z-index: 998;
+  }
+
   .scroll-top-btn.show {
-    display: none;
+    display: flex;
   }
 
   .app-footer {
