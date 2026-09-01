@@ -213,20 +213,22 @@
     background-color: white;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -4px 16px -6px rgba(25, 31, 40, 0.12);
-    padding: 4px 0 calc(2px + env(safe-area-inset-bottom) * 0.5);
+    /* 상하 여백을 버튼으로 옮겨 선택된 배경이 위아래를 가득 채우게 한다 */
+    padding: 0 0 calc(env(safe-area-inset-bottom) * 0.5);
+    overflow: hidden;
   }
 
   .quick-menu__item {
     width: auto;
     height: auto;
     flex: 1;
-    border-radius: 16px;
+    border-radius: 0;
     background-color: transparent !important;
     color: #B0B8C1;
     box-shadow: none;
     animation: none;
     gap: 3px;
-    padding: 5px 0;
+    padding: 9px 0 7px;
   }
 
   .quick-menu__item i {
@@ -305,13 +307,13 @@
   }
 
   .scroll-top-btn {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     right: 20px;
-    bottom: calc(20px + 70px + 12px + env(safe-area-inset-bottom));
+    bottom: calc(20px + 70px + 4px + env(safe-area-inset-bottom));
     background-color: white;
     color: #6B7684;
-    font-size: 1.1rem;
+    font-size: 1rem;
     box-shadow: 0 6px 18px -4px rgba(25, 31, 40, 0.22);
     z-index: 998;
   }

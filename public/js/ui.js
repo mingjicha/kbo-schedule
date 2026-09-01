@@ -162,21 +162,32 @@ if (teamSheetOverlay) {
 // Quick Menu
 const quickMenuItems = document.querySelectorAll('.quick-menu__item');
 
+// 모달이 막 열렸을 때는 연속 탭을 무시해 바로 닫히지 않게 한다
+const REOPEN_GUARD_MS = 400;
+const modalOpenedAt = {};
+
+async function toggleQuickMenuModal(action, modalId, loadData) {
+  const modal = document.getElementById(modalId);
+
+  if (modal.classList.contains('show')) {
+    if (Date.now() - (modalOpenedAt[action] || 0) < REOPEN_GUARD_MS) return;
+    modal.classList.remove('show');
+    return;
+  }
+
+  // 모달을 먼저 띄워 로딩 상태를 보여주고, 데이터는 그 뒤에 채운다
+  modalOpenedAt[action] = Date.now();
+  modal.classList.add('show');
+  await loadData();
+}
+
 async function handleQuickMenuAction(action) {
   if (action === 'today') {
     await goToToday();
   } else if (action === 'rank') {
-    const rankModal = document.getElementById('rankModal');
-    if (!rankModal.classList.contains('show')) {
-      await loadTeamRank();
-    }
-    rankModal.classList.toggle('show');
+    await toggleQuickMenuModal(action, 'rankModal', loadTeamRank);
   } else if (action === 'weather') {
-    const weatherModal = document.getElementById('weatherModal');
-    if (!weatherModal.classList.contains('show')) {
-      await loadWeather();
-    }
-    weatherModal.classList.toggle('show');
+    await toggleQuickMenuModal(action, 'weatherModal', loadWeather);
   }
 }
 

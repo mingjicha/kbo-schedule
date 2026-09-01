@@ -52,6 +52,10 @@ async function initializeApp() {
     maybeStartOnboarding(willShowOnboarding ? () => scrollToDateHeader(focusDate, true) : null);
 
     // 나머지는 백그라운드에서 진행
+    // 달력의 경기일 표시를 미리 채워둔다 (달력을 열 때 기다리지 않게)
+    updateCalendarDisabledDates(schedule);
+    prefetchNeighborMonths(currentYear, currentMonth);
+
     warmupPreviews(schedule, focusDate);
     loadWeather();
   } catch (error) {
