@@ -583,7 +583,7 @@
 }
 
 .lineup__notice {
-  margin: 0 0 8px 0;
+  margin: 0 0 -10px 0;
   font-size: 0.8125rem;
   color: #8B95A1;
 }
