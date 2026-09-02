@@ -418,6 +418,238 @@ async function loadPitcherComparison(game, container) {
   }
 }
 
+// 진행중 경기의 키플레이어 (투수/타자 WPA 순위)
+async function loadKeyPlayers(game, container) {
+  try {
+    const url = `/api/key-players?gameId=${encodeURIComponent(game.gameId)}` +
+      `&srId=${encodeURIComponent(game.srId || '0')}` +
+      `&status=${encodeURIComponent(game.status || '')}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    renderKeyPlayers(data, game, container);
+  } catch (error) {
+    console.error('Error loading key players:', error);
+    container.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+  }
+}
+
+function renderKeyPlayerList(players) {
+  if (!players || players.length === 0) {
+    return '<div class="modal__no-data">아직 기록이 없어요<span class="symbol-font">♤</span></div>';
+  }
+
+  return `
+    <div class="kp-list">
+      ${players.map(p => {
+        const teamName = kboTeamIdToName[p.team] || p.team;
+        const logoSrc = teamLogosDetail[teamName] || p.logo || '';
+        return `
+          <div class="kp${p.rank === 1 ? ' rank1' : ''}">
+            <div class="kp-rank">${p.rank}</div>
+            <img class="kp-logo" src="${logoSrc}" alt="${teamName}">
+            <div class="kp-body">
+              <div class="kp-name">${p.name}</div>
+              <div class="kp-rec">${p.record}</div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderKeyPlayers(data, game, container) {
+  const pitchers = (data && data.pitchers) || [];
+  const hitters = (data && data.hitters) || [];
+
+  if (pitchers.length === 0 && hitters.length === 0) {
+    container.innerHTML = '<div class="modal__no-data">아직 기록이 없어요<span class="symbol-font">♤</span></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="key-players">
+      <span class="live-badge"><span class="live-dot"></span>진행중</span>
+      <div class="score-line">
+        ${game.awayTeam} <b>${game.awayScore != null ? game.awayScore : '-'}</b> :
+        <b>${game.homeScore != null ? game.homeScore : '-'}</b> ${game.homeTeam}
+      </div>
+
+      <div class="sub-h">투수 WPA</div>
+      ${renderKeyPlayerList(pitchers)}
+
+      <div class="sub-h">타자 WPA</div>
+      ${renderKeyPlayerList(hitters)}
+    </div>
+  `;
+}
+
+// 종료 경기의 리뷰 (박스스코어, 상세기록표)
+async function loadGameReview(game, container) {
+  try {
+    const url = `/api/game-review?gameId=${encodeURIComponent(game.gameId)}` +
+      `&srId=${encodeURIComponent(game.srId || '0')}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    renderGameReview(data, game, container);
+  } catch (error) {
+    console.error('Error loading game review:', error);
+    container.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+  }
+}
+
+// "2:48" -> "2시간 48분" 같이 익숙한 단위로 바꿔 준다. "2분 48초"로 오해하기 쉽다
+function formatRunTime(runTime) {
+  if (!runTime) return '';
+  const [h, m] = runTime.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return runTime;
+  return `${h}시간 ${m}분`;
+}
+
+function renderGameReview(data, game, container) {
+  if (!data) {
+    container.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+    return;
+  }
+
+  const innings = data.inningRows && data.inningRows[0] ? data.inningRows[0].length : 0;
+  const inningHeaders = Array.from({ length: innings }, (_, i) => `<th>${i + 1}</th>`).join('');
+
+  const inningRow = (teamName, teamCode, inningCells, rheCells) => `
+    <tr>
+      <td class="team-name">
+        <img class="review-team-logo" src="${teamLogosDetail[teamCode] || ''}" alt="${teamName}">
+        ${teamName}
+      </td>
+      ${(inningCells || []).map(c => `<td>${c}</td>`).join('')}
+      <td class="rhe">${rheCells && rheCells[0] != null ? rheCells[0] : '-'}</td>
+      <td>${rheCells && rheCells[1] != null ? rheCells[1] : '-'}</td>
+      <td>${rheCells && rheCells[2] != null ? rheCells[2] : '-'}</td>
+      <td>${rheCells && rheCells[3] != null ? rheCells[3] : '-'}</td>
+    </tr>
+  `;
+
+  const boxHtml = innings > 0 ? `
+    <div class="box">
+      <div class="box-row">
+        <span>${data.stadium || ''}</span>
+        <span>${data.runTime ? `경기시간 ${formatRunTime(data.runTime)}` : ''}</span>
+      </div>
+      <table class="inning-table">
+        <tr><th></th>${inningHeaders}<th>R</th><th>H</th><th>E</th><th>B</th></tr>
+        ${inningRow(data.awayTeam || game.awayTeam, game.awayTeam, data.inningRows[0], data.rheRows[0])}
+        ${inningRow(data.homeTeam || game.homeTeam, game.homeTeam, data.inningRows[1], data.rheRows[1])}
+      </table>
+    </div>
+  ` : '<div class="modal__no-data">박스스코어가 없어요<span class="symbol-font">♤</span></div>';
+
+  const detailsHtml = (data.details && data.details.length > 0)
+    ? `
+      <div class="sub-h">경기기록</div>
+      <div class="detail-list">
+        ${data.details.map(d => `
+          <div class="detail-row">
+            <div class="k">${d.label}</div>
+            <div class="v">${d.value}</div>
+          </div>
+        `).join('')}
+      </div>
+    `
+    : '';
+
+  const winnerSide = game.winner;
+  const pitchersHtml = (game.awayPitcher || game.homePitcher) ? `
+    <div class="sub-h">승·패 투수</div>
+    <div class="kp-list">
+      ${game.awayPitcher ? `
+        <div class="kp">
+          <img class="kp-logo" src="${teamLogos[game.awayTeam] || ''}" alt="${game.awayTeam}">
+          <div class="kp-body">
+            <div class="kp-name">${game.awayPitcher}<span class="win-pill${winnerSide === 'away' ? '' : ' lose-pill'}">${winnerSide === 'away' ? '승' : '패'}</span></div>
+          </div>
+        </div>
+      ` : ''}
+      ${game.homePitcher ? `
+        <div class="kp">
+          <img class="kp-logo" src="${teamLogos[game.homeTeam] || ''}" alt="${game.homeTeam}">
+          <div class="kp-body">
+            <div class="kp-name">${game.homePitcher}<span class="win-pill${winnerSide === 'home' ? '' : ' lose-pill'}">${winnerSide === 'home' ? '승' : '패'}</span></div>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
+  container.innerHTML = `
+    <div class="game-review">
+      ${boxHtml}
+      ${detailsHtml}
+      ${pitchersHtml}
+    </div>
+  `;
+}
+
+// 종료 경기의 하이라이트 (유튜브)
+async function loadGameHighlight(game, container) {
+  try {
+    const url = `/api/game-highlight?gameId=${encodeURIComponent(game.gameId)}` +
+      `&srId=${encodeURIComponent(game.srId || '0')}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data || !data.embedUrl) {
+      container.innerHTML = '<div class="modal__no-data">하이라이트가 없어요<span class="symbol-font">♤</span></div>';
+      return;
+    }
+
+    const videoId = extractYoutubeId(data.embedUrl);
+    // 유튜브 고화질 썰네일을 먼저 보여주고, 누르면 그때 iframe을 넣는다.
+    // 모달을 열자마자 자동재생되지 않게 하기 위함이기도 하다
+    const thumbUrl = videoId ? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg` : null;
+
+    container.innerHTML = `
+      <div class="video-frame" ${videoId ? 'id="videoFrame"' : ''}>
+        ${thumbUrl ? `
+          <img class="video-thumb" src="${thumbUrl}" alt="${data.title || '하이라이트'}">
+          <button type="button" class="video-play-btn" aria-label="재생">
+            <span class="video-play-circle">▶</span>
+          </button>
+        ` : `
+          <iframe width="100%" height="100%" src="${data.embedUrl}"
+            title="${data.title || '하이라이트'}" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        `}
+      </div>
+      ${data.title ? `<div class="video-title">${data.title}</div>` : ''}
+    `;
+
+    if (videoId) {
+      const frame = document.getElementById('videoFrame');
+      frame.addEventListener('click', () => {
+        frame.innerHTML = `
+          <iframe width="100%" height="100%" src="${data.embedUrl}?autoplay=1"
+            title="${data.title || '하이라이트'}" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        `;
+      });
+    }
+  } catch (error) {
+    console.error('Error loading game highlight:', error);
+    container.innerHTML = '<div class="modal__no-data">하이라이트를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+  }
+}
+
+// data.embedUrl (예: https://www.youtube.com/embed/VIDEO_ID) 에서 영상 ID만 뱽어낸다
+function extractYoutubeId(embedUrl) {
+  if (!embedUrl) return null;
+  const match = embedUrl.match(/embed\/([^?&]+)/);
+  return match ? match[1] : null;
+}
+
 async function loadLineup(game, container) {
   try {
     const cacheKey = `lineup_${game.gameId}`;
@@ -540,9 +772,19 @@ function renderLineup(lineup, game, container) {
   const awayTabColor = getLineupBarColor(game.awayTeam, game.homeTeam, '#4a90e2');
   const homeTabColor = getLineupBarColor(game.homeTeam, game.awayTeam, '#e24a4a');
 
+  // KBO 상태(금일/최근)만 받아 우리 톤으로 문구를 만든다.
+  // 상태가 없으면(데이터 자체가 없으면) 문구도 표시하지 않는다
+  const noticeHtml = lineup.lineupNotice
+    ? `<p class="lineup__notice">${
+        lineup.lineupNotice.current
+          ? '금일 라인업 기준이에요'
+          : '라인업 발표 전으로 최근 라인업 기준이에요'
+      }</p>`
+    : '';
+
   const html = `
     <div class="game-detail__lineup">
-      <p class="lineup__notice">라인업 발표 전으로 최근 라인업 기준이에요</p>
+      ${noticeHtml}
       <div class="lineup__war-summary">
         <h4>WAR 합산</h4>
         <ul class="lineup-data">

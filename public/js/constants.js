@@ -39,6 +39,13 @@ const teamFullNames = {
   '키움': '키움 히어로즈'
 };
 
+// KBO 사이트가 키플레이어 응답에서 쓰는 T_ID → 앱 내부에서 쓰는 한글 팀명
+const kboTeamIdToName = {
+  'LG': 'LG', 'HH': '한화', 'SK': 'SSG', 'SS': '삼성',
+  'NC': 'NC', 'KT': 'KT', 'LT': '롯데', 'HT': 'KIA',
+  'OB': '두산', 'WO': '키움'
+};
+
 const teamColors = {
   'LG': '#C8102E',
   '한화': '#e76c1b',

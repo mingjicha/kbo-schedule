@@ -161,11 +161,11 @@
 }
 
 .quick-menu__item[data-action="weather"] {
-  background-color: #2f6f64;
+  background-color: #F98826;
 }
 
 .quick-menu__item[data-action="weather"]:hover {
-  background-color: #2a6258;
+  background-color: #D37320;
 }
 
 @keyframes floatingBtn {
@@ -258,7 +258,7 @@
   }
 
   .quick-menu__item[data-action="weather"] i {
-    color: #2f6f64;
+    color: #F98826;
   }
 
   .quick-menu__item.active {
@@ -280,11 +280,11 @@
   }
 
   .quick-menu__item[data-action="weather"].active {
-    background-color: #EAF3F1 !important;
+    background-color: #FEF5ED !important;
   }
 
   .quick-menu__item[data-action="weather"].active i {
-    background-color: #2f6f64;
+    background-color: #F98826;
     color: white;
   }
 
@@ -297,7 +297,7 @@
   }
 
   .quick-menu__item[data-action="weather"].active span {
-    color: #2f6f64;
+    color: #F98826;
   }
 
   /* 위로가기는 퀵메뉴 안이 아니라 그 위에 떠 있는 원형 버튼으로 둔다 */

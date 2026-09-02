@@ -375,8 +375,12 @@
   }
 }
 
-/* 포스트시즌 토글
-   PC 는 팀 버튼 줄 맨 오른쪽, 모바일은 '전체' 드롭다운과 같은 줄 맨 오른쪽 */
+/* 포스트시즌 토글: PC 는 월 탭 줄 오른쪽, 모바일은 '전체' 드롭다운 옆.
+   위치가 서로 달라 버튼을 두 개 두고 미디어쿼리로 하나씩 숨긴다 */
+#postseasonBtnMobile {
+  display: none;
+}
+
 .filter__postseason {
   padding: 8px 16px;
   border: 1px solid #ddd;
@@ -387,7 +391,7 @@
   color: #333;
   transition: all 0.2s ease;
   border-radius: 6px;
-  margin-left: 12px;
+  flex-shrink: 0;
 }
 
 /* 꺼진 상태는 항상 흰색을 유지한다.
@@ -405,8 +409,15 @@
 }
 
 @media (max-width: 768px) {
+  #postseasonBtn {
+    display: none;
+  }
+
+  #postseasonBtnMobile {
+    display: block;
+  }
+
   .filter__postseason {
-    margin-left: auto;
     padding: 6px 12px;
     border: none;
     border-radius: 100px;
@@ -414,6 +425,7 @@
     font-size: 0.8rem;
     font-weight: 700;
     color: #8B95A1;
+    margin-left: auto;
   }
 
   .filter__postseason.active,

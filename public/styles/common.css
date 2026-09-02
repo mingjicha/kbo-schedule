@@ -93,6 +93,7 @@ optgroup {
 html {
   font-size: 16px;
   height: 100%;
+  scrollbar-gutter: stable;
 }
 
 body {

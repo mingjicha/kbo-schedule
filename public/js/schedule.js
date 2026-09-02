@@ -235,7 +235,8 @@ function renderGamesByMonth(games, scrollToDate = null, year = currentYear, inst
         }
       }
 
-      const gameCard = createGameCard(game, date, isToday || isNext);
+      const clickable = isToday || isNext || game.status === '종료';
+      const gameCard = createGameCard(game, date, clickable);
       dayDiv.appendChild(gameCard);
     });
 
@@ -434,8 +435,106 @@ function createGameCard(game, date, isToday) {
 
     if (!isToday) return;
 
+    const badgeText = finalStatus === '진행중' ? 'Live'
+      : finalStatus === '종료' ? 'Review'
+      : 'Preview';
+    const badgeClass = finalStatus === '종료' ? ' modal__badge--review' : '';
+
     gameDetailModal.classList.add('show');
-    gameDetailTitle.innerHTML = '<h3><span class="modal__badge">Preview</span></h3>';
+    gameDetailTitle.innerHTML = `<h3><span class="modal__badge${badgeClass}">${badgeText}</span></h3>`;
+
+    if (finalStatus === '진행중') {
+      const tabContainer = document.createElement('div');
+      tabContainer.className = 'game-detail__tabs';
+
+      const keyPlayerTab = document.createElement('button');
+      keyPlayerTab.className = 'game-detail__tab active';
+      keyPlayerTab.innerHTML = buildStatusHTML('키플레이어', '♤');
+      tabContainer.appendChild(keyPlayerTab);
+
+      const contentContainer = document.createElement('div');
+      contentContainer.className = 'game-detail__tab-content';
+
+      const keyPlayerContent = document.createElement('div');
+      keyPlayerContent.className = 'game-detail__tab-pane active';
+      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+      contentContainer.appendChild(keyPlayerContent);
+
+      gameDetailContainer.innerHTML = '';
+      gameDetailContainer.appendChild(tabContainer);
+      gameDetailContainer.appendChild(contentContainer);
+
+      loadKeyPlayers(game, keyPlayerContent).catch(error => {
+        console.error('Error loading key players:', error);
+        keyPlayerContent.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+      });
+      return;
+    }
+
+    if (finalStatus === '종료') {
+      const tabContainer = document.createElement('div');
+      tabContainer.className = 'game-detail__tabs';
+
+      const reviewTab = document.createElement('button');
+      reviewTab.className = 'game-detail__tab active';
+      reviewTab.innerHTML = buildStatusHTML('리뷰', '¢');
+
+      const highlightTab = document.createElement('button');
+      highlightTab.className = 'game-detail__tab';
+      highlightTab.innerHTML = buildStatusHTML('하이라이트', '');
+
+      tabContainer.appendChild(reviewTab);
+      tabContainer.appendChild(highlightTab);
+
+      const contentContainer = document.createElement('div');
+      contentContainer.className = 'game-detail__tab-content';
+
+      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+
+      const reviewContent = document.createElement('div');
+      reviewContent.className = 'game-detail__tab-pane active';
+      reviewContent.innerHTML = loadingHtml;
+
+      const highlightContent = document.createElement('div');
+      highlightContent.className = 'game-detail__tab-pane';
+      highlightContent.innerHTML = loadingHtml;
+
+      contentContainer.appendChild(reviewContent);
+      contentContainer.appendChild(highlightContent);
+
+      gameDetailContainer.innerHTML = '';
+      gameDetailContainer.appendChild(tabContainer);
+      gameDetailContainer.appendChild(contentContainer);
+
+      reviewTab.addEventListener('click', () => {
+        reviewTab.classList.add('active');
+        highlightTab.classList.remove('active');
+        reviewContent.classList.add('active');
+        highlightContent.classList.remove('active');
+        reviewTab.innerHTML = buildStatusHTML('리뷰', '¢');
+        highlightTab.innerHTML = buildStatusHTML('하이라이트', '');
+      });
+
+      highlightTab.addEventListener('click', () => {
+        highlightTab.classList.add('active');
+        reviewTab.classList.remove('active');
+        highlightContent.classList.add('active');
+        reviewContent.classList.remove('active');
+        highlightTab.innerHTML = buildStatusHTML('하이라이트', '¢');
+        reviewTab.innerHTML = buildStatusHTML('리뷰', '');
+      });
+
+      loadGameReview(game, reviewContent).catch(error => {
+        console.error('Error loading game review:', error);
+        reviewContent.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+      });
+
+      loadGameHighlight(game, highlightContent).catch(error => {
+        console.error('Error loading game highlight:', error);
+        highlightContent.innerHTML = '<div class="modal__no-data">하이라이트가 없어요<span class="symbol-font">♤</span></div>';
+      });
+      return;
+    }
 
     if (isToday) {
       const tabContainer = document.createElement('div');

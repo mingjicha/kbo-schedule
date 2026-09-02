@@ -36,7 +36,7 @@
 .modal__header {
   display: flex;
   margin: 0 -20px;
-  padding: 20px 20px 15px;
+  padding: 15px 20px 15px;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #eee;
@@ -80,12 +80,16 @@
 }
 
 .modal__badge--weather {
-  background-color: #2f6f64;
+  background-color: #F98826;
 }
 
 .modal--game-detail .modal__badge {
   background-color: #626ABD;
   color: #ffffff;
+}
+
+.modal--game-detail .modal__badge--review {
+  background-color: #2f6f64;
 }
 
 .modal__controls {
@@ -121,9 +125,9 @@
 }
 
 .modal--weather .modal__btn--refresh:hover {
-  background-color: #f0f5f4;
-  border-color: #2f6f64;
-  color: #2f6f64;
+  background-color: #FEF5ED;
+  border-color: #F98826;
+  color: #F98826;
 }
 
 .modal__btn--close:hover {
@@ -1057,12 +1061,11 @@
     border-radius: 100px;
     padding: 3px;
     width: 100%;
-    margin-bottom: 18px;
   }
 
   .game-detail__tab {
     flex: 1;
-    padding: 7px 6px;
+    padding: 4px 3px;
     font-size: 0.8125rem;
     font-weight: 700;
     border-radius: 100px;
@@ -1319,4 +1322,296 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Key Players (진행중 경기) */
+.key-players {
+  padding: 4px 0 0;
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FCEBEB;
+  color: #A32D2D;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 100px;
+  margin-bottom: 10px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: livePulseDot 1.4s ease-in-out infinite;
+}
+
+@keyframes livePulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
+.key-players .score-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #8B95A1;
+  margin-bottom: 16px;
+}
+
+.key-players .score-line b {
+  font-size: 1.0625rem;
+  color: #191F28;
+}
+
+.key-players .sub-h {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #8B95A1;
+  margin: 16px 0 8px 2px;
+}
+
+.key-players .sub-h:first-of-type {
+  margin-top: 0;
+}
+
+.kp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #F2F4F6;
+}
+
+.kp.rank1 {
+  background: #F5F4FC;
+}
+
+.kp-rank {
+  width: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #8B95A1;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.kp.rank1 .kp-rank {
+  color: #626ABD;
+}
+
+.kp-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: white;
+  border: 1px solid #E5E8EB;
+  flex-shrink: 0;
+}
+
+.kp-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.kp-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #191F28;
+}
+
+.kp-rec {
+  font-size: 0.6875rem;
+  color: #8B95A1;
+  margin-top: 1px;
+}
+
+/* Game Review / Highlight (종료 경기) */
+.game-review {
+  padding: 4px 0 0;
+}
+
+.box {
+  background: #F2F4F6;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.box-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #8B95A1;
+  margin-bottom: 8px;
+}
+
+.inning-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.inning-table th,
+.inning-table td {
+  width: 15px;
+  text-align: right;
+}
+
+.inning-table th {
+  color: #8B95A1;
+  font-weight: 700;
+  padding: 4px 0;
+}
+
+.inning-table td {
+  padding: 4px 0;
+  font-weight: 700;
+  color: #191F28;
+}
+
+.inning-table .team-name {
+  width: auto;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #191F28;
+  white-space: nowrap;
+}
+
+.review-team-logo {
+  width: 18px;
+  height: 15px;
+  object-fit: contain;
+  vertical-align: -3px;
+}
+
+.inning-table .rhe {
+  color: #626ABD;
+}
+
+.game-review .sub-h {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0 0 11px 2px;
+}
+
+.game-review .sub-h:not(:first-of-type) {
+  margin-top: 16px;
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78125rem;
+  margin-bottom: 14px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-row .k {
+  width: 52px;
+  flex-shrink: 0;
+  color: #8B95A1;
+  font-weight: 700;
+}
+
+.detail-row .v {
+  color: #191F28;
+}
+
+.win-pill {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #EAF3F1;
+  color: #2f6f64;
+  margin-left: 8px;
+}
+
+.lose-pill {
+  background: #FAECE7;
+  color: #D85A30;
+}
+
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: #000;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-play-btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-play-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #191F28;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.video-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 11px;
 }

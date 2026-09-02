@@ -392,7 +392,8 @@ app.get('/api/schedule', async (req, res) => {
               winner,
               gameId,
               awayPitcher: gameInfo.awayPitcher || '',
-              homePitcher: gameInfo.homePitcher || ''
+              homePitcher: gameInfo.homePitcher || '',
+              srId: srIdList
             });
           }
         }
@@ -1257,8 +1258,25 @@ async function extractLineup(page) {
     const result = {
       warSummary: {},
       awayLineup: [],
-      homeLineup: []
+      homeLineup: [],
+      lineupNotice: null
     };
+
+    // 라인업 기준 안내문구. KBO 페이지가 데이터가 없으면 이 요소를 hide 하므로,
+    // 숨겨진 상태면 안내문구 자체를 내리지 않는다.
+    // 문구 내용은 우리 톤으로 따로 씨야 해서 여기서는 상태만 판단한다
+    const noticeEl = document.querySelector('#txtLineUp');
+    if (noticeEl) {
+      const hidden = noticeEl.offsetParent === null ||
+        getComputedStyle(noticeEl).display === 'none';
+      const text = noticeEl.textContent.trim();
+      if (!hidden && text) {
+        // KBO 문구가 "금일 라인업 기준"이면 최신이라는 뜻, 그 외에는 미발표 상태로 본다
+        result.lineupNotice = text.includes('금일')
+          ? { current: true }
+          : { current: false };
+      }
+    }
 
     // WAR 합산 데이터 추출
     const warElements = {
@@ -1323,6 +1341,80 @@ async function extractLineup(page) {
 
 
 // 투수 WPA 조회
+// 키플레이어 (진행중 경기용). 종료된 경기는 결과가 바뀌지 않으니 캐시를 길게 잡는다
+// 종료 경기 리뷰 (박스스코어, 상세기록표)
+app.get('/api/game-review', async (req, res) => {
+  try {
+    const { gameId, srId } = req.query;
+
+    if (!gameId) {
+      return res.status(400).json(null);
+    }
+
+    const cacheKey = `review:${gameId}`;
+    const cached = getResponseCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const data = await getGameReview(gameId, srId);
+    // 종료 경기는 결과가 바뀌지 않으니 오래 캐시한다
+    setResponseCache(cacheKey, data, 6 * 60 * 60 * 1000);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching game review:', error.message);
+    res.json(null);
+  }
+});
+
+// 종료 경기 하이라이트 (유튜브)
+app.get('/api/game-highlight', async (req, res) => {
+  try {
+    const { gameId, srId } = req.query;
+
+    if (!gameId) {
+      return res.status(400).json(null);
+    }
+
+    const cacheKey = `highlight:${gameId}`;
+    const cached = getResponseCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const data = await getGameHighlight(gameId, srId);
+    setResponseCache(cacheKey, data, 6 * 60 * 60 * 1000);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching game highlight:', error.message);
+    res.json(null);
+  }
+});
+
+app.get('/api/key-players', async (req, res) => {
+  try {
+    const { gameId, srId, status } = req.query;
+
+    if (!gameId) {
+      return res.status(400).json({ pitchers: [], hitters: [] });
+    }
+
+    const cacheKey = `keyplayers:${gameId}`;
+    const cached = getResponseCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const data = await getKeyPlayers(gameId, srId);
+    const ttlMs = status === '종료' ? 6 * 60 * 60 * 1000 : 60 * 1000;
+    setResponseCache(cacheKey, data, ttlMs);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching key players:', error.message);
+    res.json({ pitchers: [], hitters: [] });
+  }
+});
+
 app.get('/api/pitcher-wpa', async (req, res) => {
   try {
     const { gameId, awayTeam, homeTeam } = req.query;
@@ -1410,6 +1502,154 @@ async function getPitcherStats(pitcherName, gameId, year) {
     console.error('Error fetching pitcher stats:', error.message);
     return null;
   }
+}
+
+// 키플레이어 (투수/타자) 조회. axios 만으로 되어 Puppeteer 없이 바로 가져온다
+async function getKeyPlayers(gameId, srId) {
+  const fetchOne = async (endpoint) => {
+    const response = await axios.post(
+      `https://www.koreabaseball.com/ws/Schedule.asmx/${endpoint}`,
+      new URLSearchParams({
+        leId: '1',
+        srId: srId || '0',
+        gameId,
+        groupSc: 'GAME_WPA_RT',
+        sort: 'DESC'
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      }
+    );
+    const record = response.data && response.data.record;
+    return Array.isArray(record) ? record.map(r => ({
+      rank: r.RANK_NO,
+      name: r.P_NM,
+      team: r.T_ID,
+      record: (r.RECORD_IF || '').replace(/<\/?br\s*\/?>/gi, ' ').trim(),
+      logo: r.T_PLAYER_LK ? `https:${r.T_PLAYER_LK}` : null
+    })) : [];
+  };
+
+  const [pitchers, hitters] = await Promise.all([
+    fetchOne('GetKeyPlayerPitcher'),
+    fetchOne('GetKeyPlayerHitter')
+  ]);
+
+  return { pitchers, hitters };
+}
+
+// 종료 경기 리뷰: 구장/관중/시각/박스스코어/상세기록표
+async function getGameReview(gameId, srId) {
+  const post = (endpoint) => axios.post(
+    `https://www.koreabaseball.com/ws/Schedule.asmx/${endpoint}`,
+    new URLSearchParams({
+      leId: '1',
+      srId: srId || '0',
+      seasonId: gameId.slice(0, 4),
+      gameId
+    }).toString(),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    }
+  );
+
+  const [scoreRes, boxRes] = await Promise.all([
+    post('GetScoreBoardScroll'),
+    post('GetBoxScoreScroll')
+  ]);
+
+  const score = scoreRes.data || {};
+  const box = boxRes.data || {};
+
+  // 이닝별 점수표 (table2)에서 팀별 한 줄씩 뽑는다
+  let inningRows = [];
+  try {
+    const table2 = typeof score.table2 === 'string' ? JSON.parse(score.table2) : null;
+    if (table2 && table2.rows) {
+      inningRows = table2.rows.map(r => r.row.map(c => c.Text));
+    }
+  } catch (e) {
+    // 파싱 실패 시 빈 배열로 둔다
+  }
+
+  // R/H/E/B (table3)
+  let rheRows = [];
+  try {
+    const table3 = typeof score.table3 === 'string' ? JSON.parse(score.table3) : null;
+    if (table3 && table3.rows) {
+      rheRows = table3.rows.map(r => r.row.map(c => c.Text));
+    }
+  } catch (e) {
+    // 파싱 실패 시 빈 배열로 둔다
+  }
+
+  // 결승타/홈런/도루 등 상세기록표
+  let details = [];
+  try {
+    const tableEtc = typeof box.tableEtc === 'string' ? JSON.parse(box.tableEtc) : null;
+    if (tableEtc && tableEtc.rows) {
+      details = tableEtc.rows.map(r => ({
+        label: r.row[0] ? r.row[0].Text : '',
+        value: r.row[1] ? r.row[1].Text : ''
+      })).filter(d => d.label && d.value);
+    }
+  } catch (e) {
+    // 파싱 실패 시 빈 배열로 둔다
+  }
+
+  return {
+    stadium: score.S_NM || null,
+    crowd: score.CROWD_CN || null,
+    startTime: score.START_TM || null,
+    endTime: score.END_TM || null,
+    runTime: score.USE_TM || null,
+    awayTeam: score.AWAY_NM || null,
+    homeTeam: score.HOME_NM || null,
+    awayScore: typeof score.T_SCORE_CN === 'number' ? score.T_SCORE_CN : null,
+    homeScore: typeof score.B_SCORE_CN === 'number' ? score.B_SCORE_CN : null,
+    inningRows,
+    rheRows,
+    details
+  };
+}
+
+// 종료 경기 하이라이트 (유튜브)
+async function getGameHighlight(gameId, srId) {
+  const response = await axios.post(
+    'https://www.koreabaseball.com/ws/Schedule.asmx/GetHighLight',
+    new URLSearchParams({
+      leId: '1',
+      srId: srId || '0',
+      gameId
+    }).toString(),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    }
+  );
+
+  const item = response.data && response.data.highlight && response.data.highlight[0];
+  if (!item) return null;
+
+  const urlMatch = /src="([^"]+)"/.exec(item.FILE_LK || '');
+  return {
+    title: item.BD_TT || null,
+    embedUrl: urlMatch ? urlMatch[1] : null
+  };
 }
 
 // 투수 WPA 조회
