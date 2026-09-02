@@ -582,6 +582,12 @@
   border-radius: 8px;
 }
 
+.lineup__notice {
+  margin: 0 0 8px 0;
+  font-size: 0.8125rem;
+  color: #8B95A1;
+}
+
 .lineup__war-summary h4 {
   margin: 0 0 15px 0;
   font-size: 1.1rem;

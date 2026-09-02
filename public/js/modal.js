@@ -543,6 +543,7 @@ function renderLineup(lineup, game, container) {
   const html = `
     <div class="game-detail__lineup">
       <div class="lineup__war-summary">
+        <p class="lineup__notice">라인업 발표 전으로 최근 라인업 기준이에요<span class="symbol-font">♤</span></p>
         <h4>WAR 합산</h4>
         <ul class="lineup-data">
           ${renderWarSummaryRow('테이블세터', lineup.warSummary.tableSetter.away, lineup.warSummary.tableSetter.home, game.awayTeam, game.homeTeam, maxWar)}
