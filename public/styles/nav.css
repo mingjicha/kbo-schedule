@@ -33,6 +33,8 @@
 .nav__tabs-list {
   display: flex;
   flex-wrap: nowrap;
+  font-size: 1rem;
+  margin-top: 16px;
 }
 
 .nav__tab {
@@ -40,7 +42,7 @@
   border: none;
   border-bottom: 3px solid transparent;
   background-color: transparent;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   color: #666;
@@ -81,6 +83,9 @@
 
   .nav__tabs-list {
     gap: 4px;
+    /* 모바일은 헤더 높이가 body 의 margin-top(101px)과 맞춰져 있어
+       여백을 더하면 헤더가 커져서 윗부분이 잘린다 */
+    margin-top: 0;
   }
 
   .nav__tab {

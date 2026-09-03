@@ -132,10 +132,58 @@
     <!-- Main Content: Schedule -->
     <main class="main">
       <div id="postseasonAlert" class="postseason-alert"></div>
+      <!-- JS 가 renderSkeletonLoader 로 다시 그리기 전까지 보이는 첫 화면.
+           같은 모양이라 교체되는 순간이 티지 않는다 -->
       <div id="scheduleContainer" class="schedule">
-        <div class="loading">
-          <div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div>
-          <p>경기 일정을 불러오는 중이에요<span class="symbol-font">♤</span></p>
+        <div class="skeleton" role="status" aria-label="경기 일정을 불러오는 중이에요">
+          <div class="skeleton__day">
+            <div class="skeleton__date"></div>
+            <div class="skeleton__game">
+              <div class="skeleton__time"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__score"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__status"></div>
+            </div>
+            <div class="skeleton__game">
+              <div class="skeleton__time"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__score"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__status"></div>
+            </div>
+            <div class="skeleton__game">
+              <div class="skeleton__time"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__score"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__status"></div>
+            </div>
+            <div class="skeleton__game">
+              <div class="skeleton__time"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__score"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__status"></div>
+            </div>
+            <div class="skeleton__game">
+              <div class="skeleton__time"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__score"></div>
+              <div class="skeleton__logo"></div>
+              <div class="skeleton__team"></div>
+              <div class="skeleton__status"></div>
+            </div>
+          </div>
         </div>
       </div>
     </main>

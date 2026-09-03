@@ -5,7 +5,8 @@
   border-radius: 6px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   position: fixed !important;
-  z-index: 99 !important;
+  /* 고정 헤더(100)와 퀵메뉴(999) 위에 떠야 가려지지 않는다 */
+  z-index: 1000 !important;
 }
 
 .flatpickr-calendar.open {
@@ -377,17 +378,18 @@
     background: #EEEFF9;
   }
 
+  /* PC 와 같은 방식 — 선택한 날은 배경을 채우고, 오늘은 테두리만 */
   .calendar-sheet span.flatpickr-day.selected,
   .calendar-sheet span.flatpickr-day.selected:hover {
     box-shadow: none;
     background: transparent;
     border-color: transparent;
-    color: #333;
+    color: white !important;
   }
 
   .calendar-sheet span.flatpickr-day.selected::before,
   .calendar-sheet span.flatpickr-day.selected:hover::before {
-    box-shadow: inset 0 0 0 1.5px #626ABD;
+    background: #626ABD;
   }
 
   .calendar-sheet span.flatpickr-day.today,
@@ -395,15 +397,16 @@
     box-shadow: none;
     background: transparent;
     border-color: transparent;
-    color: white !important;
+    color: #333;
   }
 
   .calendar-sheet span.flatpickr-day.today::before,
   .calendar-sheet span.flatpickr-day.today:hover::before {
-    background: #626ABD;
+    box-shadow: inset 0 0 0 1.5px #626ABD;
   }
 
-  .calendar-sheet span.flatpickr-day.today:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay)::after {
+  /* 경기 표시 점 — 배경이 채워진 선택한 날에서만 흰 점이 된다 */
+  .calendar-sheet span.flatpickr-day.selected:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay)::after {
     background-color: white;
   }
 

@@ -401,10 +401,16 @@
   background-color: white;
 }
 
-.filter__postseason.active,
-.filter__postseason.active:hover {
+.filter__postseason.active {
   background-color: #f5c340;
   border-color: #f5c340;
+  color: white;
+}
+
+/* 달력 버튼처럼 배경은 그대로 두고 테두리만 진해진다 */
+.filter__postseason.active:hover {
+  background-color: #f5c340;
+  border-color: #D9A62E;
   color: white;
 }
 

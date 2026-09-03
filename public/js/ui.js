@@ -23,7 +23,8 @@ const scrollTopBtn = document.getElementById('scrollTopBtn');
 const scrollTopMenuBtn = document.getElementById('scrollTopMenuBtn');
 
 window.addEventListener('scroll', () => {
-  const shouldShow = window.scrollY > 300;
+  // 한 번만 굴려도 나오도록 낮게 잡는다 (휠 한 칸이 대략 100px)
+  const shouldShow = window.scrollY > 100;
   scrollTopBtn.classList.toggle('show', shouldShow);
   if (scrollTopMenuBtn) scrollTopMenuBtn.classList.toggle('show', shouldShow);
 });

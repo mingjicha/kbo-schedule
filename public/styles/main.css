@@ -33,15 +33,11 @@
 }
 
 .schedule__date-header {
-  font-size: 1.25rem;
   font-weight: 700;
   color: #333;
-  margin-bottom: 15px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 
@@ -585,14 +581,16 @@
     gap: 6px; /* x1_5 */
     padding: 8px 16px; /* x2 x4 */
     border-radius: 9999px; /* full */
-    background-color: #F2F4F6;
+    border: 1px solid #E5E8EB;
     color: #4E5968;
     font-size: 0.875rem;
     font-weight: 700;
   }
 
+  /* 포스트시즌 버튼과 같은 방식 — 배경을 채우지 않고 테두리와 글자만 진해진다 */
   .controls-mount .btn--calendar:hover {
-    background-color: #E5E8EB;
+    background-color: transparent;
+    border-color: #B0B8C1;
     color: #333;
   }
 
@@ -623,7 +621,6 @@
     align-items: center;
     flex-shrink: 0;
     padding-left: 12px; /* x3 */
-    border-left: 1px solid #E5E8EB;
   }
 
   .postseason-mount .nav {
@@ -638,7 +635,6 @@
     font-weight: 700;
     border-radius: 9999px; /* full */
     border: 1px solid #E5E8EB;
-    color: #6B7684;
     margin-right: 20px; /* x5 */
   }
 
@@ -649,8 +645,6 @@
 
   /* 팀 필터는 별도 줄로 분리해 역할을 구분한다 */
   .app__header-section .filter {
-    background-color: #FAFBFC;
-    border-bottom: 1px solid #E5E8EB;
     padding: 10px 0; /* x2_5 */
   }
 
@@ -680,6 +674,50 @@
   .schedule__game:hover {
     border-color: #626ABD;
     box-shadow: 0 2px 8px rgba(98, 106, 189, 0.14);
+  }
+
+  /* ---------- 헤더 색상 통일 ----------
+     회색이 #999 / #666 / #333 / #4E5968 / #6B7684 로 제각각이라
+     역할별로 세 단계만 쓰도록 맞춘다.
+       주요 텍스트  #191F28  (제목, 연도, 선택된 탭)
+       보조 텍스트  #6B7684  (버튼 글자, 연도 화살표)
+       흐린 텍스트  #8B95A1  (부제목, 선택 안 된 탭)
+     테두리는 #E5E8EB, 호버 테두리는 #B0B8C1 로 통일 */
+
+  .app-header__title h1,
+  .controls-mount #yearDisplay {
+    color: #191F28;
+  }
+
+  .app-header__title p {
+    color: #8B95A1;
+  }
+
+  .controls-mount .btn--year,
+  .controls-mount .btn--calendar,
+  .postseason-mount .filter__postseason:not(.active) {
+    color: #6B7684;
+  }
+
+  .controls-mount .btn--year:hover,
+  .controls-mount .btn--calendar:hover,
+  .postseason-mount .filter__postseason:not(.active):hover {
+    color: #191F28;
+  }
+
+  .header-tabs-row .nav__tab {
+    color: #8B95A1;
+  }
+
+  .header-tabs-row .nav__tab:hover {
+    color: #6B7684;
+  }
+
+  /* 선택된 달은 가장 진하게 + 같은 색 밑줄.
+     포스트시즌 시리즈 탭은 금색을 그대로 두어야 해서 제외한다 */
+  .header-tabs-row .nav__tab.active:not([data-series]) {
+    color: #191F28;
+    border-bottom-color: #191F28;
   }
 }
 
