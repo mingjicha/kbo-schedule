@@ -261,6 +261,9 @@ async function goToToday() {
         const header = dayDiv.querySelector('.schedule__date-header');
         if (header && header.getAttribute('data-date').startsWith(todayDateStr)) {
           dayDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // 고정 헤더 높이만큼 위로 스크롤 (모바일: 101px, 데스크톱: 160px)
+          const headerHeight = window.innerWidth <= 768 ? 101 : 160;
+          window.scrollBy(0, -headerHeight);
           found = true;
           break;
         }
