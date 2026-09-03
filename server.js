@@ -628,8 +628,11 @@ app.get('/api/schedule', async (req, res) => {
       }
     });
 
-    // 조회한 달이 이번 달이면 경기가 진행 중일 수 있으므로 짧게, 아니면 길게 캐시
-    const ttlMs = isCurrentMonth ? 3 * 60 * 1000 : 60 * 60 * 1000;
+    // 캐시 TTL 전략:
+    // - 현재 달 (경기 진행 중): 3분
+    // - 과거 달 (더 이상 변하지 않음): 무제한 (24시간)
+    // - 미래 달 (일정 확정): 무제한 (24시간)
+    const ttlMs = isCurrentMonth ? 3 * 60 * 1000 : 24 * 60 * 60 * 1000;
     setResponseCache(cacheKey, schedule, ttlMs);
 
     // 이미 지난 달의 전체/정규시즌 데이터는 파일로도 남겨 다음 재시작 때 바로 쓴다
