@@ -50,14 +50,42 @@
   border: 0 !important;
 }
 
+/* 12개 막대가 원을 따라 차례로 옅어지는 스피너.
+   막대는 CSS 로만 그리므로 마크업은 <div class="spinner-border"> 하나면 된다 */
 .spinner-border {
   display: inline-block;
   width: 2rem;
   height: 2rem;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #626ABD;
   border-radius: 50%;
-  animation: spinner-border 1s linear infinite;
+
+  /* 12칸을 진한 회색에서 옅은 회색으로 단계별로 칠한다 */
+  background: conic-gradient(
+    #6B7280 0deg 30deg,
+    #7A818C 30deg 60deg,
+    #8A9098 60deg 90deg,
+    #999EA5 90deg 120deg,
+    #A8ACB2 120deg 150deg,
+    #B7BABF 150deg 180deg,
+    #C5C8CC 180deg 210deg,
+    #D2D4D7 210deg 240deg,
+    #DEDFE2 240deg 270deg,
+    #E7E8EA 270deg 300deg,
+    #EEEFF0 300deg 330deg,
+    #F4F5F5 330deg 360deg
+  );
+
+  /* 가운데를 비우고 칸 사이에 틈을 내어 12개의 막대만 남긴다 */
+  -webkit-mask:
+    radial-gradient(circle, transparent 40%, #000 40%),
+    repeating-conic-gradient(#000 0deg 19deg, transparent 19deg 30deg);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle, transparent 40%, #000 40%),
+    repeating-conic-gradient(#000 0deg 19deg, transparent 19deg 30deg);
+  mask-composite: intersect;
+
+  /* 12칸이므로 12단계로 끊어 돌려야 막대가 제자리에서 옅어지는 것처럼 보인다 */
+  animation: spinner-border 1.1s steps(12) infinite;
 }
 
 @keyframes spinner-border {
@@ -66,7 +94,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner-border { animation-duration: 1.5s; }
+  .spinner-border { animation-duration: 1.65s; }
 }
 
 /* Reset */

@@ -1112,41 +1112,26 @@ function renderChampionBanner({ team, mvp }) {
   return banner;
 }
 
-async function renderPostseasonTabs() {
+// 시리즈 목록은 항상 이 4개라서, 서버 응답을 기다리지 않고 먼저 그린다.
+// 서버는 어느 시리즈에 경기가 있는지(hasGames)만 알려준다
+const POSTSEASON_SERIES_LIST = [
+  { key: 'wc', name: '와일드카드' },
+  { key: 'sp', name: '준플레이오프' },
+  { key: 'pl', name: '플레이오프' },
+  { key: 'ks', name: '한국시리즈' }
+];
+
+function drawPostseasonTabs(activeKey) {
   const monthTabsContainer = document.getElementById('monthTabsContainer');
   const list = document.createElement('div');
   list.className = 'nav__tabs-list';
 
-  let seriesList;
-  try {
-    const res = await fetch(`/api/postseason?year=${currentYear}`);
-    seriesList = res.ok ? await res.json() : [];
-  } catch (e) {
-    seriesList = [];
-  }
-
-  if (seriesList.length === 0) {
-    seriesList = [
-      { key: 'wc', name: '와일드카드', hasGames: false },
-      { key: 'sp', name: '준플레이오프', hasGames: false },
-      { key: 'pl', name: '플레이오프', hasGames: false },
-      { key: 'ks', name: '한국시리즈', hasGames: false }
-    ];
-  }
-
-  // 보던 시리즈가 있으면 연도를 바꿔도 그대로 유지한다.
-  // 없으면 경기가 있는 첫 시리즈를 연다
-  const keptSeries = postseasonSeries &&
-    seriesList.some(s => s.key === postseasonSeries) ? postseasonSeries : null;
-  const firstWithGames = seriesList.find(s => s.hasGames);
-  const defaultKey = keptSeries || (firstWithGames ? firstWithGames.key : seriesList[0].key);
-
-  seriesList.forEach(series => {
+  POSTSEASON_SERIES_LIST.forEach(series => {
     const tab = document.createElement('button');
     tab.className = 'nav__tab';
     tab.textContent = series.name;
     tab.dataset.series = series.key;
-    if (series.key === defaultKey) tab.classList.add('active');
+    if (series.key === activeKey) tab.classList.add('active');
 
     tab.addEventListener('click', async () => {
       document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
@@ -1160,7 +1145,41 @@ async function renderPostseasonTabs() {
 
   monthTabsContainer.innerHTML = '';
   monthTabsContainer.appendChild(list);
+}
 
+async function renderPostseasonTabs() {
+  // 보던 시리즈가 있으면 연도를 바꿔도 그대로 유지한다
+  const keptSeries = postseasonSeries &&
+    POSTSEASON_SERIES_LIST.some(s => s.key === postseasonSeries) ? postseasonSeries : null;
+
+  // 어느 시리즈를 열지는 서버 응답이 있어야 알 수 있지만,
+  // 보던 시리즈가 있으면 기다릴 필요가 없다
+  if (keptSeries) {
+    drawPostseasonTabs(keptSeries);
+    await renderSeries(keptSeries);
+    return;
+  }
+
+  // 탭과 스켈레톤을 먼저 보여주고 서버 응답을 기다린다
+  drawPostseasonTabs(null);
+  document.getElementById('scheduleContainer').innerHTML = renderSkeletonLoader();
+
+  let seriesList;
+  try {
+    const res = await fetch(`/api/postseason?year=${currentYear}`);
+    seriesList = res.ok ? await res.json() : [];
+  } catch (e) {
+    seriesList = [];
+  }
+
+  // 경기가 있는 첫 시리즈를 연다
+  const firstWithGames = seriesList.find(s => s.hasGames);
+  const defaultKey = firstWithGames ? firstWithGames.key : POSTSEASON_SERIES_LIST[0].key;
+
+  // 기다리는 동안 사용자가 다른 탭을 눌렀으면 그 선택을 존중한다
+  if (postseasonSeries) return;
+
+  drawPostseasonTabs(defaultKey);
   await renderSeries(defaultKey);
 }
 

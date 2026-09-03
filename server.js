@@ -753,37 +753,40 @@ app.get('/api/postseason', async (req, res) => {
       return res.json(cached);
     }
 
-    const result = [];
-    for (const [key, meta] of Object.entries(POSTSEASON_SERIES)) {
-      let count = 0;
-      // 포스트시즌은 10월과 11월에 걸쳐 열릴 수 있다
-      for (const month of ['09', '10', '11', '12']) {
-        try {
-          const r = await axios.post(
-            'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
-            new URLSearchParams({
-              leId: '1',
-              srIdList: meta.srId,
-              seasonId: year,
-              gameMonth: month,
-              teamId: ''
-            }).toString(),
-            {
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
-                'X-Requested-With': 'XMLHttpRequest'
+    // 시리즈 4개 x 달 4개를 순서대로 부르면 너무 느려서 한 번에 보낸다
+    const result = await Promise.all(
+      Object.entries(POSTSEASON_SERIES).map(async ([key, meta]) => {
+        // 포스트시즌은 10월과 11월에 걸쳐 열릴 수 있다
+        const counts = await Promise.all(['09', '10', '11', '12'].map(async (month) => {
+          try {
+            const r = await axios.post(
+              'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+              new URLSearchParams({
+                leId: '1',
+                srIdList: meta.srId,
+                seasonId: year,
+                gameMonth: month,
+                teamId: ''
+              }).toString(),
+              {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                  'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+                  'X-Requested-With': 'XMLHttpRequest'
+                }
               }
-            }
-          );
-          count += (r.data && Array.isArray(r.data.rows)) ? r.data.rows.length : 0;
-        } catch (e) {
-          // 한 달이 실패해도 나머지로 계속 진행한다
-        }
-      }
-      result.push({ key, name: meta.name, hasGames: count > 0 });
-    }
+            );
+            return (r.data && Array.isArray(r.data.rows)) ? r.data.rows.length : 0;
+          } catch (e) {
+            // 한 달이 실패해도 나머지로 계속 진행한다
+            return 0;
+          }
+        }));
+
+        return { key, name: meta.name, hasGames: counts.some(c => c > 0) };
+      })
+    );
 
     // 시리즈 목록도 일정과 같은 기준으로 갱신한다.
     // 지난 시즌은 확정이라 하루, 이번 시즌은 진행 상황에 따라 바뀌므로 10분
