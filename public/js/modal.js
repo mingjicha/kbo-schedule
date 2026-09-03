@@ -39,7 +39,7 @@ async function loadWeather(forceRefresh = false) {
       return;
     }
 
-    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
     const today = new Date();
     const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
@@ -167,7 +167,7 @@ async function loadTeamRank(forceRefresh = false) {
   const rankDate = document.getElementById('rankDate');
 
   try {
-    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
     const response = await fetch(forceRefresh ? '/api/team-rank?refresh=1' : '/api/team-rank');
     const data = await response.json();

@@ -682,3 +682,97 @@
     box-shadow: 0 2px 8px rgba(98, 106, 189, 0.14);
   }
 }
+
+/* ==================== Skeleton ==================== */
+/* 일정을 불러오는 동안 실제 카드와 같은 자리에 회색 틀을 보여준다 */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.skeleton__day {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 날짜 헤더 자리 */
+.skeleton__date {
+  width: 120px;
+  height: 22px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+}
+
+.skeleton__game {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  min-height: 80px;
+}
+
+.skeleton__game:last-child {
+  margin-bottom: 0;
+}
+
+/* 경기 카드 안의 시간 / 팀 / 점수 / 상태 자리 */
+.skeleton__time { width: 44px; height: 16px; }
+.skeleton__team { width: 72px; height: 18px; }
+.skeleton__logo { width: 34px; height: 34px; flex-shrink: 0; }
+.skeleton__score { width: 38px; height: 20px; }
+.skeleton__status { width: 56px; height: 16px; }
+
+/* 회색 박스 공통 + 좌에서 우로 지나가는 반짝임 */
+.skeleton__date,
+.skeleton__time,
+.skeleton__team,
+.skeleton__logo,
+.skeleton__score,
+.skeleton__status {
+  border-radius: 4px;
+  background-color: #EEF0F3;
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+/* 로고는 원형이라 공통 규칙보다 뒤에서 다시 지정한다 */
+.skeleton__logo {
+  border-radius: 50%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__date,
+  .skeleton__time,
+  .skeleton__team,
+  .skeleton__logo,
+  .skeleton__score,
+  .skeleton__status {
+    background-image: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .skeleton__day {
+    background-color: white;
+    padding: 16px;
+  }
+
+  .skeleton__team { width: 52px; }
+  .skeleton__logo { width: 28px; height: 28px; }
+}

@@ -220,13 +220,29 @@ function buildStatusHTML(status, symbol) {
     : status;
 }
 
-function renderSkeletonLoader() {
-  return `
-    <div class="loading">
-      <div class="spinner-border" role="status"></div>
-      <p>경기 일정을 불러오는 중이에요<span class="symbol-font">♤</span></p>
+// 실제 경기 카드와 같은 자리에 회색 틀을 그린다.
+// 하루치 5경기가 KBO 기본이라 그 모양에 맞춘다
+function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
+  const game = `
+    <div class="skeleton__game">
+      <div class="skeleton__time"></div>
+      <div class="skeleton__team"></div>
+      <div class="skeleton__logo"></div>
+      <div class="skeleton__score"></div>
+      <div class="skeleton__logo"></div>
+      <div class="skeleton__team"></div>
+      <div class="skeleton__status"></div>
     </div>
   `;
+
+  const day = `
+    <div class="skeleton__day">
+      <div class="skeleton__date"></div>
+      ${game.repeat(gamesPerDay)}
+    </div>
+  `;
+
+  return `<div class="skeleton" role="status" aria-label="경기 일정을 불러오는 중이에요">${day.repeat(days)}</div>`;
 }
 
 async function loadSchedule(scrollToDate = null) {
@@ -676,7 +692,7 @@ function createGameCard(game, date, isToday) {
 
       const keyPlayerContent = document.createElement('div');
       keyPlayerContent.className = 'game-detail__tab-pane active';
-      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
       contentContainer.appendChild(keyPlayerContent);
 
       gameDetailContainer.innerHTML = '';
@@ -708,7 +724,7 @@ function createGameCard(game, date, isToday) {
       const contentContainer = document.createElement('div');
       contentContainer.className = 'game-detail__tab-content';
 
-      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const reviewContent = document.createElement('div');
       reviewContent.className = 'game-detail__tab-pane active';
@@ -775,11 +791,11 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
-      lineupContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div></div>';
+      lineupContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div></div>';
 
       contentContainer.appendChild(pitcherContent);
       contentContainer.appendChild(lineupContent);
@@ -1037,7 +1053,7 @@ async function renderSeries(seriesKey) {
   postseasonSeries = seriesKey;
   const scheduleContainer = document.getElementById('scheduleContainer');
   const postseasonAlert = document.getElementById('postseasonAlert');
-  scheduleContainer.innerHTML = renderSkeletonLoader();
+  scheduleContainer.innerHTML = renderSkeletonLoader(3, 1);
 
   const games = await loadSeriesData(seriesKey);
   window.currentScheduleData = games;
@@ -1162,7 +1178,7 @@ async function renderPostseasonTabs() {
 
   // 탭과 스켈레톤을 먼저 보여주고 서버 응답을 기다린다
   drawPostseasonTabs(null);
-  document.getElementById('scheduleContainer').innerHTML = renderSkeletonLoader();
+  document.getElementById('scheduleContainer').innerHTML = renderSkeletonLoader(3, 1);
 
   let seriesList;
   try {
