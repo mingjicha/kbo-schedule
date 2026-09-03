@@ -497,3 +497,188 @@
     font-size: 1rem;
   }
 }
+
+/* ==================== PC 레이아웃 정리 ====================
+   기본 CSS 는 PC, @media (max-width:768px) 가 모바일 오버라이드인 구조라
+   PC 전용 변경은 반드시 min-width:769px 안에만 둔다 (모바일 영향 차단)
+
+   간격·radius 는 당근 SEED Design 스케일을 따른다 (색상은 기존 유지)
+   - radius : r2=8 / r2_5=10 / r3=12 / r4=16
+   - spacing: x1=4 / x2=8 / x3=12 / x4=16 / x4_5=18 / x5=20 / x6=24
+   https://seed-design.io/llms/foundations/radius.txt
+   https://seed-design.io/llms/foundations/spacing.txt */
+@media (min-width: 769px) {
+  /* 1. 콘텐츠 폭 — 고정 헤더 내부도 본문과 같은 축에 맞춘다.
+     .app-header 는 .app-wrapper 바깥이라 폭 제한을 못 받아
+     헤더만 화면 끝까지 퍼지고 본문(960px)과 어긋나 있었다 */
+  .app-header__content,
+  #monthTabsContainer {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  /* 2. 상단 영역 — 세로로 길게 쌓이던 것을 한 줄로 정리.
+     제목은 왼쪽, 연도·달력은 오른쪽 */
+  .app-header {
+    padding: 16px 0; /* x4 */
+  }
+
+  .app-header__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px; /* x6 */
+    padding: 0 20px; /* x5 */
+  }
+
+  .app-header__title {
+    text-align: left;
+  }
+
+  .app-header__title h1 {
+    font-size: 1.6rem;
+  }
+
+  .app-header__title p {
+    font-size: 0.875rem;
+  }
+
+  /* 헤더 오른쪽에 들어간 연도/달력 컨트롤 (모바일과 같은 위치) */
+  .controls-mount .controls {
+    gap: 16px; /* x4 */
+  }
+
+  .controls-mount .year-selector {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* x1 */
+  }
+
+  .controls-mount .btn--year {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1rem;
+    color: #6B7684;
+  }
+
+  .controls-mount .btn--year:hover {
+    background-color: #F2F4F6;
+    color: #333;
+  }
+
+  .controls-mount #yearDisplay {
+    font-size: 1.125rem;
+    font-weight: 700;
+    min-width: 58px;
+    text-align: center;
+  }
+
+  .controls-mount .btn--calendar {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* x1_5 */
+    padding: 8px 16px; /* x2 x4 */
+    border-radius: 9999px; /* full */
+    background-color: #F2F4F6;
+    color: #4E5968;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .controls-mount .btn--calendar:hover {
+    background-color: #E5E8EB;
+    color: #333;
+  }
+
+  /* controls 가 헤더로 올라가 header-section 은 팀 필터만 남는다 */
+  .app__header-section {
+    padding: 0;
+  }
+
+  /* 월 탭 + 포스트시즌을 한 줄에 (시즌 구분이라 같은 층위) */
+  .header-tabs-row {
+    max-width: 960px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* x3 */
+    padding: 0 20px 10px; /* x5 */
+  }
+
+  .header-tabs-row #monthTabsContainer {
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  /* 월 탭과 포스트시즌 사이 구분선 */
+  .postseason-mount:not(:empty) {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-left: 12px; /* x3 */
+    border-left: 1px solid #E5E8EB;
+  }
+
+  .postseason-mount .nav {
+    background-color: transparent;
+    width: auto;
+  }
+
+  /* 포스트시즌 버튼 — 알약형으로 통일 */
+  .postseason-mount .filter__postseason {
+    padding: 7px 14px;
+    font-size: 0.875rem; /* t4 */
+    font-weight: 700;
+    border-radius: 9999px; /* full */
+    border: 1px solid #E5E8EB;
+    color: #6B7684;
+  }
+
+  .postseason-mount .filter__postseason:not(.active):hover {
+    border-color: #B0B8C1;
+    color: #333;
+  }
+
+  /* 팀 필터는 별도 줄로 분리해 역할을 구분한다 */
+  .app__header-section .filter {
+    background-color: #FAFBFC;
+    border-bottom: 1px solid #E5E8EB;
+    padding: 10px 0; /* x2_5 */
+  }
+
+  /* 3. 경기 카드 — 여백과 대비를 정리해 목록이 눈에 들어오게 */
+  .schedule__list {
+    gap: 16px; /* x4 */
+  }
+
+  .schedule__day {
+    padding: 18px 20px; /* x4_5 x5 */
+    border-radius: 12px; /* r3 */
+    box-shadow: 0 1px 3px rgba(22, 38, 100, 0.06);
+  }
+
+  .schedule__date-header {
+    font-size: 1.05rem;
+    padding-bottom: 12px; /* x3 */
+    margin-bottom: 12px; /* x3 */
+  }
+
+  .schedule__game {
+    min-height: 72px;
+    padding: 12px 18px; /* x3 x4_5 */
+    border-radius: 10px; /* r2_5 */
+  }
+
+  .schedule__game:hover {
+    border-color: #626ABD;
+    box-shadow: 0 2px 8px rgba(98, 106, 189, 0.14);
+  }
+}

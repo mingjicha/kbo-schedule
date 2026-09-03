@@ -305,27 +305,41 @@ new MutationObserver(() => {
   subtree: true
 });
 
-// Move year/calendar controls into the header on mobile (one line next to
-// the title), back into the header section (above month tabs) on desktop
-// — same element, no duplicate IDs.
+// Move year/calendar controls into the header, on one line next to the title.
+// Same element for both breakpoints — no duplicate IDs.
 const controlsEl = document.getElementById('controls');
 const controlsMountDesktop = document.getElementById('controlsMountDesktop');
-const headerSectionEl = document.querySelector('.app__header-section');
-const mobileMql = window.matchMedia('(max-width: 768px)');
 
 function placeControls() {
-  if (!controlsEl || !controlsMountDesktop || !headerSectionEl) return;
-  if (mobileMql.matches) {
-    controlsMountDesktop.appendChild(controlsEl);
-  } else {
-    headerSectionEl.insertBefore(controlsEl, headerSectionEl.firstChild);
-  }
+  if (!controlsEl || !controlsMountDesktop) return;
+  // PC·모바일 모두 헤더 오른쪽(제목 옆)에 둔다
+  controlsMountDesktop.appendChild(controlsEl);
   // 자리를 잡은 뒤에야 보이게 한다 (CSS 에서 기본 숨김)
   controlsEl.classList.add('controls--placed');
 }
 
 placeControls();
-mobileMql.addEventListener('change', placeControls);
+
+// PC 에서만 포스트시즌 버튼을 월 탭 줄 오른쪽으로 옮긴다.
+// 시즌 구분(정규시즌 월 vs 포스트시즌)이라 월 탭과 같은 줄이 맞다.
+// 모바일은 별도 버튼(#postseasonBtnMobile)을 쓰므로 원위치 그대로 둔다.
+const postseasonNavEl = document.querySelector('.app__header-section .nav');
+const postseasonMountDesktop = document.getElementById('postseasonMountDesktop');
+const headerSectionForNav = document.querySelector('.app__header-section');
+const pcMql = window.matchMedia('(min-width: 769px)');
+
+function placePostseason() {
+  if (!postseasonNavEl || !postseasonMountDesktop || !headerSectionForNav) return;
+  if (pcMql.matches) {
+    postseasonMountDesktop.appendChild(postseasonNavEl);
+  } else if (postseasonNavEl.parentElement !== headerSectionForNav) {
+    // 모바일에서는 원래 자리(팀 필터 위)로 되돌린다
+    headerSectionForNav.insertBefore(postseasonNavEl, headerSectionForNav.querySelector('.filter'));
+  }
+}
+
+placePostseason();
+pcMql.addEventListener('change', placePostseason);
 
 // 진행중 경기가 있으면 하단 TODAY 버튼을 가리키는 말풍선을 띄운다.
 // 하루에 한 번 닫으면 그 날은 다시 안 뜨고, 날짜가 바뀌면 다시 뜬다
