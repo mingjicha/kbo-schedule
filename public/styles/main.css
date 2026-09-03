@@ -609,7 +609,6 @@
     display: flex;
     align-items: center;
     gap: 12px; /* x3 */
-    padding: 0 20px 10px; /* x5 */
   }
 
   .header-tabs-row #monthTabsContainer {
@@ -640,6 +639,7 @@
     border-radius: 9999px; /* full */
     border: 1px solid #E5E8EB;
     color: #6B7684;
+    margin-right: 20px; /* x5 */
   }
 
   .postseason-mount .filter__postseason:not(.active):hover {

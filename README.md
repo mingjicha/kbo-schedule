@@ -172,7 +172,7 @@ PWA 설치 · 반응형(데스크톱 · 태블릿 · 모바일)
 ## 기술 스택
 
 **Backend** Node.js · Express · Puppeteer · Axios · Cheerio
-**Frontend** Vanilla JavaScript (ES6+) · Service Worker · Bootstrap 5 · Flatpickr
+**Frontend** Vanilla JavaScript (ES6+) · Service Worker · Flatpickr
 **External** KBO 공식 API · Open-Meteo
 **Infra** Railway (`main` push 시 자동 배포)
 **AI** Claude (Anthropic) — 개발 지원
