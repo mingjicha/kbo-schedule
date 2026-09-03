@@ -13,21 +13,56 @@ const CACHE_KEYS = {
   CACHE_DATE: 'kbo-cache-date-'
 };
 
+// 캐시를 저장한 시각을 함께 남겨 서버와 같은 기준으로 만료시킨다.
+// - 과거 달: 안 바뀌므로 계속 유효
+// - 이번 달: 경기중 1분 / 정오 이후 10분 / 그 외 30분 (오늘 경기 상태가 바뀔 수 있다)
+// - 미래 달: 하루 1회 (날짜가 바뀌면 다시 받는다)
+const CACHE_SAVED_AT = 'kbo-cache-savedat-';
+const MINUTE_MS = 60 * 1000;
+
+function cacheSuffix(month) {
+  return typeof month === 'string' ? month : String(month).padStart(2, '0');
+}
+
+function todayStamp(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// 이번 달 캐시를 얼마나 오래 믿을지
+function currentMonthMaxAge(schedule) {
+  const now = new Date();
+  const mmdd = `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+  const todayGames = (schedule || []).filter(g => typeof g.date === 'string' && g.date.startsWith(mmdd));
+  if (todayGames.some(g => g.status === '진행중')) return 1 * MINUTE_MS;
+  if (todayGames.length > 0 && todayGames.every(g => g.status === '종료' || g.status === '취소')) {
+    return 24 * 60 * MINUTE_MS; // 다 끝났으면 날짜 바뀔 때까지
+  }
+  return now.getHours() >= 12 ? 10 * MINUTE_MS : 30 * MINUTE_MS;
+}
+
 function isCacheValid(month, year) {
   try {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const gameDate = new Date(year, month - 1, 1);
-    const isCurrentOrPastMonth = gameDate <= today;
+    const suffix = cacheSuffix(month);
+    const raw = localStorage.getItem(`${CACHE_KEYS.SCHEDULE}${year}-${suffix}`);
+    if (!raw) return false;
 
-    // 현재 달 이전: 오늘 날짜로 검증
-    // 미래 달: 무제한 유효
-    if (isCurrentOrPastMonth && gameDate.getMonth() === today.getMonth()) {
-      const cacheDate = localStorage.getItem(`${CACHE_KEYS.CACHE_DATE}${year}-${String(month).padStart(2, '0')}`);
-      return cacheDate === todayStr;
-    }
+    const savedDate = localStorage.getItem(`${CACHE_KEYS.CACHE_DATE}${year}-${suffix}`);
+    const savedAt = Number(localStorage.getItem(`${CACHE_SAVED_AT}${year}-${suffix}`)) || 0;
+    const now = new Date();
 
-    return !!localStorage.getItem(`${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`);
+    // 포스트시즌(ps-xx)은 진행 상황이 바뀌므로 이번 달과 같은 기준으로 본다
+    const isPostseason = typeof month === 'string' && month.startsWith('ps-');
+    const monthNum = isPostseason ? now.getMonth() + 1 : Number(month);
+    const sameYear = Number(year) === now.getFullYear();
+    const isCurrent = isPostseason || (sameYear && monthNum === now.getMonth() + 1);
+    const isPast = !isCurrent &&
+      (Number(year) < now.getFullYear() || (sameYear && monthNum < now.getMonth() + 1));
+
+    if (isPast) return true;              // 과거는 영구 재사용
+    if (savedDate !== todayStamp(now)) return false;  // 날짜가 바뀌면 무효 (미래 달 하루 1회)
+    if (!isCurrent) return true;          // 미래 달은 같은 날이면 그대로
+
+    return (Date.now() - savedAt) < currentMonthMaxAge(JSON.parse(raw));
   } catch (e) {
     return false;
   }
@@ -35,8 +70,9 @@ function isCacheValid(month, year) {
 
 function getScheduleFromCache(month, year) {
   try {
-    const key = `${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`;
-    const cached = localStorage.getItem(key);
+    // 유효기간 판단은 isCacheValid 로 일원화한다
+    if (!isCacheValid(month, year)) return null;
+    const cached = localStorage.getItem(`${CACHE_KEYS.SCHEDULE}${year}-${cacheSuffix(month)}`);
     return cached ? JSON.parse(cached) : null;
   } catch (e) {
     return null;
@@ -45,13 +81,13 @@ function getScheduleFromCache(month, year) {
 
 function saveScheduleToCache(month, year, schedule) {
   try {
-    const key = `${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`;
-    const dateKey = `${CACHE_KEYS.CACHE_DATE}${year}-${String(month).padStart(2, '0')}`;
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const suffix = cacheSuffix(month);
+    const key = `${CACHE_KEYS.SCHEDULE}${year}-${suffix}`;
+    const dateKey = `${CACHE_KEYS.CACHE_DATE}${year}-${suffix}`;
 
     localStorage.setItem(key, JSON.stringify(schedule));
-    localStorage.setItem(dateKey, todayStr);
+    localStorage.setItem(dateKey, todayStamp());
+    localStorage.setItem(`${CACHE_SAVED_AT}${year}-${suffix}`, String(Date.now()));
   } catch (e) {
     // 용량 초과 등의 에러 무시
   }
@@ -59,6 +95,7 @@ function saveScheduleToCache(month, year, schedule) {
 
 // 당일 경기가 있으면 실시간 갱신 타이머 시작
 let todayRefreshTimer = null;
+let futureRefreshTimer = null;
 
 function startTodayRefreshTimer() {
   if (todayRefreshTimer) clearInterval(todayRefreshTimer);
@@ -111,10 +148,70 @@ function startTodayRefreshTimer() {
     }
   };
 
-  // 2분마다 확인
-  todayRefreshTimer = setInterval(checkAndRefreshToday, 2 * 60 * 1000);
+  // 1분마다 확인
+  todayRefreshTimer = setInterval(checkAndRefreshToday, 1 * 60 * 1000);
   // 초기 한 번 실행
   checkAndRefreshToday();
+}
+
+// 미래 경기 갱신 (오후 1시 이후 10분마다)
+function startFutureRefreshTimer() {
+  if (futureRefreshTimer) clearInterval(futureRefreshTimer);
+
+  const checkAndRefreshFuture = async () => {
+    const today = new Date();
+    const currentHour = today.getHours();
+    const currentMonthNum = today.getMonth() + 1;
+    const currentYearNum = today.getFullYear();
+
+    // 오후 1시(13:00) 이전이면 갱신 안 함
+    if (currentHour < 13) {
+      return;
+    }
+
+    // 오늘 경기 중 가장 빠른 시간
+    const todayGames = window.currentScheduleData?.filter(g => {
+      const m = g.date.match(/(\d{2})\.(\d{2})/);
+      if (!m) return false;
+      return parseInt(m[1]) === currentMonthNum && parseInt(m[2]) === today.getDate();
+    }) || [];
+
+    if (todayGames.length === 0) {
+      // 오늘 경기가 없으면 갱신 멈춤
+      return;
+    }
+
+    const earliestGameTime = todayGames.reduce((earliest, game) => {
+      const [hours, minutes] = game.time.split(':');
+      const gameTime = new Date(currentYearNum, currentMonthNum - 1, today.getDate(), parseInt(hours), parseInt(minutes));
+      return gameTime < earliest ? gameTime : earliest;
+    }, new Date(currentYearNum, currentMonthNum - 1, today.getDate(), 23, 59));
+
+    // 경기 시작 시간 이전에만 갱신
+    if (today >= earliestGameTime) {
+      // 경기 시작 이후면 갱신 멈춤
+      return;
+    }
+
+    try {
+      // 오늘 경기만 캐시 무효화하고 다시 로드 (시간 변경 감지)
+      const key = `${CACHE_KEYS.SCHEDULE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
+      const dateKey = `${CACHE_KEYS.CACHE_DATE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
+      localStorage.removeItem(key);
+      localStorage.removeItem(dateKey);
+
+      const refreshed = await loadMonthData(currentMonthNum, currentYearNum);
+      window.currentScheduleData = refreshed;
+      updateGameStatuses();
+    } catch (error) {
+      console.error('Error refreshing future games:', error);
+    }
+  };
+
+  // 10분마다 확인 (오후 1시 이후, 오늘 경기 시작 전까지만)
+  futureRefreshTimer = setInterval(checkAndRefreshFuture, 10 * 60 * 1000);
+  // 초기 한 번 실행
+  checkAndRefreshFuture();
 }
 
 function buildStatusHTML(status, symbol) {
@@ -236,6 +333,7 @@ function hasUpcomingGame(games, year) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   return games.some(game => {
+    if (!game.date) return false;
     const dateOnly = game.date.split('(')[0].trim();
     const [m, d] = dateOnly.split('.');
     return new Date(year, parseInt(m) - 1, parseInt(d)).getTime() >= today;
@@ -373,11 +471,26 @@ function warmupPreviews(schedule, focusDate) {
   }).catch(() => {});
 }
 
+// 고정 헤더(.app-header) 밑에 대상 요소를 맞춰 스크롤한다.
+// +11 은 모바일에서 날짜 헤더가 가진 위쪽 padding(12px) 범위 안에서
+// 헤더 아래로 파고들게 해 조금 더 위로 올리는 값 (12를 넘기면 날짜 글자가 잘린다)
+function scrollElementBelowHeader(el, instant = false) {
+  const appHeader = document.querySelector('.app-header');
+  const headerHeight = appHeader ? appHeader.getBoundingClientRect().height : 0;
+  const top = el.getBoundingClientRect().top + window.pageYOffset - headerHeight + 11;
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: instant ? 'auto' : 'smooth'
+  });
+}
+
 function scrollToDateHeader(dateStr, instant = false) {
   if (!dateStr) return;
   const dateHeader = document.querySelector(`#scheduleContainer [data-date="${dateStr}"]`);
   if (dateHeader) {
-    dateHeader.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+    // 날짜 헤더 자체가 아니라 카드(.schedule__day) 상단이 헤더 아래에 오도록 맞춘다
+    const dayDiv = dateHeader.closest('.schedule__day') || dateHeader;
+    scrollElementBelowHeader(dayDiv, instant);
   }
 }
 
@@ -750,30 +863,15 @@ async function loadMonthData(month, year = null) {
     }
   }
 
-  // season.json 전체 로드 (첫 요청만 느림, 이후는 파일에서 로드)
-  const seasonJsonUrl = `/api/season-json?year=${yearToUse}`;
-  const response = await fetch(seasonJsonUrl);
+  // 원래 API 호출 (서버에서 캐싱)
+  const apiUrl = `/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
+  const response = await fetch(apiUrl);
 
   if (response.ok) {
-    const allSchedules = await response.json();
-    if (Array.isArray(allSchedules)) {
-      // 요청한 월의 데이터만 필터링
-      const filteredSchedules = allSchedules.filter(game => {
-        const gameMonth = game.gameDate ? game.gameDate.substring(5, 7) : monthStr;
-        return gameMonth === monthStr;
-      });
-
-      // 팀 필터 적용
-      let finalSchedules = filteredSchedules;
-      if (currentTeam) {
-        finalSchedules = filteredSchedules.filter(game => {
-          return (game.awayTeamCode === currentTeam || game.homeTeamCode === currentTeam);
-        });
-      }
-
-      // 캐시 저장
-      saveScheduleToCache(month, yearToUse, finalSchedules);
-      return finalSchedules;
+    const schedule = await response.json();
+    if (Array.isArray(schedule)) {
+      saveScheduleToCache(month, yearToUse, schedule);
+      return schedule;
     }
   }
   return [];
@@ -815,6 +913,9 @@ async function initializeMonthTabsWithLazyLoad() {
       } else {
         scheduleContainer.innerHTML = '<div class="schedule__no-games">경기 일정이 없어요<span class="symbol-font">♤</span></div>';
       }
+
+      // 다른 달을 고르면 이전 스크롤 위치가 남아 엉뚱한 날짜에 걸리므로 맨 위로 올린다
+      window.scrollTo({ top: 0, behavior: 'auto' });
     });
 
     tabContainer.appendChild(tab);
@@ -907,42 +1008,29 @@ let postseasonSeries = null;
 let savedMonthBeforePostseason = null;
 
 async function loadSeriesData(seriesKey, year = currentYear) {
-  // 캐시 확인 (9월 기준으로 포스트시즌 전체 캐싱)
-  if (isCacheValid(9, year)) {
-    const cached = getScheduleFromCache(9, year);
-    if (cached) {
-      return cached;
-    }
+  // 정규시즌 9월 캐시와 섞이지 않도록 시리즈별로 캐시 키를 분리한다
+  const cacheKey = `ps-${seriesKey}`;
+
+  const cached = getScheduleFromCache(cacheKey, year);
+  if (cached) {
+    return cached;
   }
 
-  // postseason.json 전체 로드
-  const postseasonJsonUrl = `/api/postseason-json?year=${year}`;
-  const response = await fetch(postseasonJsonUrl);
+  // 포스트시즌은 9월~12월에 걸쳐 열릴 수 있어 여러 달을 합친다
+  const months = ['09', '10', '11', '12'];
+  const results = await Promise.all(months.map(async (month) => {
+    const res = await fetch(
+      `/api/schedule?year=${year}&month=${month}&series=${seriesKey}&team=${currentTeam}`
+    );
+    return res.ok ? await res.json() : [];
+  }));
 
-  if (response.ok) {
-    const allSchedules = await response.json();
-    if (Array.isArray(allSchedules)) {
-      // 시리즈별 필터링
-      const seriesMap = { 'wc': '4', 'sp': '3', 'pl': '5', 'ks': '7' };
-      const srId = seriesMap[seriesKey];
-      const filteredSchedules = allSchedules.filter(game => game.srId === srId);
-
-      // 팀 필터 적용
-      let finalSchedules = filteredSchedules;
-      if (currentTeam) {
-        finalSchedules = filteredSchedules.filter(game => {
-          return (game.awayTeamCode === currentTeam || game.homeTeamCode === currentTeam);
-        });
-      }
-
-      // 캐시 저장
-      if (finalSchedules.length > 0) {
-        saveScheduleToCache(9, year, finalSchedules);
-      }
-      return finalSchedules;
-    }
+  const merged = results.flat();
+  // 포스트시즌 데이터도 캐시 저장
+  if (merged.length > 0) {
+    saveScheduleToCache(cacheKey, year, merged);
   }
-  return [];
+  return merged;
 }
 
 async function renderSeries(seriesKey) {
@@ -1064,6 +1152,7 @@ async function renderPostseasonTabs() {
       document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       await renderSeries(series.key);
+      window.scrollTo({ top: 0, behavior: 'auto' });
     });
 
     list.appendChild(tab);

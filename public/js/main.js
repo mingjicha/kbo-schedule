@@ -76,6 +76,8 @@ async function initializeApp() {
 
     // 당일 경기 실시간 갱신 시작
     startTodayRefreshTimer();
+    // 미래 경기 갱신 시작 (1시간마다 시간/취소 변경 감지)
+    startFutureRefreshTimer();
 
     warmupPreviews(schedule, focusDate);
     loadWeather();
@@ -136,3 +138,66 @@ function initNavSwipe() {
     isSwiping = false;
   }, { passive: true });
 }
+
+// ==================== 배포 감지 후 자동 새로고침 ====================
+// 배포되면 서버의 buildId 가 바뀐다. 그걸 감지해 오래된 화면을 자동으로 갱신한다.
+// 사용자가 보고 있는 도중에 새로고침하면 흐름이 끊기므로,
+// 모달이 열려 있지 않고 탭이 백그라운드일 때(또는 다시 돌아왔을 때)만 새로고침한다
+(function watchDeploy() {
+  let knownBuildId = null;
+  let pendingReload = false;
+
+  async function fetchBuildId() {
+    try {
+      const res = await fetch('/api/version', { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.buildId || null;
+    } catch (e) {
+      return null; // 오프라인 등은 조용히 넘어간다
+    }
+  }
+
+  // 지금 새로고침해도 사용자를 방해하지 않는지.
+  // 모달·시트가 열려 있으면 조작 중이므로 절대 새로고침하지 않는다
+  function isSafeToReload() {
+    return !document.querySelector('.modal.show, .team-sheet-overlay.show, .calendar-sheet-overlay.show, .onboarding.show');
+  }
+
+  function reloadNow() {
+    // service worker 캐시까지 버려야 새 파일을 확실히 받는다
+    if ('caches' in window) {
+      caches.keys()
+        .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        .catch(() => {})
+        .finally(() => location.reload());
+    } else {
+      location.reload();
+    }
+  }
+
+  async function check() {
+    const buildId = await fetchBuildId();
+    if (!buildId) return;
+
+    if (knownBuildId === null) {
+      knownBuildId = buildId; // 최초 진입 시 기준값만 기억
+      return;
+    }
+
+    if (buildId !== knownBuildId) {
+      pendingReload = true;
+      // 탭이 가려져 있으면 눈에 안 띄게 바로 갱신하고,
+      // 보고 있는 중이면 모달이 없을 때만 갱신한다
+      if (isSafeToReload()) reloadNow();
+    }
+  }
+
+  // 새 배포를 감지해 둔 상태라면 탭을 다시 열 때 확실히 갱신한다
+  document.addEventListener('visibilitychange', () => {
+    if (pendingReload && isSafeToReload()) reloadNow();
+  });
+
+  check();
+  setInterval(check, 5 * 60 * 1000);
+})();

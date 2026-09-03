@@ -23,6 +23,12 @@
   display: none;
 }
 
+/* 연도/달력 버튼은 ui.js 의 placeControls() 가 자리를 잡아준 뒤에 보여준다.
+   그 전에는 마크업 원위치(본문 상단)에 잠깐 노출됐다가 헤더로 튀는 문제가 있었다 */
+#controls:not(.controls--placed) {
+  display: none;
+}
+
 .app-header__title h1 {
   font-size: 2.5rem;
   font-weight: 700;

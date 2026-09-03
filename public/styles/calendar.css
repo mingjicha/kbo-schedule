@@ -303,11 +303,40 @@
   .calendar-sheet span.flatpickr-day {
     height: 44px;
     line-height: 44px;
-    border-radius: 14px;
+    border-radius: 0;
     font-size: 0.875rem;
     font-weight: 600;
     color: #333;
     max-width: none;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  /* 셀은 가로로 넓어서(1/7 폭) 셀 자체에 border-radius:50% 를 주면
+     타원(눌린 동그라미)이 된다. 가운데에 44x44 정사각형을 깔고
+     거기에 원을 그려서 항상 정원이 되게 한다 */
+  .calendar-sheet span.flatpickr-day::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* 원(::before)이 숫자를 덮지 않도록 셀 내용을 위로 올린다 */
+  .calendar-sheet span.flatpickr-day {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+  }
+
+  .calendar-sheet span.flatpickr-day::before {
+    z-index: -1;
   }
 
   .calendar-sheet span.flatpickr-day.flatpickr-disabled,
@@ -339,25 +368,39 @@
   }
 
   .calendar-sheet span.flatpickr-day:not(.flatpickr-disabled):hover {
-    background: #EEEFF9;
-    border-color: #EEEFF9;
-    color: #333;
-  }
-
-  .calendar-sheet span.flatpickr-day.selected,
-  .calendar-sheet span.flatpickr-day.selected:hover {
-    box-shadow: inset 0 0 0 1.5px #626ABD;
     background: transparent;
     border-color: transparent;
     color: #333;
   }
 
+  .calendar-sheet span.flatpickr-day:not(.flatpickr-disabled):hover::before {
+    background: #EEEFF9;
+  }
+
+  .calendar-sheet span.flatpickr-day.selected,
+  .calendar-sheet span.flatpickr-day.selected:hover {
+    box-shadow: none;
+    background: transparent;
+    border-color: transparent;
+    color: #333;
+  }
+
+  .calendar-sheet span.flatpickr-day.selected::before,
+  .calendar-sheet span.flatpickr-day.selected:hover::before {
+    box-shadow: inset 0 0 0 1.5px #626ABD;
+  }
+
   .calendar-sheet span.flatpickr-day.today,
   .calendar-sheet span.flatpickr-day.today:hover {
     box-shadow: none;
-    background: #626ABD;
-    border-color: #626ABD;
+    background: transparent;
+    border-color: transparent;
     color: white !important;
+  }
+
+  .calendar-sheet span.flatpickr-day.today::before,
+  .calendar-sheet span.flatpickr-day.today:hover::before {
+    background: #626ABD;
   }
 
   .calendar-sheet span.flatpickr-day.today:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay)::after {
@@ -367,9 +410,15 @@
   .calendar-sheet span.flatpickr-day.today.selected,
   .calendar-sheet span.flatpickr-day.today.selected:hover {
     box-shadow: none;
-    background: #626ABD;
-    border-color: #626ABD;
+    background: transparent;
+    border-color: transparent;
     color: white;
+  }
+
+  .calendar-sheet span.flatpickr-day.today.selected::before,
+  .calendar-sheet span.flatpickr-day.today.selected:hover::before {
+    background: #626ABD;
+    box-shadow: none;
   }
 
   .calendar-sheet span.flatpickr-day.prevMonthDay,
