@@ -1,14 +1,114 @@
 let loadedMonths = new Set();
 
-// 상태별 기호를 한 곳에서 관리한다.
-// 렌더링과 1초마다 도는 updateGameStatuses 가 따로 가지고 있어
-// 화면에 뗄던 기호가 곷바로 바뀌는 문제가 있었다
 const STATUS_SYMBOLS = {
   '종료': '¢',
   '예정': '¢',
   '취소': '£',
   '진행중': '♤'
 };
+
+// 캐시 관리
+const CACHE_KEYS = {
+  SCHEDULE: 'kbo-schedule-',
+  CACHE_DATE: 'kbo-cache-date-'
+};
+
+function isCacheValid(month, year) {
+  try {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const gameDate = new Date(year, month - 1, 1);
+    const isCurrentOrPastMonth = gameDate <= today;
+
+    // 현재 달 이전: 오늘 날짜로 검증
+    // 미래 달: 무제한 유효
+    if (isCurrentOrPastMonth && gameDate.getMonth() === today.getMonth()) {
+      const cacheDate = localStorage.getItem(`${CACHE_KEYS.CACHE_DATE}${year}-${String(month).padStart(2, '0')}`);
+      return cacheDate === todayStr;
+    }
+
+    return !!localStorage.getItem(`${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`);
+  } catch (e) {
+    return false;
+  }
+}
+
+function getScheduleFromCache(month, year) {
+  try {
+    const key = `${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`;
+    const cached = localStorage.getItem(key);
+    return cached ? JSON.parse(cached) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveScheduleToCache(month, year, schedule) {
+  try {
+    const key = `${CACHE_KEYS.SCHEDULE}${year}-${String(month).padStart(2, '0')}`;
+    const dateKey = `${CACHE_KEYS.CACHE_DATE}${year}-${String(month).padStart(2, '0')}`;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    localStorage.setItem(key, JSON.stringify(schedule));
+    localStorage.setItem(dateKey, todayStr);
+  } catch (e) {
+    // 용량 초과 등의 에러 무시
+  }
+}
+
+// 당일 경기가 있으면 실시간 갱신 타이머 시작
+let todayRefreshTimer = null;
+
+function startTodayRefreshTimer() {
+  if (todayRefreshTimer) clearInterval(todayRefreshTimer);
+
+  const checkAndRefreshToday = async () => {
+    const today = new Date();
+    const currentMonthNum = today.getMonth() + 1;
+    const currentYearNum = today.getFullYear();
+
+    // 당일 경기가 있는지 확인
+    const todayGames = window.currentScheduleData?.filter(g => {
+      const m = g.date.match(/(\d{2})\.(\d{2})/);
+      if (!m) return false;
+      return parseInt(m[1]) === currentMonthNum && parseInt(m[2]) === today.getDate();
+    }) || [];
+
+    if (todayGames.length === 0) return;
+
+    // 가장 빠른 경기 시간 확인
+    const earliestGameTime = todayGames.reduce((earliest, game) => {
+      const [hours, minutes] = game.time.split(':');
+      const gameTime = new Date(currentYearNum, currentMonthNum - 1, today.getDate(), parseInt(hours), parseInt(minutes));
+      return gameTime < earliest ? gameTime : earliest;
+    }, new Date(currentYearNum, currentMonthNum - 1, today.getDate(), 23, 59));
+
+    // 경기 시작 후 6시간 내: 2분마다 갱신
+    // 경기 시작 전: 갱신 없음
+    const gameEndTime = new Date(earliestGameTime.getTime() + 6 * 60 * 60 * 1000);
+    if (today >= earliestGameTime && today < gameEndTime) {
+      // 캐시 무효화 후 갱신
+      try {
+        const key = `${CACHE_KEYS.SCHEDULE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
+        const dateKey = `${CACHE_KEYS.CACHE_DATE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
+        localStorage.removeItem(key);
+        localStorage.removeItem(dateKey);
+
+        const refreshed = await loadMonthData(currentMonthNum, currentYearNum);
+        window.currentScheduleData = refreshed;
+        updateGameStatuses();
+      } catch (error) {
+        console.error('Error refreshing today schedule:', error);
+      }
+    }
+  };
+
+  // 2분마다 확인
+  todayRefreshTimer = setInterval(checkAndRefreshToday, 2 * 60 * 1000);
+  // 초기 한 번 실행
+  checkAndRefreshToday();
+}
 
 function buildStatusHTML(status, symbol) {
   return symbol
@@ -634,12 +734,23 @@ async function applyTeamFilter() {
 async function loadMonthData(month, year = null) {
   const monthStr = String(month).padStart(2, '0');
   const yearToUse = year !== null ? year : currentYear;
+
+  // 캐시 확인
+  if (isCacheValid(month, yearToUse)) {
+    const cached = getScheduleFromCache(month, yearToUse);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  // 캐시가 없으면 API 호출
   const apiUrl = `/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
   const response = await fetch(apiUrl);
 
   if (response.ok) {
     const schedule = await response.json();
     if (Array.isArray(schedule)) {
+      saveScheduleToCache(month, yearToUse, schedule);
       return schedule;
     }
   }

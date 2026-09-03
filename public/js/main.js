@@ -74,6 +74,9 @@ async function initializeApp() {
     updateCalendarDisabledDates(schedule);
     prefetchNeighborMonths(currentYear, currentMonth);
 
+    // 당일 경기 실시간 갱신 시작
+    startTodayRefreshTimer();
+
     warmupPreviews(schedule, focusDate);
     loadWeather();
   } catch (error) {
