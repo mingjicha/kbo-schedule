@@ -745,11 +745,10 @@
   padding-bottom: 10px;
 }
 
+/* 실제 카드(.schedule__game > .schedule__info)와 같은 구조로 맞춘다 */
 .skeleton__game {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
   padding: 10px 20px;
   border: 1px solid #f0f0f0;
   border-radius: 6px;
@@ -757,20 +756,40 @@
   min-height: 80px;
 }
 
+/* .schedule__info 와 동일 */
+.skeleton__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* .schedule__teams 와 동일 — 가운데로 모이고 좌우로 벌어진다 */
+.skeleton__teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex: 1;
+}
+
 .skeleton__game:last-child {
   margin-bottom: 0;
 }
 
 /* 경기 카드 안의 시간 / 팀 / 점수 / 상태 자리 */
-.skeleton__time { width: 44px; height: 16px; }
-.skeleton__team { width: 72px; height: 18px; }
-.skeleton__logo { width: 34px; height: 34px; flex-shrink: 0; }
-.skeleton__score { width: 38px; height: 20px; }
-.skeleton__status { width: 56px; height: 16px; }
+.skeleton__time { width: 39px; height: 18px; flex-shrink: 0; }
+.skeleton__stadium { width: 25px; height: 16px; flex-shrink: 0; }
+.skeleton__team { width: 70px; height: 34px; flex-shrink: 0; }
+.skeleton__logo { width: 40px; height: 40px; flex-shrink: 0; }
+.skeleton__score { width: 70px; height: 22px; flex-shrink: 0; }
+.skeleton__status { width: 86px; height: 22px; flex-shrink: 0; }
 
 /* 회색 박스 공통 + 좌에서 우로 지나가는 반짝임 */
 .skeleton__date,
 .skeleton__time,
+.skeleton__stadium,
 .skeleton__team,
 .skeleton__logo,
 .skeleton__score,
@@ -796,6 +815,7 @@
 @media (prefers-reduced-motion: reduce) {
   .skeleton__date,
   .skeleton__time,
+  .skeleton__stadium,
   .skeleton__team,
   .skeleton__logo,
   .skeleton__score,
@@ -806,11 +826,56 @@
 }
 
 @media (max-width: 768px) {
+  /* 모바일 카드는 2단 — 1행에 시간/구장/상태, 2행에 팀 대결 */
   .skeleton__day {
-    background-color: white;
-    padding: 16px;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
   }
 
-  .skeleton__team { width: 52px; }
-  .skeleton__logo { width: 28px; height: 28px; }
+  .skeleton__game {
+    background-color: white;
+    border: 1.5px solid transparent;
+    border-radius: 20px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    min-height: 0;
+  }
+
+  .skeleton__info {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: 6px;
+  }
+
+  /* 실제 카드처럼 order 로 줄을 나눈다.
+     팀 대결(flex-basis:100%)이 DOM 상 상태보다 앞이라
+     order 없이는 상태가 3행으로 밀린다 */
+  .skeleton__time { order: 1; }
+  .skeleton__stadium { order: 2; }
+
+  /* 상태는 1행 오른쪽 끝으로 */
+  .skeleton__status {
+    order: 3;
+    margin-left: auto;
+  }
+
+  /* 팀 대결은 통째로 2행 */
+  .skeleton__teams {
+    order: 4;
+    flex-basis: 100%;
+    width: 100%;
+    gap: 24px;
+  }
+
+  .skeleton__date {
+    width: 96px;
+    height: 18px;
+    margin-bottom: 12px;
+  }
+
+  .skeleton__team { width: 52px; height: 30px; }
+  .skeleton__logo { width: 32px; height: 32px; }
+  .skeleton__score { width: 46px; height: 20px; }
+  .skeleton__status { width: 62px; height: 18px; }
 }

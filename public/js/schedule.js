@@ -223,15 +223,22 @@ function buildStatusHTML(status, symbol) {
 // 실제 경기 카드와 같은 자리에 회색 틀을 그린다.
 // 하루치 5경기가 KBO 기본이라 그 모양에 맞춘다
 function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
+  // 구조를 실제 카드(.schedule__game > .schedule__info > .schedule__teams)와
+  // 똑같이 맞춰야 각 자리가 실제 내용과 같은 위치에 온다
   const game = `
     <div class="skeleton__game">
-      <div class="skeleton__time"></div>
-      <div class="skeleton__team"></div>
-      <div class="skeleton__logo"></div>
-      <div class="skeleton__score"></div>
-      <div class="skeleton__logo"></div>
-      <div class="skeleton__team"></div>
-      <div class="skeleton__status"></div>
+      <div class="skeleton__info">
+        <div class="skeleton__time"></div>
+        <div class="skeleton__stadium"></div>
+        <div class="skeleton__teams">
+          <div class="skeleton__team"></div>
+          <div class="skeleton__logo"></div>
+          <div class="skeleton__score"></div>
+          <div class="skeleton__logo"></div>
+          <div class="skeleton__team"></div>
+        </div>
+        <div class="skeleton__status"></div>
+      </div>
     </div>
   `;
 
