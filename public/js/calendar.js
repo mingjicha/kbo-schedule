@@ -131,7 +131,7 @@ function initializeFlatpickr() {
       calendarDisplayYear = newYear;
 
       if (typeof postseasonMode !== 'undefined' && postseasonMode) {
-        applyGameDateMarks(await loadPostseasonGameDates(currentYear));
+        applyGameDateMarks(await loadPostseasonGameDates(newYear));
         return;
       }
 
@@ -243,7 +243,17 @@ function cacheGameDatesByMonth(year, gameDates) {
 }
 
 function applyGameDateMarks(gameDates) {
-  if (!fpInstance || !gameDates || gameDates.size === 0) return;
+  if (!fpInstance || !gameDates) return;
+
+  // 포스트시즌 모드에서 데이터가 없으면 모든 날짜 비활성화
+  if (gameDates.size === 0 && typeof postseasonMode !== 'undefined' && postseasonMode) {
+    fpInstance.set('disable', [() => true]);
+    return;
+  }
+
+  // 정규시즌: 경기 있는 날만 활성화
+  if (gameDates.size === 0) return;
+
   fpInstance.set('disable', [
     function(date) {
       const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

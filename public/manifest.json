@@ -1,6 +1,6 @@
 {
-  "name": "KBO 경기 일정",
-  "short_name": "KBO 일정",
+  "name": "KBO 경기 일정 - 민지의 취미 생활",
+  "short_name": "KBO 경기 일정",
   "description": "KBO 경기 일정, 순위, 날씨, 투수 정보를 확인하는 앱",
   "start_url": "/",
   "scope": "/",

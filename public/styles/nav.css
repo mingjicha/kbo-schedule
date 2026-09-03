@@ -57,9 +57,15 @@
   border-bottom-color: #333;
 }
 
+/* 포스트시즌 시리즈 탭(와일드카드~한국시리즈)은 우승 배너와 같은 금색으로 구분한다 */
+.nav__tab[data-series].active {
+  color: #f5c340;
+  border-bottom-color: #f5c340;
+}
+
 @media (max-width: 768px) {
   .nav {
-    background-color: transparent;
+    background-color: white;
     border-bottom: 1px solid #E5E8EB;
   }
 
@@ -69,7 +75,7 @@
   }
 
   .nav__tabs {
-    padding: 0 4vw 10px;
+    padding: 0 4vw;
     width: 100%;
   }
 
@@ -90,5 +96,10 @@
     color: white;
     background-color: #626ABD;
     border-bottom-color: transparent;
+  }
+
+  .nav__tab[data-series].active {
+    background-color: #f5c340;
+    color: white;
   }
 }

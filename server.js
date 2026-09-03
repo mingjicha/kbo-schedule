@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const path = require('path');
+const fs = require('fs');
 const puppeteer = require('puppeteer');
 
 const app = express();
@@ -86,6 +87,32 @@ function getResponseCache(key) {
 
 function setResponseCache(key, data, ttlMs) {
   responseCache[key] = { data, expiresAt: Date.now() + ttlMs };
+}
+
+// 지난 달 일정처럼 다시는 안 바뀌는 데이터를 디스크에 저장해둔다.
+// 서버가 재시작돼 메모리 캐시가 비어도 다시 크롤링하지 않고 파일을 바로 쓴다.
+// Railway 는 배포할 때마다 파일시스템이 초기화되지만, 배포 없이 재시작될 때는
+// 파일이 남아있어 그만큼 이득이다
+const SCHEDULE_CACHE_DIR = path.join(__dirname, 'data', 'schedule');
+
+function readScheduleFile(year, month) {
+  try {
+    const filePath = path.join(SCHEDULE_CACHE_DIR, `${year}-${month}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeScheduleFile(year, month, schedule) {
+  try {
+    fs.mkdirSync(SCHEDULE_CACHE_DIR, { recursive: true });
+    const filePath = path.join(SCHEDULE_CACHE_DIR, `${year}-${month}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(schedule), 'utf-8');
+  } catch (e) {
+    console.error('Error writing schedule cache file:', e.message);
+  }
 }
 
 function parseGameInfo(playHtml, gameId = '') {
@@ -262,6 +289,25 @@ app.get('/api/schedule', async (req, res) => {
     const cached = getResponseCache(cacheKey);
     if (cached) {
       return res.json(cached);
+    }
+
+    // 이미 지나간 달만 파일로 남긴다. 이번 달은 경기가 진행 중일 수 있고,
+    // 미래 달은 아직 일정이 확정되지 않았을 수 있어 둘 다 대상에서 뺀다.
+    // 팀 필터·포스트시즌도 대상에서 뺀다 (전체/정규시즌만 저장)
+    const now = new Date();
+    const isCurrentMonth = String(now.getFullYear()) === String(year) &&
+      String(now.getMonth() + 1).padStart(2, '0') === month;
+    const requestedYm = `${year}-${month}`;
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const isPastMonth = requestedYm < currentYm;
+    const isFileCacheable = isPastMonth && !team && srIdList === '0';
+
+    if (isFileCacheable) {
+      const fromFile = readScheduleFile(year, month);
+      if (fromFile) {
+        setResponseCache(cacheKey, fromFile, 60 * 60 * 1000);
+        return res.json(fromFile);
+      }
     }
 
     const postData = new URLSearchParams({
@@ -583,11 +629,13 @@ app.get('/api/schedule', async (req, res) => {
     });
 
     // 조회한 달이 이번 달이면 경기가 진행 중일 수 있으므로 짧게, 아니면 길게 캐시
-    const now = new Date();
-    const isCurrentMonth = String(now.getFullYear()) === String(year) &&
-      String(now.getMonth() + 1).padStart(2, '0') === month;
     const ttlMs = isCurrentMonth ? 3 * 60 * 1000 : 60 * 60 * 1000;
     setResponseCache(cacheKey, schedule, ttlMs);
+
+    // 이미 지난 달의 전체/정규시즌 데이터는 파일로도 남겨 다음 재시작 때 바로 쓴다
+    if (isFileCacheable) {
+      writeScheduleFile(year, month, schedule);
+    }
 
     res.json(schedule);
   } catch (error) {
@@ -1535,12 +1583,53 @@ async function getKeyPlayers(gameId, srId) {
     })) : [];
   };
 
-  const [pitchers, hitters] = await Promise.all([
+  const [pitchers, hitters, gameStatus] = await Promise.all([
     fetchOne('GetKeyPlayerPitcher'),
-    fetchOne('GetKeyPlayerHitter')
+    fetchOne('GetKeyPlayerHitter'),
+    getGameStatus(gameId, srId)
   ]);
 
-  return { pitchers, hitters };
+  return { pitchers, hitters, gameStatus };
+}
+
+// 진행중 경기 상태: 주자상황/아웃
+async function getGameStatus(gameId, srId) {
+  try {
+    const response = await axios.post(
+      'https://www.koreabaseball.com/ws/Schedule.asmx/GetScoreBoardBasic',
+      new URLSearchParams({
+        leId: '1',
+        srId: srId || '0',
+        gameId
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      }
+    );
+
+    const data = response.data && response.data.scoreboard;
+    if (data) {
+      return {
+        inning: data.INNG_NO || 0,
+        inningSide: data.INNG_SE_CD === '1' ? '초' : '말',
+        bases: {
+          first: data.BA_FIRST || false,
+          second: data.BA_SECOND || false,
+          third: data.BA_THIRD || false
+        },
+        outs: data.OUTS || 0,
+        awayScore: data.AWAY_SCORE || 0,
+        homeScore: data.HOME_SCORE || 0
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching game status:', error.message);
+    return null;
+  }
 }
 
 // 종료 경기 리뷰: 구장/관중/시각/박스스코어/상세기록표

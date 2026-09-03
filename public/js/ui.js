@@ -213,6 +213,14 @@ async function goToToday() {
   currentMonth = todayMonth;
   yearDisplay.textContent = currentYear;
 
+  // 포스트시즌 화면이면 정규시즌 월 탭으로 되돌린다.
+  // setPostseasonMode 가 currentMonth 를 이전 달로 되돌리므로, 그 다음에 다시 오늘로 맞춘다
+  if (typeof postseasonMode !== 'undefined' && postseasonMode) {
+    await setPostseasonMode(false);
+    currentMonth = todayMonth;
+    setActiveMonthTab(todayMonth);
+  }
+
   document.querySelectorAll('.nav__tab').forEach(t => t.classList.remove('active'));
   const monthStr = String(todayMonth).padStart(2, '0');
   const activeTab = document.querySelector(`.nav__tab[data-month="${monthStr}"]`);
@@ -316,3 +324,94 @@ function placeControls() {
 
 placeControls();
 mobileMql.addEventListener('change', placeControls);
+
+// 진행중 경기가 있으면 하단 TODAY 버튼을 가리키는 말풍선을 띄운다.
+// 하루에 한 번 닫으면 그 날은 다시 안 뜨고, 날짜가 바뀌면 다시 뜬다
+const LIVE_BUBBLE_DISMISS_KEY = 'kbo-live-bubble-dismissed-date';
+
+function todayDateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function isLiveBubbleDismissedToday() {
+  try {
+    return localStorage.getItem(LIVE_BUBBLE_DISMISS_KEY) === todayDateKey();
+  } catch (e) {
+    return false;
+  }
+}
+
+function dismissLiveBubbleForToday() {
+  try {
+    localStorage.setItem(LIVE_BUBBLE_DISMISS_KEY, todayDateKey());
+  } catch (e) {
+    // 저장소 접근이 막혀도 이번 세션에서는 다시 뜨지 않음
+  }
+}
+
+function positionLiveBubble() {
+  const bubble = document.getElementById('liveBubble');
+  const target = document.getElementById('todayMenuBtn');
+  if (!bubble || !target) return;
+
+  const rect = target.getBoundingClientRect();
+
+  if (isMobileCalendar()) {
+    // 모바일: TODAY 버튼 바로 위, 버튼 중앙에 화살표가 오도록
+    const bubbleWidth = bubble.offsetWidth || 240;
+    let left = rect.left + rect.width / 2 - bubbleWidth / 2;
+    left = Math.max(12, Math.min(left, window.innerWidth - bubbleWidth - 12));
+    bubble.style.left = `${left}px`;
+    bubble.style.right = 'auto';
+    bubble.style.top = 'auto';
+    const arrow = bubble.querySelector('.live-bubble__arrow');
+    if (arrow) arrow.style.left = `${rect.left + rect.width / 2 - left - 7}px`;
+  } else {
+    // 데스크톱: TODAY 버튼 왼쪽, 세로 중앙을 맞춘다
+    bubble.style.top = `${rect.top + rect.height / 2}px`;
+    bubble.style.transform = 'translateY(-50%)';
+    bubble.style.right = `${window.innerWidth - rect.left + 14}px`;
+    bubble.style.left = 'auto';
+  }
+}
+
+function showLiveBubble() {
+  const bubble = document.getElementById('liveBubble');
+  if (!bubble) return;
+  bubble.classList.add('show');
+  positionLiveBubble();
+}
+
+function hideLiveBubble() {
+  const bubble = document.getElementById('liveBubble');
+  if (bubble) bubble.classList.remove('show');
+}
+
+// 오늘 일정 중 진행중 경기가 있으면 말풍선을 띄운다
+function maybeShowLiveBubble(todaySchedule) {
+  if (isLiveBubbleDismissedToday()) return;
+  const hasLive = (todaySchedule || []).some(game => getGameStatus(game) === '진행중');
+  if (hasLive) showLiveBubble();
+}
+
+const liveBubbleClose = document.getElementById('liveBubbleClose');
+if (liveBubbleClose) {
+  liveBubbleClose.addEventListener('click', () => {
+    hideLiveBubble();
+    dismissLiveBubbleForToday();
+  });
+}
+
+const liveBubbleText = document.querySelector('#liveBubble .live-bubble__text');
+if (liveBubbleText) {
+  liveBubbleText.addEventListener('click', async () => {
+    hideLiveBubble();
+    await goToToday();
+  });
+}
+
+window.addEventListener('resize', () => {
+  const bubble = document.getElementById('liveBubble');
+  if (bubble && bubble.classList.contains('show')) positionLiveBubble();
+});

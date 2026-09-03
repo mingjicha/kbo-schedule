@@ -19,9 +19,8 @@ function buildStatusHTML(status, symbol) {
 function renderSkeletonLoader() {
   return `
     <div class="loading">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span>
-      </div>
+      <div class="spinner-border" role="status"></div>
+      <p>경기 일정을 불러오는 중이에요<span class="symbol-font">♤</span></p>
     </div>
   `;
 }
@@ -457,7 +456,7 @@ function createGameCard(game, date, isToday) {
 
       const keyPlayerContent = document.createElement('div');
       keyPlayerContent.className = 'game-detail__tab-pane active';
-      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
       contentContainer.appendChild(keyPlayerContent);
 
       gameDetailContainer.innerHTML = '';
@@ -489,7 +488,7 @@ function createGameCard(game, date, isToday) {
       const contentContainer = document.createElement('div');
       contentContainer.className = 'game-detail__tab-content';
 
-      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const reviewContent = document.createElement('div');
       reviewContent.className = 'game-detail__tab-pane active';
@@ -556,7 +555,7 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
@@ -789,13 +788,14 @@ async function loadSeriesData(seriesKey, year = currentYear) {
 async function renderSeries(seriesKey) {
   postseasonSeries = seriesKey;
   const scheduleContainer = document.getElementById('scheduleContainer');
+  const postseasonAlert = document.getElementById('postseasonAlert');
   scheduleContainer.innerHTML = renderSkeletonLoader();
 
   const games = await loadSeriesData(seriesKey);
   window.currentScheduleData = games;
 
   if (games.length === 0) {
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">아직 경기 일정이 없어요<span class="symbol-font">♤</span></div>';
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
     return;
   }
 
@@ -922,6 +922,12 @@ async function setPostseasonMode(on) {
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-pressed', String(on));
   });
+
+  // 포스트시즌에서는 팀이 이미 대진으로 정해져 있어 팀 선택이 필요 없다
+  const filterSummaryBtn = document.getElementById('filterSummaryBtn');
+  const filterTeams = document.getElementById('filterTeams');
+  if (filterSummaryBtn) filterSummaryBtn.style.display = on ? 'none' : '';
+  if (filterTeams) filterTeams.style.display = on ? 'none' : '';
 
   if (on) {
     savedMonthBeforePostseason = currentMonth;

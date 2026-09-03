@@ -1,12 +1,12 @@
 /* Main Content */
 .main {
+  padding: 0 clamp(10px, 4vw, 32px);
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .schedule {
-  padding: 0 20px 40px 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -275,9 +275,6 @@
 }
 
 @media (max-width: 768px) {
-  .schedule {
-    padding: 0 clamp(10px, 4vw, 32px);
-  }
 
   .schedule__no-games {
     font-size: 0.875rem;
@@ -348,6 +345,10 @@
     height: 32px;
   }
 
+  .schedule__list {
+    gap: 0;
+  }
+
   /* 날짜 그룹: 박스 없는 얇은 헤더로 */
   .schedule__day {
     background-color: transparent;
@@ -362,7 +363,7 @@
   }
 
   .schedule__date-header {
-    padding: 0 4px 12px;
+    padding: 12px 4px 12px 4px;
     margin-bottom: 0;
     border-bottom: none;
     font-size: 0.9rem;
@@ -482,6 +483,7 @@
     gap: 12px;
     padding: 14px 16px;
     border-radius: 16px;
+    margin-top: 10px;
   }
 
   .champion__ico {

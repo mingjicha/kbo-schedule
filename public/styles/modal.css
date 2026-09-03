@@ -12,6 +12,10 @@
   z-index: 1000;
 }
 
+.modal .loading {
+  background-color: white;
+}
+
 .modal.show {
   display: flex;
 }
@@ -145,7 +149,6 @@
 }
 
 .modal__body {
-  padding-top: 15px;
   overflow-x: auto;
 }
 
@@ -240,11 +243,6 @@
   display: none;
 }
 
-.modal__no-rank-data {
-  text-align: center;
-  padding: 30px;
-  color: #999;
-}
 
 /* Weather Modal */
 .modal__content.modal__content--weather {
@@ -253,21 +251,11 @@
   flex-direction: column;
 }
 
-.modal__content.modal__content--weather::-webkit-scrollbar {
-  display: none;
-}
-
 .modal__body--weather {
-  padding-top: 15px;
   flex: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
   scrollbar-width: none;
-}
-
-.modal__body--weather::-webkit-scrollbar {
-  display: none;
 }
 
 .modal__weather-cards {
@@ -346,11 +334,6 @@
   line-height: 1;
 }
 
-.modal__no-weather-data {
-  text-align: center;
-  padding: 30px;
-  color: #999;
-}
 
 .modal__weather-list {
   display: none;
@@ -531,12 +514,11 @@
 .game-detail__tabs {
   display: flex;
   gap: 0;
-  margin: 0;
-  background-color: #333;
-  border-radius: 20px;
-  padding: 2px;
+  margin: 10px 0;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
   width: fit-content;
-  margin-bottom: 10px;
 }
 
 .game-detail__tab {
@@ -554,10 +536,6 @@
 .game-detail__tab.active {
   color: #333;
   background-color: white;
-}
-
-.game-detail__tab.active::bdfore {
-  content: '♧ ';
 }
 
 .game-detail__tab-content {
@@ -823,7 +801,6 @@
   .lineup__team-tabs {
     display: flex;
     gap: 6px;
-    margin-bottom: 12px;
   }
 
   .lineup__team-tab {
@@ -991,7 +968,7 @@
   .game-detail__pitcher-stat-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 10px;
   }
 
@@ -1017,7 +994,6 @@
   .game-detail__pitcher-stat-record {
     font-size: 0.6875rem;
     color: #B0B8C1;
-    margin-top: 1px;
   }
 
   .game-detail__stat-grid {
@@ -1086,7 +1062,7 @@
 
   .lineup__war-summary h4 {
     margin-bottom: 11px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 800;
     color: #333;
   }
@@ -1098,10 +1074,8 @@
     gap: 6px;
   }
 
-  .lineup__team-logo {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+  .game-review {
+    padding-bottom: 20px;
   }
 
   .modal__rank-table {
@@ -1220,7 +1194,6 @@
   }
 
   .modal__body--weather {
-    padding-top: 6px;
     align-items: flex-start;
   }
 
@@ -1246,7 +1219,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 2px;
+    padding: 10px 2px;
     border-bottom: 1px solid #F2F4F6;
   }
 
@@ -1299,8 +1272,8 @@
   }
 
   .modal__weather-chip--rain {
-    background: #E8F2F0;
-    color: #245B52;
+    background: #FEF3E9;
+    color: #884A14;
   }
 
   .modal__weather-row-stats {
@@ -1366,7 +1339,7 @@
   gap: 8px;
   font-size: 0.875rem;
   color: #8B95A1;
-  margin-bottom: 16px;
+  margin: 10px 0;
 }
 
 .key-players .score-line b {
@@ -1445,14 +1418,10 @@
 }
 
 /* Game Review / Highlight (종료 경기) */
-.game-review {
-  padding: 4px 0 0;
-}
-
 .box {
   background: #F2F4F6;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 8px;
   margin-bottom: 14px;
 }
 
@@ -1461,7 +1430,7 @@
   justify-content: space-between;
   font-size: 0.75rem;
   color: #8B95A1;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 
 .inning-table {
@@ -1509,15 +1478,16 @@
   color: #626ABD;
 }
 
-.game-review .sub-h {
-  font-size: 0.75rem;
+.game-review .sub-h,
+.video-title {
+  font-size: 0.85rem;
   font-weight: 800;
   color: #333;
-  margin: 0 0 11px 2px;
+  margin-bottom: 11px;
 }
 
-.game-review .sub-h:not(:first-of-type) {
-  margin-top: 16px;
+.game-review .sub-h {
+  margin-left: 2px;
 }
 
 .detail-list {
@@ -1598,20 +1568,56 @@
 }
 
 .video-play-circle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: #191F28;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 2rem;
 }
 
-.video-title {
-  font-size: 0.75rem;
-  font-weight: 800;
+.video-play-circle i {
+  margin-left: 3px;
+}
+
+/* 주자 상황 (베이스) */
+.base {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+}
+
+.base span {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.base img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.base p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #333;
-  margin-bottom: 11px;
+  margin-left: auto;
+}
+
+.base span {
+  font-weight: 700;
+  color: #626ABD;
 }

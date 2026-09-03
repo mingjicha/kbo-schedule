@@ -3,7 +3,6 @@ let currentTeam = '';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
 let currentDay = null;
-let selectedDate = null;
 
 window.currentScheduleData = [];
 
@@ -38,7 +37,9 @@ async function initializeApp() {
     const focusDate = focus ? focus.date : null;
 
     // 온보딩이 뜰 때는 좌표가 흔들리지 않도록 스크롤을 온보딩 이후로 미룬다
-    const willShowOnboarding = shouldShowOnboarding();
+    // 포스트시즌 모드에서는 온보딩을 표시하지 않는다
+    const isPostseason = typeof postseasonMode !== 'undefined' && postseasonMode;
+    const willShowOnboarding = !isPostseason && shouldShowOnboarding();
     const gameList = renderGamesByMonth(
       schedule,
       willShowOnboarding ? null : focusDate,
@@ -48,8 +49,25 @@ async function initializeApp() {
     scheduleContainer.innerHTML = '';
     scheduleContainer.appendChild(gameList);
 
+    // 오늘 진행중 경기가 있으면 온보딩이 끝난 뒤 TODAY 버튼을 가리키는 말풍선을 띄운다
+    const todayGames = schedule.filter(g => {
+      const m = g.date.match(/(\d{2})\.(\d{2})/);
+      if (!m) return false;
+      const today = new Date();
+      return parseInt(m[1]) === today.getMonth() + 1 && parseInt(m[2]) === today.getDate();
+    });
+    const afterOnboarding = () => {
+      if (willShowOnboarding) scrollToDateHeader(focusDate, true);
+      maybeShowLiveBubble(todayGames);
+    };
+
     // 경기 카드가 그려졌으면 온보딩을 바로 띄운다 (날씨 로딩을 기다리지 않는다)
-    maybeStartOnboarding(willShowOnboarding ? () => scrollToDateHeader(focusDate, true) : null);
+    // 포스트시즌 모드에서는 온보딩을 스킵한다
+    if (!isPostseason) {
+      maybeStartOnboarding(afterOnboarding);
+    } else {
+      afterOnboarding();
+    }
 
     // 나머지는 백그라운드에서 진행
     // 달력의 경기일 표시를 미리 채워둔다 (달력을 열 때 기다리지 않게)

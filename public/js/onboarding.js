@@ -1,5 +1,6 @@
 // Onboarding Coachmark
 const ONBOARDING_KEY = 'kbo-onboarding-done';
+const ONBOARDING_FINISHED_GAMES_KEY = 'kbo-onboarding-finished-games-done';
 const ONBOARDING_PREVIEW_KEY = 'kbo-onboarding-preview-done';
 
 const onboardingEl = document.getElementById('onboarding');
@@ -43,12 +44,20 @@ const basicSteps = [
   }
 ];
 
-const previewStep = {
-  target: () => document.querySelector('.schedule__day--today .schedule__game'),
-  title: '예정된 경기는 눌러보세요',
-  desc: '선발투수 기록과 라인업을 미리 확인할 수 있어요.',
-  key: ONBOARDING_PREVIEW_KEY
-};
+const previewSteps = [
+  {
+    target: () => document.querySelector('.schedule__game--finished'),
+    title: '지난 경기 결과를 확인하세요',
+    desc: '경기 상세 결과, 하이라이트를 볼 수 있어요.',
+    key: ONBOARDING_FINISHED_GAMES_KEY
+  },
+  {
+    target: () => document.querySelector('.schedule__day--today .schedule__game:not(.schedule__game--finished)'),
+    title: '예정된 경기는 눌러보세요',
+    desc: '선발투수 기록과 라인업을 미리 확인할 수 있어요.',
+    key: ONBOARDING_PREVIEW_KEY
+  }
+];
 
 let currentStep = 0;
 let activeSteps = [];
@@ -184,7 +193,7 @@ if (onboardingEl) {
 }
 
 function shouldShowOnboarding() {
-  return !(isDone(ONBOARDING_KEY) && isDone(ONBOARDING_PREVIEW_KEY));
+  return !(isDone(ONBOARDING_KEY) && isDone(ONBOARDING_FINISHED_GAMES_KEY) && isDone(ONBOARDING_PREVIEW_KEY));
 }
 
 function maybeStartOnboarding(onFinish) {
@@ -194,8 +203,26 @@ function maybeStartOnboarding(onFinish) {
   }
 
   const basicDone = isDone(ONBOARDING_KEY);
+  const finishedGamesDone = isDone(ONBOARDING_FINISHED_GAMES_KEY);
+  const previewDone = isDone(ONBOARDING_PREVIEW_KEY);
+
+  // 오늘 예정된 경기가 있는지 확인
+  const hasTodayScheduledGame = !!document.querySelector('.schedule__day--today .schedule__game:not(.schedule__game--finished)');
+
   // 기본 안내를 아직 못 봤으면 전체를, 봤으면 남은 프리뷰 안내만 보여준다
-  const steps = basicDone ? [previewStep] : basicSteps.concat(previewStep);
+  let steps;
+  if (!basicDone) {
+    steps = basicSteps.concat(previewSteps);
+  } else if (!finishedGamesDone && !previewDone) {
+    // 기본 완료, 둘 다 미완료: 지난 경기부터 시작
+    steps = previewSteps;
+  } else if (!previewDone && hasTodayScheduledGame) {
+    // 예정 경기 미완료, 오늘 경기 있음: 예정 경기만
+    steps = [previewSteps[1]];
+  } else {
+    if (onFinish) onFinish();
+    return;
+  }
 
   // 카드가 그려진 직후라 레이아웃이 잡힐 만큼만 기다린다
   setTimeout(() => startOnboarding(steps, onFinish), 200);

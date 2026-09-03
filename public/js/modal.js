@@ -39,7 +39,7 @@ async function loadWeather(forceRefresh = false) {
       return;
     }
 
-    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+    weatherContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
     const today = new Date();
     const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
@@ -167,7 +167,7 @@ async function loadTeamRank(forceRefresh = false) {
   const rankDate = document.getElementById('rankDate');
 
   try {
-    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><span class="visually-hidden">로딩 중이에요<span class="symbol-font">♤</span></span></div></div>';
+    rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
     const response = await fetch(forceRefresh ? '/api/team-rank?refresh=1' : '/api/team-rank');
     const data = await response.json();
@@ -462,19 +462,29 @@ function renderKeyPlayerList(players) {
 function renderKeyPlayers(data, game, container) {
   const pitchers = (data && data.pitchers) || [];
   const hitters = (data && data.hitters) || [];
+  const gameStatus = data && data.gameStatus;
 
   if (pitchers.length === 0 && hitters.length === 0) {
     container.innerHTML = '<div class="modal__no-data">아직 기록이 없어요<span class="symbol-font">♤</span></div>';
     return;
   }
 
+  const baseHtml = gameStatus ? `
+    <div class="base">
+      <span class="base1"><img src="//6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/KBOHome/resources/images/common/base${gameStatus.bases.first ? '_on' : ''}.png" alt="1루"></span>
+      <span class="base2"><img src="//6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/KBOHome/resources/images/common/base${gameStatus.bases.second ? '_on' : ''}.png" alt="2루"></span>
+      <span class="base3"><img src="//6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/KBOHome/resources/images/common/base${gameStatus.bases.third ? '_on' : ''}.png" alt="3루"></span>
+      <p>${gameStatus.awayScore}-${gameStatus.homeScore} <span>${gameStatus.outs}</span>out</p>
+    </div>
+  ` : '';
+
   container.innerHTML = `
     <div class="key-players">
-      <span class="live-badge"><span class="live-dot"></span>진행중</span>
       <div class="score-line">
         ${game.awayTeam} <b>${game.awayScore != null ? game.awayScore : '-'}</b> :
         <b>${game.homeScore != null ? game.homeScore : '-'}</b> ${game.homeTeam}
       </div>
+      ${baseHtml}
 
       <div class="sub-h">투수 WPA</div>
       ${renderKeyPlayerList(pitchers)}
@@ -534,7 +544,7 @@ function renderGameReview(data, game, container) {
   const boxHtml = innings > 0 ? `
     <div class="box">
       <div class="box-row">
-        <span>${data.stadium || ''}</span>
+        <span style="margin-left: 4px;">${data.stadium || ''}</span>
         <span>${data.runTime ? `경기시간 ${formatRunTime(data.runTime)}` : ''}</span>
       </div>
       <table class="inning-table">
@@ -614,7 +624,7 @@ async function loadGameHighlight(game, container) {
         ${thumbUrl ? `
           <img class="video-thumb" src="${thumbUrl}" alt="${data.title || '하이라이트'}">
           <button type="button" class="video-play-btn" aria-label="재생">
-            <span class="video-play-circle">▶</span>
+            <span class="video-play-circle"><i class="bi bi-play-fill"></i></span>
           </button>
         ` : `
           <iframe width="100%" height="100%" src="${data.embedUrl}"
@@ -870,8 +880,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const refreshGameDetailBtn = document.getElementById('refreshGameDetailBtn');
   const closeGameDetailBtn = document.getElementById('closeGameDetailBtn');
   const gameDetailModal = document.getElementById('gameDetailModal');
+
+  if (refreshGameDetailBtn) {
+    refreshGameDetailBtn.addEventListener('click', () => {
+      // 현재 게임 ID가 있으면 다시 로드
+      const gameId = gameDetailModal.dataset.gameId;
+      const srId = gameDetailModal.dataset.srId;
+      if (gameId) {
+        loadGameDetail(gameId, srId);
+      }
+    });
+  }
 
   if (closeGameDetailBtn) {
     closeGameDetailBtn.addEventListener('click', () => {

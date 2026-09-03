@@ -12,13 +12,7 @@
   display: block !important;
 }
 
-.flatpickr-months {
-  background: white;
-  color: #000;
-}
-
 .flatpickr-month {
-  background: white;
   color: #000;
 }
 
@@ -36,26 +30,18 @@
 
 .flatpickr-current-month input.cur-year {
   color: #000;
-  background: white;
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months {
-  background: white;
   color: #000;
 }
 
 .flatpickr-weekdays {
-  background: white;
   color: #000;
 }
 
 .flatpickr-weekday {
   color: #333;
-  background: white;
-}
-
-.flatpickr-days {
-  background: white;
 }
 
 .flatpickr-day {
@@ -70,6 +56,7 @@
   background: #000;
   border-color: #000;
   color: white;
+  border-radius: 50%;
 }
 
 .flatpickr-day.selected:hover,
@@ -99,12 +86,7 @@
   background: #000;
   border-color: #000;
   color: white;
-}
-
-.flatpickr-day.today:hover {
-  background: #000;
-  color: white;
-  border-color: #000;
+  border-radius: 50%;
 }
 
 .flatpickr-day:hover {
