@@ -115,6 +115,49 @@ function writeScheduleFile(year, month, schedule) {
   }
 }
 
+// season.json, postseason.json 생성/조회
+const DATA_DIR = path.join(__dirname, 'data');
+
+function readSeasonJson(year) {
+  try {
+    const filePath = path.join(DATA_DIR, `season-${year}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeSeasonJson(year, schedule) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const filePath = path.join(DATA_DIR, `season-${year}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(schedule), 'utf-8');
+  } catch (e) {
+    console.error('Error writing season.json:', e.message);
+  }
+}
+
+function readPostseasonJson(year) {
+  try {
+    const filePath = path.join(DATA_DIR, `postseason-${year}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writePostseasonJson(year, schedule) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const filePath = path.join(DATA_DIR, `postseason-${year}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(schedule), 'utf-8');
+  } catch (e) {
+    console.error('Error writing postseason.json:', e.message);
+  }
+}
+
 function parseGameInfo(playHtml, gameId = '') {
   if (!playHtml) return {
     awayTeam: 'N/A',
@@ -1796,6 +1839,294 @@ async function getPitcherWPA(gameId, teamName) {
   }
 }
 
+// 시즌 전체 일정 JSON 반환 (과거는 모든 유저 공통, 미래는 변경 감지)
+app.get('/api/season-json', async (req, res) => {
+  try {
+    const year = req.query.year || new Date().getFullYear();
+
+    // 기존 JSON 파일이 있으면 반환
+    const existing = readSeasonJson(year);
+    if (existing) {
+      return res.json(existing);
+    }
+
+    // 없으면 3월~10월 전체 크롤링해서 생성
+    const allSchedules = [];
+    for (const month of ['03', '04', '05', '06', '07', '08', '09', '10']) {
+      try {
+        const postData = new URLSearchParams({
+          leId: '1',
+          srIdList: '0',
+          seasonId: year,
+          gameMonth: month,
+          teamId: ''
+        });
+
+        const response = await axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+          postData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }
+        );
+
+        if (response.data && Array.isArray(response.data.rows)) {
+          allSchedules.push(...response.data.rows);
+        }
+      } catch (e) {
+        console.error(`Error fetching month ${month}:`, e.message);
+      }
+    }
+
+    // 생성된 JSON 파일 저장
+    writeSeasonJson(year, allSchedules);
+    res.json(allSchedules);
+  } catch (error) {
+    console.error('Error in /api/season-json:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 포스트시즌 전체 일정 JSON 반환
+app.get('/api/postseason-json', async (req, res) => {
+  try {
+    const year = req.query.year || new Date().getFullYear();
+
+    // 기존 JSON 파일이 있으면 반환
+    const existing = readPostseasonJson(year);
+    if (existing) {
+      return res.json(existing);
+    }
+
+    // 없으면 9월~12월 전체 크롤링해서 생성
+    const allSchedules = [];
+    for (const month of ['09', '10', '11', '12']) {
+      try {
+        const postData = new URLSearchParams({
+          leId: '1',
+          srIdList: '4,3,5,7',
+          seasonId: year,
+          gameMonth: month,
+          teamId: ''
+        });
+
+        const response = await axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+          postData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }
+        );
+
+        if (response.data && Array.isArray(response.data.rows)) {
+          allSchedules.push(...response.data.rows);
+        }
+      } catch (e) {
+        console.error(`Error fetching month ${month}:`, e.message);
+      }
+    }
+
+    // 생성된 JSON 파일 저장
+    writePostseasonJson(year, allSchedules);
+    res.json(allSchedules);
+  } catch (error) {
+    console.error('Error in /api/postseason-json:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// TODAY 경기만 실시간 상태 조회
+app.get('/api/today-games-status', async (req, res) => {
+  try {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+
+    const postData = new URLSearchParams({
+      leId: '1',
+      srIdList: '0',
+      seasonId: year,
+      gameMonth: month,
+      teamId: ''
+    });
+
+    const response = await axios.post(
+      'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+      postData.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }
+    );
+
+    if (response.data && Array.isArray(response.data.rows)) {
+      // TODAY의 경기만 필터링
+      const todayGames = response.data.rows.filter(game => {
+        const gameDate = game.gameDate || '';
+        return gameDate.includes(`${month}.${String(today.getDate()).padStart(2, '0')}`);
+      });
+      res.json(todayGames);
+    } else {
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Error in /api/today-games-status:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 백그라운드에서 JSON 파일 갱신 (크롤링)
+async function updateSeasonJsonInBackground(year = new Date().getFullYear()) {
+  console.log(`[Background] Updating season-${year}.json...`);
+  try {
+    const allSchedules = [];
+    for (const month of ['03', '04', '05', '06', '07', '08', '09', '10']) {
+      try {
+        const postData = new URLSearchParams({
+          leId: '1',
+          srIdList: '0',
+          seasonId: year,
+          gameMonth: month,
+          teamId: ''
+        });
+
+        const response = await axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+          postData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }
+        );
+
+        if (response.data && Array.isArray(response.data.rows)) {
+          allSchedules.push(...response.data.rows);
+        }
+      } catch (e) {
+        console.error(`[Background] Error fetching month ${month}:`, e.message);
+      }
+    }
+    writeSeasonJson(year, allSchedules);
+    console.log(`[Background] Successfully updated season-${year}.json (${allSchedules.length} games)`);
+  } catch (error) {
+    console.error('[Background] Error updating season.json:', error.message);
+  }
+}
+
+async function updatePostseasonJsonInBackground(year = new Date().getFullYear()) {
+  console.log(`[Background] Updating postseason-${year}.json...`);
+  try {
+    const allSchedules = [];
+    for (const month of ['09', '10', '11', '12']) {
+      try {
+        const postData = new URLSearchParams({
+          leId: '1',
+          srIdList: '4,3,5,7',
+          seasonId: year,
+          gameMonth: month,
+          teamId: ''
+        });
+
+        const response = await axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetScheduleList',
+          postData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://www.koreabaseball.com/Schedule/Schedule.aspx',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }
+        );
+
+        if (response.data && Array.isArray(response.data.rows)) {
+          allSchedules.push(...response.data.rows);
+        }
+      } catch (e) {
+        console.error(`[Background] Error fetching month ${month}:`, e.message);
+      }
+    }
+    writePostseasonJson(year, allSchedules);
+    console.log(`[Background] Successfully updated postseason-${year}.json (${allSchedules.length} games)`);
+  } catch (error) {
+    console.error('[Background] Error updating postseason.json:', error.message);
+  }
+}
+
+// 수동 갱신 엔드포인트 (관리자용)
+app.post('/api/force-update-json', async (req, res) => {
+  const year = req.query.year || new Date().getFullYear();
+
+  try {
+    // 비동기로 백그라운드에서 실행 (응답은 즉시)
+    Promise.all([
+      updateSeasonJsonInBackground(year),
+      updatePostseasonJsonInBackground(year)
+    ]);
+
+    res.json({ message: `Scheduled update for year ${year}`, status: 'updating' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 서버 시작 시: 현재 연도 JSON 생성 (없으면), 자정마다 갱신
+function initializeBackgroundUpdates() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  // 시작 시 JSON 파일 확인 및 생성
+  console.log('[Init] Checking season/postseason JSON files...');
+  if (!readSeasonJson(currentYear)) {
+    console.log('[Init] season.json not found, creating...');
+    updateSeasonJsonInBackground(currentYear);
+  }
+  if (!readPostseasonJson(currentYear)) {
+    console.log('[Init] postseason.json not found, creating...');
+    updatePostseasonJsonInBackground(currentYear);
+  }
+
+  // 매일 자정에 갱신하도록 타이머 설정
+  const scheduleNextUpdate = () => {
+    const next = new Date();
+    next.setHours(0, 0, 0, 0); // 자정
+    next.setDate(next.getDate() + 1); // 다음 날
+
+    const delay = next.getTime() - Date.now();
+    console.log(`[Background] Next update scheduled at ${next.toLocaleString()}`);
+
+    setTimeout(() => {
+      console.log('[Background] Running scheduled update...');
+      updateSeasonJsonInBackground(currentYear);
+      updatePostseasonJsonInBackground(currentYear);
+      scheduleNextUpdate(); // 다음 자정 예약
+    }, delay);
+  };
+
+  scheduleNextUpdate();
+}
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at https://localhost:${PORT}`);
+  // 백그라운드 갱신 초기화
+  initializeBackgroundUpdates();
 });

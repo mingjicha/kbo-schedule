@@ -260,10 +260,8 @@ async function goToToday() {
       for (let dayDiv of allDays) {
         const header = dayDiv.querySelector('.schedule__date-header');
         if (header && header.getAttribute('data-date').startsWith(todayDateStr)) {
-          dayDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // 고정 헤더 높이만큼 위로 스크롤 (모바일: 101px, 데스크톱: 160px)
-          const headerHeight = window.innerWidth <= 768 ? 101 : 160;
-          window.scrollBy(0, -headerHeight);
+          // TODAY 뱃지와 날짜 헤더가 화면에 보이도록 스크롤
+          dayDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
           found = true;
           break;
         }

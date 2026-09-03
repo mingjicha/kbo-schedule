@@ -84,22 +84,29 @@ function startTodayRefreshTimer() {
       return gameTime < earliest ? gameTime : earliest;
     }, new Date(currentYearNum, currentMonthNum - 1, today.getDate(), 23, 59));
 
-    // 경기 시작 후 6시간 내: 2분마다 갱신
-    // 경기 시작 전: 갱신 없음
+    // 경기 시작 후 6시간 내: TODAY 경기만 실시간 갱신
     const gameEndTime = new Date(earliestGameTime.getTime() + 6 * 60 * 60 * 1000);
     if (today >= earliestGameTime && today < gameEndTime) {
-      // 캐시 무효화 후 갱신
       try {
-        const key = `${CACHE_KEYS.SCHEDULE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
-        const dateKey = `${CACHE_KEYS.CACHE_DATE}${currentYearNum}-${String(currentMonthNum).padStart(2, '0')}`;
-        localStorage.removeItem(key);
-        localStorage.removeItem(dateKey);
+        const response = await fetch('/api/today-games-status');
+        if (response.ok) {
+          const freshTodayGames = await response.json();
+          // TODAY 경기만 업데이트
+          window.currentScheduleData = window.currentScheduleData.map(game => {
+            const m = game.date?.match(/(\d{2})\.(\d{2})/);
+            const isTodayGame = m && parseInt(m[1]) === currentMonthNum && parseInt(m[2]) === today.getDate();
+            if (!isTodayGame) return game;
 
-        const refreshed = await loadMonthData(currentMonthNum, currentYearNum);
-        window.currentScheduleData = refreshed;
-        updateGameStatuses();
+            // TODAY 경기 상태 업데이트
+            const updated = freshTodayGames.find(fresh =>
+              fresh.gameId === game.gameId || fresh.gameDate === game.gameDate && fresh.awayTeamCode === game.awayTeamCode
+            );
+            return updated || game;
+          });
+          updateGameStatuses();
+        }
       } catch (error) {
-        console.error('Error refreshing today schedule:', error);
+        console.error('Error refreshing today games status:', error);
       }
     }
   };
@@ -743,15 +750,30 @@ async function loadMonthData(month, year = null) {
     }
   }
 
-  // 캐시가 없으면 API 호출
-  const apiUrl = `/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
-  const response = await fetch(apiUrl);
+  // season.json 전체 로드 (첫 요청만 느림, 이후는 파일에서 로드)
+  const seasonJsonUrl = `/api/season-json?year=${yearToUse}`;
+  const response = await fetch(seasonJsonUrl);
 
   if (response.ok) {
-    const schedule = await response.json();
-    if (Array.isArray(schedule)) {
-      saveScheduleToCache(month, yearToUse, schedule);
-      return schedule;
+    const allSchedules = await response.json();
+    if (Array.isArray(allSchedules)) {
+      // 요청한 월의 데이터만 필터링
+      const filteredSchedules = allSchedules.filter(game => {
+        const gameMonth = game.gameDate ? game.gameDate.substring(5, 7) : monthStr;
+        return gameMonth === monthStr;
+      });
+
+      // 팀 필터 적용
+      let finalSchedules = filteredSchedules;
+      if (currentTeam) {
+        finalSchedules = filteredSchedules.filter(game => {
+          return (game.awayTeamCode === currentTeam || game.homeTeamCode === currentTeam);
+        });
+      }
+
+      // 캐시 저장
+      saveScheduleToCache(month, yearToUse, finalSchedules);
+      return finalSchedules;
     }
   }
   return [];
@@ -885,15 +907,42 @@ let postseasonSeries = null;
 let savedMonthBeforePostseason = null;
 
 async function loadSeriesData(seriesKey, year = currentYear) {
-  // 포스트시즌은 10월과 11월에 걸쳐 열릴 수 있어 두 달을 합친다
-  const months = ['10', '11'];
-  const results = await Promise.all(months.map(async (month) => {
-    const res = await fetch(
-      `/api/schedule?year=${year}&month=${month}&series=${seriesKey}&team=${currentTeam}`
-    );
-    return res.ok ? await res.json() : [];
-  }));
-  return results.flat();
+  // 캐시 확인 (9월 기준으로 포스트시즌 전체 캐싱)
+  if (isCacheValid(9, year)) {
+    const cached = getScheduleFromCache(9, year);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  // postseason.json 전체 로드
+  const postseasonJsonUrl = `/api/postseason-json?year=${year}`;
+  const response = await fetch(postseasonJsonUrl);
+
+  if (response.ok) {
+    const allSchedules = await response.json();
+    if (Array.isArray(allSchedules)) {
+      // 시리즈별 필터링
+      const seriesMap = { 'wc': '4', 'sp': '3', 'pl': '5', 'ks': '7' };
+      const srId = seriesMap[seriesKey];
+      const filteredSchedules = allSchedules.filter(game => game.srId === srId);
+
+      // 팀 필터 적용
+      let finalSchedules = filteredSchedules;
+      if (currentTeam) {
+        finalSchedules = filteredSchedules.filter(game => {
+          return (game.awayTeamCode === currentTeam || game.homeTeamCode === currentTeam);
+        });
+      }
+
+      // 캐시 저장
+      if (finalSchedules.length > 0) {
+        saveScheduleToCache(9, year, finalSchedules);
+      }
+      return finalSchedules;
+    }
+  }
+  return [];
 }
 
 async function renderSeries(seriesKey) {

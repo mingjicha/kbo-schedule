@@ -1,0 +1,14 @@
+name: Update Schedule JSON
+
+on:
+  schedule:
+    - cron: '0 15 * * *'  # 매일 15:00 UTC (한국시간 자정)
+  workflow_dispatch:  # 수동 실행도 가능
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger JSON Update
+        run: |
+          curl -X POST https://kbo-schedule-production.up.railway.app/api/force-update-json
