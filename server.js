@@ -3,7 +3,6 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
-const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,32 +50,12 @@ const TEAM_MAP = {
 
 const TEAM_CODES = ['', 'LG', 'HH', 'SK', 'SS', 'NC', 'KT', 'LT', 'HT', 'OB', 'WO'];
 
-// Puppeteer 인스턴스 관리
-let browserInstance = null;
+// 팀명(한글) → 코드. GameCenter API들이 코드를 요구하는데 프론트는 한글명을 보낸다
+const TEAM_NAME_TO_CODE = Object.fromEntries(
+  Object.entries(TEAM_MAP).filter(([code]) => code).map(([code, name]) => [name, code])
+);
+
 const gameDataCache = {};
-
-async function getBrowser() {
-  // 브라우저가 죽은 채로 남아 있으면 이후 요청이 모두 실패하므로 상태를 확인하고 다시 띄운다
-  if (browserInstance && !browserInstance.connected) {
-    try {
-      await browserInstance.close();
-    } catch (e) {
-      // 이미 죽은 프로세스면 무시
-    }
-    browserInstance = null;
-  }
-
-  if (!browserInstance) {
-    browserInstance = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
-    });
-    browserInstance.on('disconnected', () => {
-      browserInstance = null;
-    });
-  }
-  return browserInstance;
-}
 
 function getCachedData(gameId) {
   return gameDataCache[gameId];
@@ -344,6 +323,34 @@ function parseGameInfo(playHtml, gameId = '') {
   };
 }
 
+// 동시 요청 개수를 제한하며 items 를 처리한다.
+// KBO 서버에 한 달치 날짜(15~25개)를 한꺼번에 꽂으면 일부가 타임아웃/거부당해
+// 해당 날짜 경기만 투수 정보가 빠지는 문제가 있어, 이 정도(5개씩)로 나눠 보낸다
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const i = nextIndex++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+// 일시적인 타임아웃/거부는 한 번 더 시도한다 (동시 요청이 몰릴 때 KBO 쪽이 간헐적으로 실패시킨다)
+async function withRetry(fn, retries = 1) {
+  try {
+    return await fn();
+  } catch (e) {
+    if (retries <= 0) throw e;
+    return withRetry(fn, retries - 1);
+  }
+}
+
 // 포스트시즌 시리즈 (KBO srId). 경기는 10~11월에 열린다
 const POSTSEASON_SERIES = {
   wc: { srId: '4', name: '와일드카드' },
@@ -555,63 +562,63 @@ app.get('/api/schedule', async (req, res) => {
     });
 
     // 1. 종료된 경기 (gameId가 있는 경우) - GetKboGameList API 호출
-    await Promise.all(
-      Object.keys(gamesByDate).map(gameDate =>
-        axios.post(
-          'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
-          new URLSearchParams({
-            leId: '1',
-            srId: srIdList,
-            date: gameDate
-          }).toString(),
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-              'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx'
-            }
+    // 날짜 수만큼(한 달이면 15~25개) 한꺼번에 쏘면 KBO 쪽에서 일부를 거부해
+    // 해당 날짜 경기만 투수 정보가 빠지는 일이 있어, 동시 5개로 제한하고 실패 시 1회 재시도한다
+    await mapWithConcurrency(Object.keys(gamesByDate), 5, gameDate =>
+      withRetry(() => axios.post(
+        'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
+        new URLSearchParams({
+          leId: '1',
+          srId: srIdList,
+          date: gameDate
+        }).toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx'
           }
-        )
-          .then(pitcherRes => {
-            if (pitcherRes.data && pitcherRes.data.game) {
-              pitcherRes.data.game.forEach(apiGame => {
-                const gameId = apiGame.G_ID;
-                const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
-                const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
-                const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
-                const loserPitcher = (apiGame.L_PIT_P_NM || '').trim();
-                const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
-                const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
-                const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
-                const awayStartPitcherId = apiGame.T_PIT_P_ID;
-                const homeStartPitcherId = apiGame.B_PIT_P_ID;
-                const winnerPitcherId = apiGame.W_PIT_P_ID;
+        }
+      ))
+        .then(pitcherRes => {
+          if (pitcherRes.data && pitcherRes.data.game) {
+            pitcherRes.data.game.forEach(apiGame => {
+              const gameId = apiGame.G_ID;
+              const awayStartPitcher = (apiGame.T_PIT_P_NM || '').trim() || 'N/A';
+              const homeStartPitcher = (apiGame.B_PIT_P_NM || '').trim() || 'N/A';
+              const winnerPitcher = (apiGame.W_PIT_P_NM || '').trim();
+              const loserPitcher = (apiGame.L_PIT_P_NM || '').trim();
+              const savePitcher = (apiGame.SV_PIT_P_NM || '').trim();
+              const awayScore = parseInt(apiGame.T_SCORE_CN) || 0;
+              const homeScore = parseInt(apiGame.B_SCORE_CN) || 0;
+              const awayStartPitcherId = apiGame.T_PIT_P_ID;
+              const homeStartPitcherId = apiGame.B_PIT_P_ID;
+              const winnerPitcherId = apiGame.W_PIT_P_ID;
 
-                let finalAwayPitcher = awayStartPitcher;
-                let finalHomePitcher = homeStartPitcher;
+              let finalAwayPitcher = awayStartPitcher;
+              let finalHomePitcher = homeStartPitcher;
 
-                // 이긴 쪽은 승리투수, 진 쪽은 패전투수를 보여준다
-                if (awayScore > homeScore) {
-                  if (winnerPitcher) finalAwayPitcher = winnerPitcher;
-                  if (loserPitcher) finalHomePitcher = loserPitcher;
-                } else if (homeScore > awayScore) {
-                  if (winnerPitcher) finalHomePitcher = winnerPitcher;
-                  if (loserPitcher) finalAwayPitcher = loserPitcher;
-                }
+              // 이긴 쪽은 승리투수, 진 쪽은 패전투수를 보여준다
+              if (awayScore > homeScore) {
+                if (winnerPitcher) finalAwayPitcher = winnerPitcher;
+                if (loserPitcher) finalHomePitcher = loserPitcher;
+              } else if (homeScore > awayScore) {
+                if (winnerPitcher) finalHomePitcher = winnerPitcher;
+                if (loserPitcher) finalAwayPitcher = loserPitcher;
+              }
 
-                if (gameId) {
-                  pitcherCache[gameId] = {
-                    awayPitcher: finalAwayPitcher,
-                    homePitcher: finalHomePitcher
-                  };
-                }
-              });
-            }
-          })
-          .catch(error => {
-            console.error(`Error fetching pitcher info for date ${gameDate}:`, error.message);
-          })
-      )
+              if (gameId) {
+                pitcherCache[gameId] = {
+                  awayPitcher: finalAwayPitcher,
+                  homePitcher: finalHomePitcher
+                };
+              }
+            });
+          }
+        })
+        .catch(error => {
+          console.error(`Error fetching pitcher info for date ${gameDate}:`, error.message);
+        })
     );
 
     // 2. 오늘 경기 (gameId가 없는 경우) - 날짜별로 분류해서 처리
@@ -629,10 +636,11 @@ app.get('/api/schedule', async (req, res) => {
         }
       });
 
-      // 각 날짜별로 API 호출
-      for (const [gameDate, gamesForDate] of Object.entries(gamesByScheduleDate)) {
+      // 각 날짜별로 API 호출 (날짜가 여러 개여도 동시에 처리한다. "오늘 경기"만 대상이라
+      // 날짜 수가 적어 동시성 제한 없이도 안전하지만, 일시적 실패엔 1회 재시도한다)
+      await Promise.all(Object.entries(gamesByScheduleDate).map(async ([gameDate, gamesForDate]) => {
         try {
-          const todayPitcherRes = await axios.post(
+          const todayPitcherRes = await withRetry(() => axios.post(
             'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
             new URLSearchParams({
               leId: '1',
@@ -646,7 +654,7 @@ app.get('/api/schedule', async (req, res) => {
                 'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx'
               }
             }
-          );
+          ));
 
           if (todayPitcherRes.data && todayPitcherRes.data.game) {
             const todayGameMap = {};
@@ -700,7 +708,7 @@ app.get('/api/schedule', async (req, res) => {
         } catch (error) {
           console.error(`Error fetching pitcher info for date ${gameDate}:`, error.message);
         }
-      }
+      }));
     }
 
     // 3. gameId가 있는 경기에 투수 정보 적용
@@ -1214,68 +1222,94 @@ app.get('/api/weather', async (req, res) => {
 });
 
 // 투수 통계 및 라인업 조회
-// 같은 경기를 동시에 여러 번 크롤링하지 않도록 진행 중인 작업을 공유한다
+// 같은 경기를 동시에 여러 번 조회하지 않도록 진행 중인 작업을 공유한다
 const pendingPreviews = {};
 
-async function fetchGamePreview(awayPitcher, homePitcher, gameId) {
+const GC_HEADERS = {
+  'Content-Type': 'application/x-www-form-urlencoded',
+  'X-Requested-With': 'XMLHttpRequest',
+  'Referer': 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+};
+
+function parseGcTable(raw) {
+  try {
+    // GetLineUpAnalysis 는 테이블을 [ "{...json...}" ] 형태(문자열을 담은 배열)로 감싸서 준다
+    const jsonStr = Array.isArray(raw) ? raw[0] : raw;
+    const table = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+    return (table && Array.isArray(table.rows)) ? table.rows : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// pitcher-cell HTML에서 이름/투타/전적을 뽑는다 (GetPitcherRecordAnalysis 응답 형식)
+function parsePitcherCell(html) {
+  const $ = cheerio.load(html || '');
+  const recordHtml = $('div.record').html() || '';
+  return {
+    pitcherName: $('span.name').text().trim(),
+    style: $('span.style').text().trim(),
+    record: recordHtml.replace(/\s*<br\s*\/?>\s*/gi, ' ').replace(/<[^>]*>/g, '').trim()
+  };
+}
+
+async function fetchGamePreview(awayTeam, homeTeam, gameId, year) {
   const cached = getCachedData(gameId);
   if (cached) return cached;
 
   if (pendingPreviews[gameId]) return pendingPreviews[gameId];
 
   const task = (async () => {
-    const browser = await getBrowser();
-    const page = await browser.newPage();
-
     try {
-      // KBO GameCenter 페이지 로드
-      // networkidle0은 광고·트래킹까지 기다려 느리므로, 필요한 요소가 나타나면 바로 진행한다
-      await page.goto('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx', {
-        waitUntil: 'domcontentloaded',
-        timeout: 15000
-      });
+      const gameDate = gameId.substring(0, 8);
+      const seasonId = year || gameDate.substring(0, 4);
+      const awayTeamId = TEAM_NAME_TO_CODE[awayTeam] || '';
+      const homeTeamId = TEAM_NAME_TO_CODE[homeTeam] || '';
 
-      await page.waitForSelector('li[g_id]', { timeout: 10000 });
+      // 선발투수 ID는 GetKboGameList 에서 얻는다 (이미 스케줄 조회에서 쓰는 것과 같은 API)
+      const gameListRes = await axios.post(
+        'https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList',
+        new URLSearchParams({ leId: '1', srId: '0', date: gameDate }).toString(),
+        { headers: GC_HEADERS }
+      );
+      const gameData = gameListRes.data && Array.isArray(gameListRes.data.game)
+        ? gameListRes.data.game.find(g => g.G_ID === gameId)
+        : null;
 
-      // 게임 클릭
-      if (gameId) {
-        await page.evaluate((gId) => {
-          const gameItem = document.querySelector(`li[g_id="${gId}"]`);
-          if (gameItem) gameItem.click();
-        }, gameId);
+      const awayPitId = gameData ? gameData.T_PIT_P_ID : '';
+      const homePitId = gameData ? gameData.B_PIT_P_ID : '';
 
-        // 투수 기록 테이블이 채워질 때까지 기다린다
-        // 아직 발표 전인 경기는 끝내 나타나지 않으므로 오래 기다리지 않는다
-        await page.waitForFunction(() => {
-          const tables = document.querySelectorAll('table');
-          for (const t of tables) {
-            if (t.querySelectorAll('tbody tr').length > 0) return true;
-          }
-          return false;
-        }, { timeout: 4000 }).catch(() => {});
-      }
-
-      // 병렬로 투수 통계와 라인업 데이터 추출
-      const [pitcherData, lineupData] = await Promise.all([
-        extractPitcherStats(page, awayPitcher, homePitcher),
-        extractLineup(page)
+      const [statsRes, lineupRes] = await Promise.all([
+        axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetPitcherRecordAnalysis',
+          new URLSearchParams({
+            leId: '1', srId: '0', seasonId,
+            awayTeamId, awayPitId: awayPitId || '',
+            homeTeamId, homePitId: homePitId || '',
+            groupSc: 'SEASON'
+          }).toString(),
+          { headers: GC_HEADERS }
+        ),
+        axios.post(
+          'https://www.koreabaseball.com/ws/Schedule.asmx/GetLineUpAnalysis',
+          new URLSearchParams({ leId: '1', srId: '0', seasonId, gameId }).toString(),
+          { headers: GC_HEADERS }
+        )
       ]);
 
+      const pitcherData = parsePitcherStatsResponse(statsRes.data);
+      const lineupData = parseLineupResponse(lineupRes.data);
+
       const responseData = {
-        awayData: pitcherData.awayData || null,
-        homeData: pitcherData.homeData || null,
+        awayData: pitcherData.awayData,
+        homeData: pitcherData.homeData,
         lineup: lineupData
       };
 
       cacheData(gameId, responseData);
       return responseData;
     } finally {
-      // 브라우저가 죽은 뒤라면 page.close()도 실패하므로 정리는 항상 진행되게 한다
-      try {
-        await page.close();
-      } catch (e) {
-        // 이미 닫힌 페이지면 무시
-      }
       delete pendingPreviews[gameId];
     }
   })();
@@ -1286,13 +1320,13 @@ async function fetchGamePreview(awayPitcher, homePitcher, gameId) {
 
 app.get('/api/pitcher-stats', async (req, res) => {
   try {
-    const { awayPitcher, homePitcher, gameId } = req.query;
+    const { awayTeam, homeTeam, gameId, year } = req.query;
 
-    if (!awayPitcher || !homePitcher) {
+    if (!gameId) {
       return res.status(400).json({ awayData: null, homeData: null, lineup: null });
     }
 
-    const data = await fetchGamePreview(awayPitcher, homePitcher, gameId);
+    const data = await fetchGamePreview(awayTeam, homeTeam, gameId, year);
     res.json(data);
   } catch (error) {
     console.error('Error in /api/pitcher-stats:', error.message);
@@ -1300,196 +1334,101 @@ app.get('/api/pitcher-stats', async (req, res) => {
   }
 });
 
-// 프리뷰 미리 채우기 — 응답을 기다리지 않고 백그라운드에서 순차적으로 캐시를 채운다
+// 프리뷰 미리 채우기 — 응답을 기다리지 않고 백그라운드에서 병렬로 캐시를 채운다
 app.post('/api/preview-warmup', express.json(), (req, res) => {
   const games = Array.isArray(req.body && req.body.games) ? req.body.games.slice(0, 6) : [];
 
   // 요청은 즉시 끝내고 수집은 뒤에서 진행한다
   res.json({ accepted: games.length });
 
-  (async () => {
-    for (const g of games) {
-      if (!g || !g.gameId || !g.awayPitcher || !g.homePitcher) continue;
-      if (getCachedData(g.gameId)) continue;
-      try {
-        await fetchGamePreview(g.awayPitcher, g.homePitcher, g.gameId);
-      } catch (e) {
-        console.error('Warmup failed for', g.gameId, e.message);
-      }
+  // 게임 하나당 GetKboGameList + GetPitcherRecordAnalysis + GetLineUpAnalysis 3개 요청이 나가므로
+  // 전부 동시에 돌리면 최대 18개가 한꺼번에 몰린다. 2게임씩 묶어서 처리한다
+  mapWithConcurrency(games, 2, async (g) => {
+    if (!g || !g.gameId || !g.awayTeam || !g.homeTeam) return;
+    if (getCachedData(g.gameId)) return;
+    try {
+      await fetchGamePreview(g.awayTeam, g.homeTeam, g.gameId, g.year);
+    } catch (e) {
+      console.error('Warmup failed for', g.gameId, e.message);
     }
-  })();
+  });
 });
 
-async function extractPitcherStats(page, awayPitcher, homePitcher) {
-  return page.evaluate((awayName, homeName) => {
-    const result = { awayData: null, homeData: null };
-    const allTables = document.querySelectorAll('table');
+// GetPitcherRecordAnalysis 응답을 투수 카드 형태로 변환
+function parsePitcherStatsResponse(data) {
+  const rows = data && Array.isArray(data.rows) ? data.rows : [];
+  const result = { awayData: null, homeData: null };
 
-    for (let table of allTables) {
-      const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(rowItem => {
+    const cells = rowItem.row || [];
+    if (cells.length < 7) return;
 
-      for (let row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 2) continue;
-
-        const pitcherCell = cells[0];
-        let pitcherName = '';
-        let style = '';
-        let record = '';
-
-        const nameSpan = pitcherCell.querySelector('span.name');
-        if (nameSpan) {
-          pitcherName = nameSpan.textContent.trim();
-        } else {
-          pitcherName = pitcherCell.childNodes[0]?.textContent?.trim() || '';
-        }
-
-        const styleSpan = pitcherCell.querySelector('span.style');
-        if (styleSpan) {
-          style = styleSpan.textContent.trim();
-        }
-
-        const recordDiv = pitcherCell.querySelector('div.record');
-        if (recordDiv) {
-          record = recordDiv.textContent.trim();
-        }
-
-        let era = '', war = '', games = '', startAvgInning = '', qs = '', whip = '';
-        if (cells.length >= 2) era = cells[1].textContent.trim();
-        if (cells.length >= 3) war = cells[2].textContent.trim();
-        if (cells.length >= 4) games = cells[3].textContent.trim();
-        if (cells.length >= 5) startAvgInning = cells[4].textContent.trim();
-        if (cells.length >= 6) qs = cells[5].textContent.trim();
-        if (cells.length >= 7) whip = cells[6].textContent.trim();
-
-        if (!result.awayData && (pitcherName.includes(awayName) || awayName.includes(pitcherName))) {
-          result.awayData = { pitcherName, style, record, era, war, games, startAvgInning, qs, whip };
-        }
-
-        if (!result.homeData && (pitcherName.includes(homeName) || homeName.includes(pitcherName))) {
-          result.homeData = { pitcherName, style, record, era, war, games, startAvgInning, qs, whip };
-        }
-
-        if (result.awayData && result.homeData) return result;
-      }
-    }
-
-    return result;
-  }, awayPitcher, homePitcher);
-}
-
-async function extractLineup(page) {
-  // 라인업 탭 클릭 (javascript:setGameDetailSection('LINEUP') 방식)
-  await page.evaluate(() => {
-    // setGameDetailSection 함수 직접 호출
-    if (typeof setGameDetailSection === 'function') {
-      setGameDetailSection('LINEUP');
-      return true;
-    }
-
-    // 또는 라인업 분석 링크 찾기
-    const links = document.querySelectorAll('a');
-    for (let link of links) {
-      if (link.textContent.includes('라인업')) {
-        link.click();
-        return true;
-      }
-    }
-
-    return false;
-  });
-
-  // WAR 합산 값이 채워지면 라인업 렌더링이 끝난 것으로 본다
-  // 라인업 미발표 경기는 값이 오지 않으므로 짧게 끊는다
-  await page.waitForFunction(() => {
-    const el = document.querySelector('#txtLeftTableSetter');
-    return el && el.textContent.trim() !== '';
-  }, { timeout: 4000 }).catch(() => {});
-
-  // 라인업 데이터 추출
-  return page.evaluate(() => {
-    const result = {
-      warSummary: {},
-      awayLineup: [],
-      homeLineup: [],
-      lineupNotice: null
+    const { pitcherName, style, record } = parsePitcherCell(cells[0].Text);
+    const stat = {
+      pitcherName, style, record,
+      era: cells[1].Text || '',
+      war: cells[2].Text || '',
+      games: cells[3].Text || '',
+      startAvgInning: cells[4].Text || '',
+      qs: cells[5].Text || '',
+      whip: cells[6].Text || ''
     };
 
-    // 라인업 기준 안내문구. KBO 페이지가 데이터가 없으면 이 요소를 hide 하므로,
-    // 숨겨진 상태면 안내문구 자체를 내리지 않는다.
-    // 문구 내용은 우리 톤으로 따로 씨야 해서 여기서는 상태만 판단한다
-    const noticeEl = document.querySelector('#txtLineUp');
-    if (noticeEl) {
-      const hidden = noticeEl.offsetParent === null ||
-        getComputedStyle(noticeEl).display === 'none';
-      const text = noticeEl.textContent.trim();
-      if (!hidden && text) {
-        // KBO 문구가 "금일 라인업 기준"이면 최신이라는 뜻, 그 외에는 미발표 상태로 본다
-        result.lineupNotice = text.includes('금일')
-          ? { current: true }
-          : { current: false };
-      }
-    }
+    // 각 셀의 Class 접미사(_T/_B)로 원정(Top)/홈(Bottom) 구분
+    const side = (cells[1].Class || '').endsWith('_T') ? 'away' : 'home';
+    if (side === 'away') result.awayData = stat;
+    else result.homeData = stat;
+  });
 
-    // WAR 합산 데이터 추출
-    const warElements = {
+  return result;
+}
+
+// GetLineUpAnalysis 응답을 라인업 화면 형태로 변환
+// 배열 구성: [0]=발표여부, [1]=원정팀WAR요약, [2]=홈팀WAR요약, [3]=원정라인업테이블, [4]=홈라인업테이블
+function parseLineupResponse(data) {
+  const result = {
+    warSummary: {
       tableSetter: { away: null, home: null },
       cleanUp: { away: null, home: null },
       bottom: { away: null, home: null }
+    },
+    awayLineup: [],
+    homeLineup: [],
+    lineupNotice: null
+  };
+
+  if (!Array.isArray(data) || data.length < 5) return result;
+
+  const lineupCk = data[0] && data[0][0] && data[0][0].LINEUP_CK;
+  result.lineupNotice = { current: !!lineupCk };
+
+  const awayMeta = data[1] && data[1][0];
+  const homeMeta = data[2] && data[2][0];
+  if (awayMeta) {
+    result.warSummary.tableSetter.away = parseFloat(awayMeta.HITTER_12_WAR_RT) || 0;
+    result.warSummary.cleanUp.away = parseFloat(awayMeta.HITTER_35_WAR_RT) || 0;
+    result.warSummary.bottom.away = parseFloat(awayMeta.HITTER_69_WAR_RT) || 0;
+  }
+  if (homeMeta) {
+    result.warSummary.tableSetter.home = parseFloat(homeMeta.HITTER_12_WAR_RT) || 0;
+    result.warSummary.cleanUp.home = parseFloat(homeMeta.HITTER_35_WAR_RT) || 0;
+    result.warSummary.bottom.home = parseFloat(homeMeta.HITTER_69_WAR_RT) || 0;
+  }
+
+  const toLineup = (rows) => rows.map(r => {
+    const c = r.row || [];
+    return {
+      order: parseInt(c[0] && c[0].Text) || 0,
+      position: (c[1] && c[1].Text) || '',
+      name: (c[2] && c[2].Text) || '',
+      war: parseFloat(c[3] && c[3].Text) || 0
     };
-
-    const txtElements = document.querySelectorAll('[id^="txt"]');
-    for (let el of txtElements) {
-      const id = el.id;
-      const text = el.textContent.trim();
-
-      if (id === 'txtLeftTableSetter') warElements.tableSetter.away = parseFloat(text) || 0;
-      if (id === 'txtRightTableSetter') warElements.tableSetter.home = parseFloat(text) || 0;
-      if (id === 'txtLeftCleanUp') warElements.cleanUp.away = parseFloat(text) || 0;
-      if (id === 'txtRightCleanUp') warElements.cleanUp.home = parseFloat(text) || 0;
-      if (id === 'txtLeftBottom') warElements.bottom.away = parseFloat(text) || 0;
-      if (id === 'txtRightBottom') warElements.bottom.home = parseFloat(text) || 0;
-    }
-
-    result.warSummary = warElements;
-
-    // 선수 라인업 테이블 추출
-    const tables = document.querySelectorAll('.tbl-type04 table');
-
-    if (tables.length >= 1) {
-      const awayTable = tables[0];
-      const awayRows = awayTable.querySelectorAll('tbody tr');
-      awayRows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 4) {
-          result.awayLineup.push({
-            order: parseInt(cells[0].textContent.trim()),
-            position: cells[1].textContent.trim(),
-            name: cells[2].textContent.trim(),
-            war: parseFloat(cells[3].textContent.trim()) || 0
-          });
-        }
-      });
-    }
-
-    if (tables.length >= 2) {
-      const homeTable = tables[1];
-      const homeRows = homeTable.querySelectorAll('tbody tr');
-      homeRows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 4) {
-          result.homeLineup.push({
-            order: parseInt(cells[0].textContent.trim()),
-            position: cells[1].textContent.trim(),
-            name: cells[2].textContent.trim(),
-            war: parseFloat(cells[3].textContent.trim()) || 0
-          });
-        }
-      });
-    }
-
-    return result;
   });
+
+  result.awayLineup = toLineup(parseGcTable(data[3]));
+  result.homeLineup = toLineup(parseGcTable(data[4]));
+
+  return result;
 }
 
 

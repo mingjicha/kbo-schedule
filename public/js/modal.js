@@ -407,7 +407,7 @@ async function loadPitcherComparison(game, container) {
       return;
     }
 
-    const response = await fetch(`/api/pitcher-stats?awayPitcher=${encodeURIComponent(game.awayPitcher)}&homePitcher=${encodeURIComponent(game.homePitcher)}&awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}&gameId=${encodeURIComponent(game.gameId)}&year=${currentYear}`);
+    const response = await fetch(`/api/pitcher-stats?awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}&gameId=${encodeURIComponent(game.gameId)}&year=${currentYear}`);
     const data = await response.json();
 
     pitcherStatsCache[cacheKey] = data;
@@ -669,7 +669,7 @@ async function loadLineup(game, container) {
       return;
     }
 
-    const response = await fetch(`/api/pitcher-stats?awayPitcher=${encodeURIComponent(game.awayPitcher)}&homePitcher=${encodeURIComponent(game.homePitcher)}&awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}&gameId=${encodeURIComponent(game.gameId)}&year=${currentYear}`);
+    const response = await fetch(`/api/pitcher-stats?awayTeam=${encodeURIComponent(game.awayTeam)}&homeTeam=${encodeURIComponent(game.homeTeam)}&gameId=${encodeURIComponent(game.gameId)}&year=${currentYear}`);
     const data = await response.json();
 
     if (data.lineup) {

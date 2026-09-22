@@ -482,8 +482,8 @@ function warmupPreviews(schedule, focusDate) {
   if (!focusDate) return;
 
   const games = schedule
-    .filter(g => g.date.startsWith(focusDate) && g.gameId && g.awayPitcher && g.homePitcher)
-    .map(g => ({ gameId: g.gameId, awayPitcher: g.awayPitcher, homePitcher: g.homePitcher }));
+    .filter(g => g.date.startsWith(focusDate) && g.gameId && g.awayTeam && g.homeTeam)
+    .map(g => ({ gameId: g.gameId, awayTeam: g.awayTeam, homeTeam: g.homeTeam, year: currentYear }));
 
   if (games.length === 0) return;
 
