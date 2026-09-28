@@ -1176,28 +1176,35 @@ function renderProvisionalRound(round) {
     if (item.type === 'game') {
       row.classList.add('provisional-item--game');
 
+      // 일반시즌 카드처럼 날짜는 카드 밖에 헤더로 두고, 카드 안은
+      // 시간/장소 - N차전 순으로 쌓는다
+      const dateHeader = document.createElement('div');
+      dateHeader.className = 'provisional-card__date-header';
+      dateHeader.textContent = formatProvisionalDate(item.date, item.day);
+      row.appendChild(dateHeader);
+
       const card = document.createElement('div');
       card.className = 'provisional-card';
 
-      const date = document.createElement('div');
-      date.className = 'provisional-card__date';
-      date.textContent = formatProvisionalDate(item.date, item.day);
-      card.appendChild(date);
+      const info = document.createElement('div');
+      info.className = 'provisional-card__info';
 
       const time = document.createElement('div');
       time.className = 'provisional-card__time';
       time.textContent = item.time;
-      card.appendChild(time);
+      info.appendChild(time);
+
+      const venue = document.createElement('div');
+      venue.className = 'provisional-card__venue';
+      venue.textContent = item.venue || '';
+      info.appendChild(venue);
+
+      card.appendChild(info);
 
       const label = document.createElement('div');
       label.className = 'provisional-card__label';
       label.textContent = shortenGameLabel(item.label, round.name);
       card.appendChild(label);
-
-      const venue = document.createElement('div');
-      venue.className = 'provisional-card__venue';
-      venue.textContent = item.venue || '';
-      card.appendChild(venue);
 
       row.appendChild(card);
     } else {
