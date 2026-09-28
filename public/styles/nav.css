@@ -8,13 +8,6 @@
   gap: 12px;
 }
 
-.nav__content {
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  min-width: 0;
-}
-
 .nav__tabs {
   display: flex;
   overflow-x: auto;
@@ -69,11 +62,6 @@
   .nav {
     background-color: white;
     border-bottom: 1px solid #E5E8EB;
-  }
-
-  .nav__content {
-    justify-content: flex-start;
-    width: 100%;
   }
 
   .nav__tabs {
