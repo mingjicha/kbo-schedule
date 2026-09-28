@@ -895,9 +895,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const stopKeyPlayersPoll = () => {
+    if (keyPlayersPollTimer) {
+      clearInterval(keyPlayersPollTimer);
+      keyPlayersPollTimer = null;
+    }
+  };
+
   if (closeGameDetailBtn) {
     closeGameDetailBtn.addEventListener('click', () => {
       gameDetailModal.classList.remove('show');
+      stopKeyPlayersPoll();
     });
   }
 
@@ -905,6 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
     gameDetailModal.addEventListener('click', (e) => {
       if (e.target === gameDetailModal) {
         gameDetailModal.classList.remove('show');
+        stopKeyPlayersPoll();
       }
     });
   }

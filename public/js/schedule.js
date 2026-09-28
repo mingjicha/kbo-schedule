@@ -1,5 +1,8 @@
 let loadedMonths = new Set();
 
+// 진행중 경기 상세 모달을 열어둔 동안 점수/주자 정보를 주기적으로 갱신하기 위한 타이머
+let keyPlayersPollTimer = null;
+
 const STATUS_SYMBOLS = {
   '종료': '¢',
   '예정': '¢',
@@ -598,7 +601,6 @@ function createGameCard(game, date, isToday) {
     const inningDiv = document.createElement('div');
     inningDiv.className = 'schedule__inning-info';
     inningDiv.id = `inning-${game.gameId}`;
-    inningDiv.innerHTML = '로딩 중이에요<span class="symbol-font">♤</span>';
     scoreContainer.appendChild(inningDiv);
 
     fetchGameDetail(game.gameId).then(data => {
@@ -706,11 +708,24 @@ function createGameCard(game, date, isToday) {
       gameDetailContainer.appendChild(tabContainer);
       gameDetailContainer.appendChild(contentContainer);
 
-      loadKeyPlayers(game, keyPlayerContent).catch(error => {
-        console.error('Error loading key players:', error);
-        keyPlayerContent.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
-      });
+      const refreshKeyPlayers = () => {
+        loadKeyPlayers(game, keyPlayerContent).catch(error => {
+          console.error('Error loading key players:', error);
+          keyPlayerContent.innerHTML = '<div class="modal__no-data">정보를 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+        });
+      };
+
+      refreshKeyPlayers();
+
+      // 서버 응답 캐시 TTL(60초)과 맞춰 그보다 짧은 주기로 폴링한다
+      if (keyPlayersPollTimer) clearInterval(keyPlayersPollTimer);
+      keyPlayersPollTimer = setInterval(refreshKeyPlayers, 30000);
       return;
+    }
+
+    if (keyPlayersPollTimer) {
+      clearInterval(keyPlayersPollTimer);
+      keyPlayersPollTimer = null;
     }
 
     if (finalStatus === '종료') {
