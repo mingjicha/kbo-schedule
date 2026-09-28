@@ -1,0 +1,71 @@
+{
+  "year": 2026,
+  "source": {
+    "label": "2026 신한 SOL KBO 포스트시즌",
+    "url": "https://namu.wiki/w/2026%20%EC%8B%A0%ED%95%9C%20SOL%20KBO%20%ED%8F%AC%EC%8A%A4%ED%8A%B8%EC%8B%9C%EC%A6%8C"
+  },
+  "note": "정규시즌 순위가 확정되면 실제 참가팀과 일정으로 자동 교체됩니다.",
+  "rounds": [
+    {
+      "key": "wc",
+      "name": "와일드카드 결정전",
+      "away": "PR 5위 팀",
+      "home": "PR 4위 팀",
+      "items": [
+        { "date": "10-13", "day": "화", "type": "travel" },
+        { "date": "10-14", "day": "수", "time": "18:30", "type": "game", "label": "와일드카드 결정전 1차전", "venue": "PR 4위팀 홈구장" },
+        { "date": "10-15", "day": "목", "time": "18:30", "type": "game", "label": "와일드카드 결정전 2차전", "venue": "PR 4위팀 홈구장" }
+      ]
+    },
+    {
+      "key": "sp",
+      "name": "준플레이오프",
+      "away": "WC 승리팀",
+      "home": "PR 3위 팀",
+      "items": [
+        { "date": "10-16", "day": "금", "type": "travel" },
+        { "date": "10-17", "day": "토", "time": "14:00", "type": "game", "label": "준플레이오프 1차전", "venue": "PR 3위팀 홈구장" },
+        { "date": "10-18", "day": "일", "time": "14:00", "type": "game", "label": "준플레이오프 2차전", "venue": "PR 3위팀 홈구장" },
+        { "date": "10-19", "day": "월", "type": "travel" },
+        { "date": "10-20", "day": "화", "time": "18:30", "type": "game", "label": "준플레이오프 3차전", "venue": "WC 승리팀 홈구장" },
+        { "date": "10-21", "day": "수", "time": "18:30", "type": "game", "label": "준플레이오프 4차전", "venue": "WC 승리팀 홈구장" },
+        { "date": "10-22", "day": "목", "type": "travel" },
+        { "date": "10-23", "day": "금", "time": "18:30", "type": "game", "label": "준플레이오프 5차전", "venue": "PR 3위팀 홈구장" }
+      ]
+    },
+    {
+      "key": "pl",
+      "name": "플레이오프",
+      "away": "준PO 승리팀",
+      "home": "PR 2위 팀",
+      "items": [
+        { "date": "10-24", "day": "토", "type": "travel" },
+        { "date": "10-25", "day": "일", "time": "14:00", "type": "game", "label": "플레이오프 1차전", "venue": "PR 2위팀 홈구장" },
+        { "date": "10-26", "day": "월", "time": "18:30", "type": "game", "label": "플레이오프 2차전", "venue": "PR 2위팀 홈구장" },
+        { "date": "10-27", "day": "화", "type": "travel" },
+        { "date": "10-28", "day": "수", "time": "18:30", "type": "game", "label": "플레이오프 3차전", "venue": "준PO 승리팀 홈구장" },
+        { "date": "10-29", "day": "목", "time": "18:30", "type": "game", "label": "플레이오프 4차전", "venue": "준PO 승리팀 홈구장" },
+        { "date": "10-30", "day": "금", "type": "travel" },
+        { "date": "10-31", "day": "토", "time": "14:00", "type": "game", "label": "플레이오프 5차전", "venue": "PR 2위팀 홈구장" }
+      ]
+    },
+    {
+      "key": "ks",
+      "name": "한국시리즈",
+      "away": "PO 승리팀",
+      "home": "PR 1위 팀",
+      "items": [
+        { "date": "11-01", "day": "일", "type": "media", "label": "이동일 & 한국시리즈 미디어데이" },
+        { "date": "11-02", "day": "월", "time": "18:30", "type": "game", "label": "한국시리즈 1차전", "venue": "PR 1위팀 홈구장" },
+        { "date": "11-03", "day": "화", "time": "18:30", "type": "game", "label": "한국시리즈 2차전", "venue": "PR 1위팀 홈구장" },
+        { "date": "11-04", "day": "수", "type": "travel" },
+        { "date": "11-05", "day": "목", "time": "18:30", "type": "game", "label": "한국시리즈 3차전", "venue": "PO 승리팀 홈구장" },
+        { "date": "11-06", "day": "금", "time": "18:30", "type": "game", "label": "한국시리즈 4차전", "venue": "PO 승리팀 홈구장" },
+        { "date": "11-07", "day": "토", "time": "14:00", "type": "game", "label": "한국시리즈 5차전", "venue": "PO 승리팀 홈구장" },
+        { "date": "11-08", "day": "일", "type": "travel" },
+        { "date": "11-09", "day": "월", "time": "18:30", "type": "game", "label": "한국시리즈 6차전", "venue": "PR 1위팀 홈구장" },
+        { "date": "11-10", "day": "화", "time": "18:30", "type": "game", "label": "한국시리즈 7차전", "venue": "PR 1위팀 홈구장" }
+      ]
+    }
+  ]
+}

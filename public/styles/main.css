@@ -496,6 +496,154 @@
   }
 }
 
+/* KBO 공식 일정 확정 전 잠정 일정 안내 (와일드카드 ~ 한국시리즈) */
+.postseason-alert:empty {
+  display: none;
+}
+
+.provisional-notice {
+  background-color: #EEF0FB;
+  border: 1px solid #D8DCF3;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 6px 0 16px 0;
+}
+
+.provisional-notice__text {
+  font-size: 0.8125rem;
+  color: #4C54A0;
+  line-height: 1.5;
+}
+
+.provisional-notice__source {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #8B95A1;
+}
+
+.provisional-round__matchup {
+  font-weight: 700;
+  color: #333;
+  padding: 0 2px 10px 2px;
+}
+
+/* 타임라인: 경기일은 카드로 강조하고, 이동일은 선 위의 작은 점 + 한 줄 텍스트로 축소한다 */
+.provisional-timeline {
+  position: relative;
+  padding-left: 28px;
+}
+
+.provisional-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: #E5E7F0;
+}
+
+.provisional-item {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.provisional-marker {
+  position: absolute;
+  left: -28px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #626ABD;
+  border: 3px solid #EEF0FB;
+}
+
+.provisional-item--travel .provisional-marker {
+  width: 8px;
+  height: 8px;
+  left: -25px;
+  top: 8px;
+  background: #C7CBE0;
+  border: none;
+}
+
+.provisional-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.provisional-card__date {
+  font-size: 0.75rem;
+  color: #8B95A1;
+  font-weight: 700;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.provisional-card__time {
+  font-weight: 800;
+  color: #4C54A0;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.provisional-card__label {
+  flex: 1;
+  color: #191F28;
+  font-weight: 600;
+}
+
+.provisional-card__venue {
+  font-size: 0.75rem;
+  color: #8B95A1;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.provisional-travel {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 4px;
+  color: #B0B8C1;
+  font-size: 0.8125rem;
+}
+
+.provisional-travel__date {
+  font-weight: 700;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .provisional-notice {
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+
+  .provisional-notice__text {
+    font-size: 0.75rem;
+  }
+
+  .provisional-card {
+    flex-wrap: wrap;
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+
+  .provisional-card__venue {
+    flex-basis: 100%;
+    text-align: left;
+  }
+}
+
 /* ==================== PC 레이아웃 정리 ====================
    기본 CSS 는 PC, @media (max-width:768px) 가 모바일 오버라이드인 구조라
    PC 전용 변경은 반드시 min-width:769px 안에만 둔다 (모바일 영향 차단)

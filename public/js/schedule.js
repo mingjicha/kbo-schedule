@@ -1065,11 +1065,14 @@ async function renderSeries(seriesKey) {
   const games = await loadSeriesData(seriesKey);
   window.currentScheduleData = games;
 
+  // KBO 공식 사이트에 아직 실제 대진(참가팀)이 올라오지 않았으면
+  // 나무위키 등에 정리된 잠정 일정 틀을 대신 보여준다
   if (games.length === 0) {
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
+    await renderProvisionalSeries(seriesKey);
     return;
   }
 
+  if (postseasonAlert) postseasonAlert.innerHTML = '';
   scheduleContainer.innerHTML = '';
 
   // 한국시리즈가 끝난 해라면 우승팀을 맨 위에 보여준다
@@ -1077,6 +1080,145 @@ async function renderSeries(seriesKey) {
   if (champ) scheduleContainer.appendChild(renderChampionBanner(champ));
 
   scheduleContainer.appendChild(renderGamesByMonth(games, null, currentYear));
+}
+
+// ==================== 포스트시즌 잠정 일정 ====================
+// KBO 사이트에 실제 대진이 확정되기 전까지, 참고용으로 정리해둔 라운드별
+// 날짜 틀을 보여준다. 실제 일정이 뜨면 loadSeriesData 결과가 비지 않게 되어
+// 이 fallback은 자동으로 더 이상 쓰이지 않는다.
+let provisionalPostseasonData = null;
+
+async function loadProvisionalPostseasonSchedule() {
+  if (provisionalPostseasonData) return provisionalPostseasonData;
+  try {
+    const res = await fetch('/postseason/2026-provisional.json');
+    provisionalPostseasonData = res.ok ? await res.json() : null;
+  } catch (e) {
+    provisionalPostseasonData = null;
+  }
+  return provisionalPostseasonData;
+}
+
+function renderProvisionalNotice(data) {
+  const notice = document.createElement('div');
+  notice.className = 'provisional-notice';
+
+  const text = document.createElement('div');
+  text.className = 'provisional-notice__text';
+  text.textContent = data.note;
+  notice.appendChild(text);
+
+  if (data.source && data.source.label) {
+    const source = document.createElement('div');
+    source.className = 'provisional-notice__source';
+    source.textContent = `출처: ${data.source.label}`;
+    notice.appendChild(source);
+  }
+
+  return notice;
+}
+
+function formatProvisionalDate(dateStr, day) {
+  const [month, date] = dateStr.split('-').map(Number);
+  return `${month}/${date}(${day})`;
+}
+
+// 카드에 "준플레이오프 1차전" 대신 "1차전"만 보여준다 (날짜 칸에 이미 라운드가 드러나 있어 중복)
+function shortenGameLabel(label, roundName) {
+  return label.startsWith(roundName) ? label.slice(roundName.length).trim() : label;
+}
+
+function renderProvisionalRound(round) {
+  const container = document.createElement('div');
+
+  const matchup = document.createElement('div');
+  matchup.className = 'provisional-round__matchup';
+  matchup.textContent = `${round.away} vs ${round.home}`;
+  container.appendChild(matchup);
+
+  const timeline = document.createElement('div');
+  timeline.className = 'provisional-timeline';
+
+  round.items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'provisional-item';
+
+    const marker = document.createElement('span');
+    marker.className = 'provisional-marker';
+    row.appendChild(marker);
+
+    if (item.type === 'game') {
+      row.classList.add('provisional-item--game');
+
+      const card = document.createElement('div');
+      card.className = 'provisional-card';
+
+      const date = document.createElement('div');
+      date.className = 'provisional-card__date';
+      date.textContent = formatProvisionalDate(item.date, item.day);
+      card.appendChild(date);
+
+      const time = document.createElement('div');
+      time.className = 'provisional-card__time';
+      time.textContent = item.time;
+      card.appendChild(time);
+
+      const label = document.createElement('div');
+      label.className = 'provisional-card__label';
+      label.textContent = shortenGameLabel(item.label, round.name);
+      card.appendChild(label);
+
+      const venue = document.createElement('div');
+      venue.className = 'provisional-card__venue';
+      venue.textContent = item.venue || '';
+      card.appendChild(venue);
+
+      row.appendChild(card);
+    } else {
+      row.classList.add('provisional-item--travel');
+
+      const travel = document.createElement('div');
+      travel.className = 'provisional-travel';
+
+      const date = document.createElement('span');
+      date.className = 'provisional-travel__date';
+      date.textContent = formatProvisionalDate(item.date, item.day);
+      travel.appendChild(date);
+
+      const label = document.createElement('span');
+      label.textContent = item.label || '이동일';
+      travel.appendChild(label);
+
+      row.appendChild(travel);
+    }
+
+    timeline.appendChild(row);
+  });
+
+  container.appendChild(timeline);
+  return container;
+}
+
+async function renderProvisionalSeries(seriesKey) {
+  const scheduleContainer = document.getElementById('scheduleContainer');
+  const postseasonAlert = document.getElementById('postseasonAlert');
+
+  const data = await loadProvisionalPostseasonSchedule();
+  const round = data && data.year === currentYear
+    ? data.rounds.find(r => r.key === seriesKey)
+    : null;
+
+  if (postseasonAlert) postseasonAlert.innerHTML = '';
+
+  if (!round) {
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
+    return;
+  }
+
+  if (postseasonAlert) postseasonAlert.appendChild(renderProvisionalNotice(data));
+
+  scheduleContainer.innerHTML = '';
+  scheduleContainer.appendChild(renderProvisionalRound(round));
 }
 
 // 일정으로 우승팀을 계산한다. 4승을 먼저 채운 팀이 우승
@@ -1228,6 +1370,8 @@ async function setPostseasonMode(on) {
 
   // 정규시즌으로 복귀
   postseasonSeries = null;
+  const postseasonAlert = document.getElementById('postseasonAlert');
+  if (postseasonAlert) postseasonAlert.innerHTML = '';
   if (savedMonthBeforePostseason) currentMonth = savedMonthBeforePostseason;
   await initializeMonthTabsWithLazyLoad();
   await loadSchedule();
