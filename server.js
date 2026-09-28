@@ -7,6 +7,10 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// KBO 공식 사이트가 느려지거나 응답을 멈추면 요청이 무한정 걸려있게 되어
+// 프론트가 오래 로딩되다 실패하는 원인이 된다. 모든 axios 요청에 공통 타임아웃을 건다
+axios.defaults.timeout = 8000;
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

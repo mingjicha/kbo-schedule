@@ -905,12 +905,16 @@ async function loadMonthData(month, year = null) {
   const apiUrl = `/api/schedule?year=${yearToUse}&month=${monthStr}&team=${currentTeam}`;
   const response = await fetch(apiUrl);
 
-  if (response.ok) {
-    const schedule = await response.json();
-    if (Array.isArray(schedule)) {
-      saveScheduleToCache(month, yearToUse, schedule);
-      return schedule;
-    }
+  // 서버 에러(예: KBO 사이트 응답 지연으로 인한 타임아웃)는 '일정 없음'과
+  // 구분해야 프론트에서 정확한 안내 문구(일정을 불러올 수 없어요)를 보여줄 수 있다
+  if (!response.ok) {
+    throw new Error(`Failed to load schedule: ${response.status}`);
+  }
+
+  const schedule = await response.json();
+  if (Array.isArray(schedule)) {
+    saveScheduleToCache(month, yearToUse, schedule);
+    return schedule;
   }
   return [];
 }
@@ -1077,7 +1081,14 @@ async function renderSeries(seriesKey) {
   const postseasonAlert = document.getElementById('postseasonAlert');
   scheduleContainer.innerHTML = renderSkeletonLoader(3, 1);
 
-  const games = await loadSeriesData(seriesKey);
+  let games;
+  try {
+    games = await loadSeriesData(seriesKey);
+  } catch (error) {
+    console.error('Error loading series schedule:', error);
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">일정을 불러올 수 없어요<span class="symbol-font">♤</span></div>';
+    return;
+  }
   window.currentScheduleData = games;
 
   // KBO 공식 사이트에 아직 실제 대진(참가팀)이 올라오지 않았으면
