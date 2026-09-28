@@ -1,6 +1,6 @@
 /* Main Content */
 .main {
-  padding: 0 clamp(10px, 4vw, 32px);
+  padding: 0 16px;
   flex: 1;
   display: flex;
   flex-direction: column;

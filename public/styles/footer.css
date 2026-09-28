@@ -324,7 +324,7 @@
   .app-footer {
     background-color: #F2F4F6;
     border-top: none;
-    padding: 32px clamp(10px, 4vw, 32px) calc(24px + 62px + env(safe-area-inset-bottom) * 0.5);
+    padding: 32px 16px calc(24px + 62px + env(safe-area-inset-bottom) * 0.5);
   }
 
   .app-footer__content {

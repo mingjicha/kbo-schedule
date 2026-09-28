@@ -255,7 +255,7 @@
   }
 
   .filter__content {
-    padding: 10px clamp(10px, 4vw, 32px) 0;
+    padding: 10px 16px 0;
     display: flex;
     justify-content: flex-start;
   }
@@ -275,8 +275,8 @@
 
   .filter__summary-dot {
     display: none;
-    width: clamp(16px, 4.5vw, 20px);
-    height: clamp(16px, 4.5vw, 20px);
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background-color: #333;
     background-size: contain;
@@ -325,7 +325,7 @@
   }
 
   .team-sheet__title {
-    padding: clamp(4px, 1.5vw, 6px) clamp(16px, 5vw, 20px) 14px;
+    padding: 5px 18px 14px;
     font-size: 1.05rem;
     font-weight: 800;
     color: #333;
