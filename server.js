@@ -1303,7 +1303,7 @@ async function fetchGamePreview(awayTeam, homeTeam, gameId, year) {
       ]);
 
       const pitcherData = parsePitcherStatsResponse(statsRes.data);
-      const lineupData = parseLineupResponse(lineupRes.data);
+      const lineupData = parseLineupResponse(lineupRes.data, awayTeamId);
 
       const responseData = {
         awayData: pitcherData.awayData,
@@ -1388,8 +1388,8 @@ function parsePitcherStatsResponse(data) {
 }
 
 // GetLineUpAnalysis 응답을 라인업 화면 형태로 변환
-// 배열 구성: [0]=발표여부, [1]=원정팀WAR요약, [2]=홈팀WAR요약, [3]=원정라인업테이블, [4]=홈라인업테이블
-function parseLineupResponse(data) {
+// 배열 구성: [0]=발표여부, [1][2]=팀WAR요약(순서는 away/home 고정이 아니라 T_ID로 판별해야 함), [3][4]=라인업테이블([1],[2]와 같은 순서)
+function parseLineupResponse(data, awayTeamId) {
   const result = {
     warSummary: {
       tableSetter: { away: null, home: null },
@@ -1406,8 +1406,16 @@ function parseLineupResponse(data) {
   const lineupCk = data[0] && data[0][0] && data[0][0].LINEUP_CK;
   result.lineupNotice = { current: !!lineupCk };
 
-  const awayMeta = data[1] && data[1][0];
-  const homeMeta = data[2] && data[2][0];
+  const meta1 = data[1] && data[1][0];
+  const meta2 = data[2] && data[2][0];
+
+  // T_ID로 실제 원정/홈을 판별 (응답 순서가 away/home 고정이 아님)
+  const firstIsAway = meta1 ? meta1.T_ID === awayTeamId : true;
+  const awayMeta = firstIsAway ? meta1 : meta2;
+  const homeMeta = firstIsAway ? meta2 : meta1;
+  const awayRows = firstIsAway ? data[3] : data[4];
+  const homeRows = firstIsAway ? data[4] : data[3];
+
   if (awayMeta) {
     result.warSummary.tableSetter.away = parseFloat(awayMeta.HITTER_12_WAR_RT) || 0;
     result.warSummary.cleanUp.away = parseFloat(awayMeta.HITTER_35_WAR_RT) || 0;
@@ -1429,8 +1437,8 @@ function parseLineupResponse(data) {
     };
   });
 
-  result.awayLineup = toLineup(parseGcTable(data[3]));
-  result.homeLineup = toLineup(parseGcTable(data[4]));
+  result.awayLineup = toLineup(parseGcTable(awayRows));
+  result.homeLineup = toLineup(parseGcTable(homeRows));
 
   return result;
 }

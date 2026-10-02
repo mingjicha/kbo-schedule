@@ -610,7 +610,7 @@
 .provisional-travel {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px;
   padding: 4px 4px;
   color: #B0B8C1;
   font-size: 0.8125rem;
@@ -618,8 +618,6 @@
 
 .provisional-travel__date {
   font-weight: 700;
-  width: 56px;
-  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {

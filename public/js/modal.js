@@ -164,17 +164,18 @@ function renderWeatherCards(weatherDataList) {
 
 async function loadTeamRank(forceRefresh = false) {
   const rankTableContainer = document.getElementById('rankTableContainer');
-  const rankDate = document.getElementById('rankDate');
+  const rankDateWrap = document.getElementById('rankDateWrap');
 
   try {
     rankTableContainer.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+    rankDateWrap.textContent = '';
 
     const response = await fetch(forceRefresh ? '/api/team-rank?refresh=1' : '/api/team-rank');
     const data = await response.json();
 
     const dateStr = data.date || '기준일 미정';
     const formattedDate = dateStr.replace(/(\d{4})년\s+0?(\d+)월0?(\d+)일/g, '$1년 $2월 $3일');
-    rankDate.textContent = formattedDate;
+    rankDateWrap.textContent = `(${formattedDate})`;
 
     if (data.ranks && data.ranks.length > 0) {
       const table = document.createElement('table');
