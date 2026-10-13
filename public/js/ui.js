@@ -214,6 +214,18 @@ async function goToToday() {
   currentMonth = todayMonth;
   yearDisplay.textContent = currentYear;
 
+  // 정규시즌이 끝난 뒤에는 오늘 경기가 포스트시즌에 있으므로 그 화면으로 돌아온다
+  if (postseasonSeasonActive) {
+    if (!postseasonMode) {
+      await setPostseasonMode(true);
+    } else {
+      postseasonSeries = null;
+      await renderPostseasonTabs();
+    }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    return;
+  }
+
   // 포스트시즌 화면이면 정규시즌 월 탭으로 되돌린다.
   // setPostseasonMode 가 currentMonth 를 이전 달로 되돌리므로, 그 다음에 다시 오늘로 맞춘다
   if (typeof postseasonMode !== 'undefined' && postseasonMode) {

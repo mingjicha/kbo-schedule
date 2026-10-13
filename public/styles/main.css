@@ -678,6 +678,21 @@
   }
 }
 
+/* 포스트시즌 타임라인용: 날짜 헤더·이동일 줄 자리 (실제 .provisional-card__date-header / .provisional-travel 크기에 맞춘다) */
+.skeleton__date--timeline {
+  width: 96px;
+  height: 14px;
+  margin-bottom: 8px;
+  padding-bottom: 0;
+}
+
+.skeleton__date--travel {
+  width: 120px;
+  height: 12px;
+  margin: 6px 0 0;
+  padding-bottom: 0;
+}
+
 /* 모바일 카드는 2단 — 1행에 시간/구장/상태, 2행에 팀 대결 */
 .skeleton__day {
   background-color: transparent;

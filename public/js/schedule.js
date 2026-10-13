@@ -225,10 +225,9 @@ function buildStatusHTML(status, symbol) {
 
 // 실제 경기 카드와 같은 자리에 회색 틀을 그린다.
 // 하루치 5경기가 KBO 기본이라 그 모양에 맞춘다
-function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
-  // 구조를 실제 카드(.schedule__game > .schedule__info > .schedule__teams)와
-  // 똑같이 맞춰야 각 자리가 실제 내용과 같은 위치에 온다
-  const game = `
+// 구조를 실제 카드(.schedule__game > .schedule__info > .schedule__teams)와
+// 똑같이 맞춰야 각 자리가 실제 내용과 같은 위치에 온다
+const SKELETON_GAME_HTML = `
     <div class="skeleton__game">
       <div class="skeleton__info">
         <div class="skeleton__time"></div>
@@ -245,6 +244,9 @@ function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
     </div>
   `;
 
+function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
+  const game = SKELETON_GAME_HTML;
+
   const day = `
     <div class="skeleton__day">
       <div class="skeleton__date"></div>
@@ -253,6 +255,25 @@ function renderSkeletonLoader(days = 2, gamesPerDay = 5) {
   `;
 
   return `<div class="skeleton" role="status" aria-label="경기 일정을 불러오는 중이에요">${day.repeat(days)}</div>`;
+}
+
+// 포스트시즌 화면과 같은 타임라인(세로선·점·날짜 헤더·이동일 줄) 모양의 틀
+function renderPostseasonSkeleton() {
+  const item = `
+    <div class="provisional-item">
+      <span class="provisional-marker"></span>
+      <div class="skeleton__date skeleton__date--timeline"></div>
+      ${SKELETON_GAME_HTML}
+    </div>
+  `;
+  const travel = `
+    <div class="provisional-item provisional-item--travel">
+      <span class="provisional-marker"></span>
+      <div class="skeleton__date skeleton__date--travel"></div>
+    </div>
+  `;
+
+  return `<div class="skeleton" role="status" aria-label="포스트시즌 일정을 불러오는 중이에요"><div class="provisional-timeline">${travel}${item}${item}${travel}${item}</div></div>`;
 }
 
 async function loadSchedule(scrollToDate = null) {
@@ -714,7 +735,7 @@ function createGameCard(game, date, isToday) {
 
       const keyPlayerContent = document.createElement('div');
       keyPlayerContent.className = 'game-detail__tab-pane active';
-      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      keyPlayerContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
       contentContainer.appendChild(keyPlayerContent);
 
       gameDetailContainer.innerHTML = '';
@@ -759,7 +780,7 @@ function createGameCard(game, date, isToday) {
       const contentContainer = document.createElement('div');
       contentContainer.className = 'game-detail__tab-content';
 
-      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      const loadingHtml = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const reviewContent = document.createElement('div');
       reviewContent.className = 'game-detail__tab-pane active';
@@ -826,11 +847,11 @@ function createGameCard(game, date, isToday) {
 
       const pitcherContent = document.createElement('div');
       pitcherContent.className = 'game-detail__tab-pane active';
-      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
+      pitcherContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div><p>로딩 중이에요<span class="symbol-font">♤</span></p></div>';
 
       const lineupContent = document.createElement('div');
       lineupContent.className = 'game-detail__tab-pane';
-      lineupContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"><div class="spinner-border__circle"></div><div class="spinner-border__circle"></div></div></div>';
+      lineupContent.innerHTML = '<div class="loading"><div class="spinner-border" role="status"></div></div>';
 
       contentContainer.appendChild(pitcherContent);
       contentContainer.appendChild(lineupContent);
@@ -1094,7 +1115,7 @@ async function renderSeries(seriesKey) {
   postseasonSeries = seriesKey;
   const scheduleContainer = document.getElementById('scheduleContainer');
   const postseasonAlert = document.getElementById('postseasonAlert');
-  scheduleContainer.innerHTML = renderSkeletonLoader(3, 1);
+  scheduleContainer.innerHTML = renderPostseasonSkeleton();
 
   let games;
   try {
@@ -1394,7 +1415,7 @@ async function renderPostseasonTabs() {
 
   // 탭과 스켈레톤을 먼저 보여주고 서버 응답을 기다린다
   drawPostseasonTabs(null);
-  document.getElementById('scheduleContainer').innerHTML = renderSkeletonLoader(3, 1);
+  document.getElementById('scheduleContainer').innerHTML = renderPostseasonSkeleton();
 
   let seriesList;
   try {
@@ -1404,15 +1425,38 @@ async function renderPostseasonTabs() {
     seriesList = [];
   }
 
-  // 경기가 있는 첫 시리즈를 연다
-  const firstWithGames = seriesList.find(s => s.hasGames);
-  const defaultKey = firstWithGames ? firstWithGames.key : POSTSEASON_SERIES_LIST[0].key;
+  // 올해는 지금 진행 중인 가장 뒤 라운드(앞 라운드가 끝나야 다음 대진이 올라온다)를,
+  // 지난 해는 첫 시리즈를 연다
+  const withGames = seriesList.filter(s => s.hasGames);
+  const pick = currentYear === new Date().getFullYear() ? withGames[withGames.length - 1] : withGames[0];
+  const defaultKey = pick ? pick.key : POSTSEASON_SERIES_LIST[0].key;
 
   // 기다리는 동안 사용자가 다른 탭을 눌렀으면 그 선택을 존중한다
   if (postseasonSeries) return;
 
   drawPostseasonTabs(defaultKey);
   await renderSeries(defaultKey);
+}
+
+// 정규시즌이 끝나고 포스트시즌이 열려 있으면 앱을 포스트시즌 화면으로 시작한다.
+// true 인 동안은 TODAY 버튼도 정규시즌 대신 포스트시즌으로 돌아온다
+let postseasonSeasonActive = false;
+
+async function shouldStartInPostseason(regularSchedule) {
+  // 정규시즌은 늦어도 10월 안에 끝난다
+  if (currentYear !== new Date().getFullYear() || currentMonth < 10) return false;
+  if (hasUpcomingGame(regularSchedule, currentYear)) return false;
+
+  const template = await loadProvisionalPostseasonSchedule();
+  if (template && template.year === currentYear) return true;
+
+  try {
+    const res = await fetch(`/api/postseason?year=${currentYear}`);
+    const seriesList = res.ok ? await res.json() : [];
+    return seriesList.some(s => s.hasGames);
+  } catch (e) {
+    return false;
+  }
 }
 
 async function setPostseasonMode(on) {

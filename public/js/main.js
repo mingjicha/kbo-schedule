@@ -18,6 +18,17 @@ async function initializeApp() {
 
     let schedule = await loadMonthData(currentMonth);
 
+    // 정규시즌이 끝났고 포스트시즌이 열려 있으면 포스트시즌 화면으로 시작한다
+    if (await shouldStartInPostseason(schedule)) {
+      postseasonSeasonActive = true;
+      await setPostseasonMode(true);
+      maybeStartPostseasonOnboarding();
+      startTodayRefreshTimer();
+      startFutureRefreshTimer();
+      loadWeather();
+      return;
+    }
+
     // 이번 달에 남은 경기가 없으면 다음 달로 넘어간다
     if (!hasUpcomingGame(schedule, currentYear) && currentMonth < 10) {
       const nextMonth = currentMonth + 1;
