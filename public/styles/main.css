@@ -678,18 +678,25 @@
   }
 }
 
-/* 포스트시즌 타임라인용: 날짜 헤더·이동일 줄 자리 (실제 .provisional-card__date-header / .provisional-travel 크기에 맞춘다) */
-.skeleton__date--timeline {
+/* 포스트시즌 타임라인용: 날짜 헤더·이동일 줄 자리.
+   점(.provisional-marker)의 중심과 막대 중심을 맞추고, 카드 위치는 실제 화면과 같게 둔다.
+   아래쪽의 공통 .skeleton__date 규칙보다 우선하도록 .skeleton 을 앞에 붙인다 */
+/* 막대의 위쪽 여백이 항목 밖으로 빠져나가 점과 어긋나지 않도록 */
+.skeleton .provisional-item {
+  display: flow-root;
+}
+
+.skeleton .skeleton__date--timeline {
   width: 96px;
   height: 14px;
-  margin-bottom: 8px;
+  margin: 4px 0 8.8px;
   padding-bottom: 0;
 }
 
-.skeleton__date--travel {
+.skeleton .skeleton__date--travel {
   width: 120px;
   height: 12px;
-  margin: 6px 0 0;
+  margin: 6px 0 10.8px;
   padding-bottom: 0;
 }
 
