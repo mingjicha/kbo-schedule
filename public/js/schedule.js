@@ -308,6 +308,8 @@ function formatDateDisplay(dateStr) {
 }
 
 function getGameStatus(game) {
+  if (game.provisional) return '예정';
+
   if (game.status === '취소') {
     return '취소';
   }
@@ -520,6 +522,21 @@ function scrollToDateHeader(dateStr, instant = false) {
   }
 }
 
+// 팀이 아직 정해지지 않았으면(예: WC 승리팀) 로고 자리에 회색 원을 둔다
+function createTeamLogo(team) {
+  if (!teamLogos[team]) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'schedule__logo schedule__logo--unknown';
+    placeholder.textContent = '?';
+    return placeholder;
+  }
+  const logo = document.createElement('img');
+  logo.className = 'schedule__logo';
+  logo.src = teamLogos[team];
+  logo.alt = team;
+  return logo;
+}
+
 function createGameCard(game, date, isToday) {
   const gameCard = document.createElement('div');
   gameCard.className = 'schedule__game';
@@ -578,11 +595,7 @@ function createGameCard(game, date, isToday) {
 
   teamsDiv.appendChild(awayTeamContainer);
 
-  const awayLogo = document.createElement('img');
-  awayLogo.className = 'schedule__logo';
-  awayLogo.src = teamLogos[game.awayTeam] || '';
-  awayLogo.alt = game.awayTeam;
-  teamsDiv.appendChild(awayLogo);
+  teamsDiv.appendChild(createTeamLogo(game.awayTeam));
 
   const scoreContainer = document.createElement('div');
   scoreContainer.className = 'schedule__score-container';
@@ -620,11 +633,7 @@ function createGameCard(game, date, isToday) {
 
   teamsDiv.appendChild(scoreContainer);
 
-  const homeLogo = document.createElement('img');
-  homeLogo.className = 'schedule__logo';
-  homeLogo.src = teamLogos[game.homeTeam] || '';
-  homeLogo.alt = game.homeTeam;
-  teamsDiv.appendChild(homeLogo);
+  teamsDiv.appendChild(createTeamLogo(game.homeTeam));
 
   const homeTeamContainer = document.createElement('div');
   homeTeamContainer.className = 'schedule__team';
@@ -664,7 +673,11 @@ function createGameCard(game, date, isToday) {
 
   const statusSymbol = STATUS_SYMBOLS[finalStatus] || '';
 
-  statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
+  if (game.badgeText) {
+    statusBadge.textContent = game.badgeText;
+  } else {
+    statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
+  }
 
   gameInfo.appendChild(statusBadge);
 
@@ -1091,11 +1104,14 @@ async function renderSeries(seriesKey) {
   }
   window.currentScheduleData = games;
 
-  // KBO 공식 사이트에 아직 실제 대진(참가팀)이 올라오지 않았으면
-  // 나무위키 등에 정리된 잠정 일정 틀을 대신 보여준다
-  if (games.length === 0) {
-    await renderProvisionalSeries(seriesKey);
-    return;
+  // 경기가 하나도 시작되기 전에는 이동일까지 포함한 일정 틀을 보여준다.
+  // 첫 경기가 시작(또는 취소)되면 실제 경기 결과 화면으로 넘어간다
+  if (games.every(g => getGameStatus(g) === '예정')) {
+    if (await renderProvisionalSeries(seriesKey)) return;
+    if (games.length === 0) {
+      scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
+      return;
+    }
   }
 
   if (postseasonAlert) postseasonAlert.innerHTML = '';
@@ -1138,11 +1154,6 @@ function shortenGameLabel(label, roundName) {
 function renderProvisionalRound(round) {
   const container = document.createElement('div');
 
-  const matchup = document.createElement('div');
-  matchup.className = 'provisional-round__matchup';
-  matchup.textContent = `${round.away} vs ${round.home}`;
-  container.appendChild(matchup);
-
   const timeline = document.createElement('div');
   timeline.className = 'provisional-timeline';
 
@@ -1157,37 +1168,24 @@ function renderProvisionalRound(round) {
     if (item.type === 'game') {
       row.classList.add('provisional-item--game');
 
-      // 일반시즌 카드처럼 날짜는 카드 밖에 헤더로 두고, 카드 안은
-      // 시간/장소 - N차전 순으로 쌓는다
+      // 날짜 헤더 + 정규시즌과 같은 경기 카드. 팀이 정해지지 않은 쪽은 이름만 보여준다
+      const [month, day] = item.date.split('-');
+      const dateStr = `${month}.${day}(${item.day})`;
+
       const dateHeader = document.createElement('div');
       dateHeader.className = 'provisional-card__date-header';
-      dateHeader.textContent = formatProvisionalDate(item.date, item.day);
+      dateHeader.textContent = formatDateDisplay(dateStr);
       row.appendChild(dateHeader);
 
-      const card = document.createElement('div');
-      card.className = 'provisional-card';
-
-      const info = document.createElement('div');
-      info.className = 'provisional-card__info';
-
-      const time = document.createElement('div');
-      time.className = 'provisional-card__time';
-      time.textContent = item.time;
-      info.appendChild(time);
-
-      const venue = document.createElement('div');
-      venue.className = 'provisional-card__venue';
-      venue.textContent = item.venue || '';
-      info.appendChild(venue);
-
-      card.appendChild(info);
-
-      const label = document.createElement('div');
-      label.className = 'provisional-card__label';
-      label.textContent = shortenGameLabel(item.label, round.name);
-      card.appendChild(label);
-
-      row.appendChild(card);
+      row.appendChild(createGameCard({
+        provisional: true,
+        date: dateStr,
+        time: item.time,
+        stadium: item.venue,
+        awayTeam: item.away,
+        homeTeam: item.home,
+        badgeText: shortenGameLabel(item.label, round.name)
+      }, dateStr, false));
     } else {
       row.classList.add('provisional-item--travel');
 
@@ -1224,13 +1222,11 @@ async function renderProvisionalSeries(seriesKey) {
 
   if (postseasonAlert) postseasonAlert.innerHTML = '';
 
-  if (!round) {
-    scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
-    return;
-  }
+  if (!round) return false;
 
   scheduleContainer.innerHTML = '';
   scheduleContainer.appendChild(renderProvisionalRound(round));
+  return true;
 }
 
 // 일정으로 우승팀을 계산한다. 4승을 먼저 채운 팀이 우승

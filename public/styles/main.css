@@ -164,6 +164,16 @@
   object-fit: contain;
 }
 
+.schedule__logo--unknown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #EEF0F4;
+  color: #B0B8C1;
+  font-weight: 700;
+}
+
 .schedule__score {
   display: flex;
   align-items: center;
@@ -497,12 +507,6 @@
   display: none;
 }
 
-.provisional-round__matchup {
-  font-weight: 700;
-  color: #333;
-  padding: 0 2px 10px 2px;
-}
-
 /* 타임라인: 경기일은 카드로 강조하고, 이동일은 선 위의 작은 점 + 한 줄 텍스트로 축소한다 */
 .provisional-timeline {
   position: relative;
@@ -545,44 +549,16 @@
   border: none;
 }
 
+/* 미정 팀 이름(WC 승리팀 등)은 글자 중간이 아니라 띄어쓰기에서만 줄바꿈 */
+.provisional-item .schedule__team-name {
+  word-break: keep-all;
+}
+
 .provisional-card__date-header {
   font-size: 0.8125rem;
   color: #8B95A1;
   font-weight: 700;
   padding: 0 2px 6px 2px;
-}
-
-.provisional-card {
-  background: white;
-  border: 1px solid #f0f0f0;
-  border-radius: 12px;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-.provisional-card__info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.provisional-card__time {
-  font-weight: 800;
-  color: #4C54A0;
-}
-
-.provisional-card__venue {
-  font-size: 0.75rem;
-  color: #8B95A1;
-}
-
-.provisional-card__label {
-  font-size: 1.2rem;
-  color: #191F28;
-  font-weight: 600;
 }
 
 .provisional-travel {
@@ -596,23 +572,6 @@
 
 .provisional-travel__date {
   font-weight: 700;
-}
-
-.provisional-card {
-  border-radius: 16px;
-  padding: 14px 16px;
-}
-
-.provisional-card__time {
-  font-size: 0.85rem;
-}
-
-.provisional-card__venue {
-  font-size: 0.85rem;
-}
-
-.provisional-card__label {
-  font-size: 0.9375rem;
 }
 
 /* ==================== Skeleton ==================== */
