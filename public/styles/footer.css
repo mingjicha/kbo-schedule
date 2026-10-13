@@ -7,7 +7,7 @@
 }
 
 .app-footer__content {
-  max-width: 960px;
+  max-width: var(--app-w);
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -65,7 +65,7 @@
 }
 
 .app-footer__bottom {
-  max-width: 960px;
+  max-width: var(--app-w);
   width: 100%;
   margin: 0 auto;
   padding: 24px 20px 0 20px;
@@ -198,182 +198,182 @@
 }
 
 /* Mobile: bottom bar quick menu */
-@media (max-width: 768px) {
-  .quick-menu {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: none;
-    flex-direction: row;
-    gap: 0;
-    width: 100%;
-    justify-content: space-around;
-    background-color: white;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -4px 16px -6px rgba(25, 31, 40, 0.12);
-    /* 상하 여백을 버튼으로 옮겨 선택된 배경이 위아래를 가득 채우게 한다 */
-    padding: 0 0 calc(env(safe-area-inset-bottom) * 0.5);
-    overflow: hidden;
-  }
+.quick-menu {
+  position: fixed;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: var(--app-w);
+  margin: 0 auto;
+  transform: none;
+  flex-direction: row;
+  gap: 0;
+  width: 100%;
+  justify-content: space-around;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 16px -6px rgba(25, 31, 40, 0.12);
+  /* 상하 여백을 버튼으로 옮겨 선택된 배경이 위아래를 가득 채우게 한다 */
+  padding: 0 0 calc(env(safe-area-inset-bottom) * 0.5);
+  overflow: hidden;
+}
 
-  .quick-menu__item {
-    width: auto;
-    height: auto;
-    flex: 1;
-    border-radius: 0;
-    background-color: transparent !important;
-    color: #B0B8C1;
-    box-shadow: none;
-    animation: none;
-    gap: 3px;
-    padding: 13px 0 7px;
-  }
+.quick-menu__item {
+  width: auto;
+  height: auto;
+  flex: 1;
+  border-radius: 0;
+  background-color: transparent !important;
+  color: #B0B8C1;
+  box-shadow: none;
+  animation: none;
+  gap: 3px;
+  padding: 13px 0 7px;
+}
 
-  .quick-menu__item i {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background-color: #F2F4F6;
-    font-size: 1.0625rem;
-    animation: none;
-  }
+.quick-menu__item i {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #F2F4F6;
+  font-size: 1.0625rem;
+  animation: none;
+}
 
-  .quick-menu__item span {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    color: #B0B8C1;
-  }
+.quick-menu__item span {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #B0B8C1;
+}
 
-  .quick-menu__item[data-action="today"] i {
-    color: #626ABD;
-  }
+.quick-menu__item[data-action="today"] i {
+  color: #626ABD;
+}
 
-  .quick-menu__item[data-action="rank"] i {
-    color: #2C3E64;
-  }
+.quick-menu__item[data-action="rank"] i {
+  color: #2C3E64;
+}
 
-  .quick-menu__item[data-action="weather"] i {
-    color: #F98826;
-  }
+.quick-menu__item[data-action="weather"] i {
+  color: #F98826;
+}
 
-  .quick-menu__item.active {
-    background-color: #F5F4FC !important;
-  }
+.quick-menu__item.active {
+  background-color: #F5F4FC !important;
+}
 
-  .quick-menu__item.active i {
-    background-color: #626ABD;
-    color: white;
-  }
+.quick-menu__item.active i {
+  background-color: #626ABD;
+  color: white;
+}
 
-  .quick-menu__item[data-action="rank"].active {
-    background-color: #EEF1F6 !important;
-  }
+.quick-menu__item[data-action="rank"].active {
+  background-color: #EEF1F6 !important;
+}
 
-  .quick-menu__item[data-action="rank"].active i {
-    background-color: #2C3E64;
-    color: white;
-  }
+.quick-menu__item[data-action="rank"].active i {
+  background-color: #2C3E64;
+  color: white;
+}
 
-  .quick-menu__item[data-action="weather"].active {
-    background-color: #FEF5ED !important;
-  }
+.quick-menu__item[data-action="weather"].active {
+  background-color: #FEF5ED !important;
+}
 
-  .quick-menu__item[data-action="weather"].active i {
-    background-color: #F98826;
-    color: white;
-  }
+.quick-menu__item[data-action="weather"].active i {
+  background-color: #F98826;
+  color: white;
+}
 
-  .quick-menu__item.active span {
-    color: #626ABD;
-  }
+.quick-menu__item.active span {
+  color: #626ABD;
+}
 
-  .quick-menu__item[data-action="rank"].active span {
-    color: #2C3E64;
-  }
+.quick-menu__item[data-action="rank"].active span {
+  color: #2C3E64;
+}
 
-  .quick-menu__item[data-action="weather"].active span {
-    color: #F98826;
-  }
+.quick-menu__item[data-action="weather"].active span {
+  color: #F98826;
+}
 
-  /* 위로가기는 퀵메뉴 안이 아니라 그 위에 떠 있는 원형 버튼으로 둔다 */
-  .quick-menu__item--scroll-top,
-  .quick-menu__item--scroll-top.show {
-    display: none;
-  }
+/* 위로가기는 퀵메뉴 안이 아니라 그 위에 떠 있는 원형 버튼으로 둔다 */
+.quick-menu__item--scroll-top,
+.quick-menu__item--scroll-top.show {
+  display: none;
+}
 
-  .scroll-top-btn {
-    width: 40px;
-    height: 40px;
-    right: 20px;
-    bottom: calc(20px + 65px + 4px + env(safe-area-inset-bottom));
-    background-color: white;
-    color: #6B7684;
-    font-size: 1rem;
-    z-index: 998;
-  }
+.scroll-top-btn {
+  width: 40px;
+  height: 40px;
+  right: max(20px, calc((100% - var(--app-w)) / 2 + 20px));
+  bottom: calc(20px + 65px + 4px + env(safe-area-inset-bottom));
+  background-color: white;
+  color: #6B7684;
+  font-size: 1rem;
+  z-index: 998;
+}
 
-  .scroll-top-btn.show {
-    display: flex;
-  }
+.scroll-top-btn.show {
+  display: flex;
+}
 
-  .app-footer {
-    background-color: #F2F4F6;
-    border-top: none;
-    padding: 32px 16px calc(24px + 62px + env(safe-area-inset-bottom) * 0.5);
-  }
+.app-footer {
+  background-color: #F2F4F6;
+  border-top: none;
+  padding: 32px 16px calc(24px + 62px + env(safe-area-inset-bottom) * 0.5);
+}
 
-  .app-footer__content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 0 0 10px;
-    border-bottom: 1px solid #E5E8EB;
-  }
+.app-footer__content {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid #E5E8EB;
+}
 
-  .app-footer__section h3 {
-    margin-bottom: 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #333;
-  }
+.app-footer__section h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
 
-  .app-footer__section h4 {
-    margin-bottom: 8px;
-  }
+.app-footer__section h4 {
+  margin-bottom: 8px;
+}
 
-  .app-footer__logo {
-    height: 16px;
-  }
+.app-footer__logo {
+  height: 16px;
+}
 
-  .app-footer__section p {
-    font-size: 0.8rem;
-    color: #8B95A1;
-  }
+.app-footer__section p {
+  font-size: 0.8rem;
+  color: #8B95A1;
+}
 
-  .app-footer__links {
-    gap: 12px;
-  }
+.app-footer__links {
+  gap: 12px;
+}
 
-  .app-footer__links a {
-    font-size: 0.8rem;
-    color: #8B95A1;
-  }
+.app-footer__links a {
+  font-size: 0.8rem;
+  color: #8B95A1;
+}
 
-  .app-footer__bottom {
-    padding: 10px 0 0;
-    text-align: left;
-  }
+.app-footer__bottom {
+  padding: 10px 0 0;
+  text-align: left;
+}
 
-  .app-footer__bottom p {
-    font-size: 0.7rem;
-    color: #B0B8C1;
-    line-height: 1.6;
-  }
+.app-footer__bottom p {
+  font-size: 0.7rem;
+  color: #B0B8C1;
+  line-height: 1.6;
 }
 
 /* 진행중 경기 안내 말풍선: 하단 TODAY 버튼을 가리킨다 */
@@ -433,22 +433,12 @@
   transform: rotate(45deg);
 }
 
-@media (max-width: 768px) {
-  .live-bubble {
-    bottom: calc(70px + env(safe-area-inset-bottom) * 0.5 + 12px);
-  }
-
-  .live-bubble .live-bubble__arrow {
-    bottom: -6px;
-    box-shadow: 3px 3px 4px -2px rgba(25, 31, 40, 0.15);
-  }
+.live-bubble {
+  bottom: calc(70px + env(safe-area-inset-bottom) * 0.5 + 12px);
 }
 
-@media (min-width: 769px) {
-  .live-bubble .live-bubble__arrow {
-    top: 50%;
-    right: -6px;
-    margin-top: -7px;
-    box-shadow: 3px -3px 4px -2px rgba(25, 31, 40, 0.12);
-  }
+.live-bubble .live-bubble__arrow {
+  bottom: -6px;
+  box-shadow: 3px 3px 4px -2px rgba(25, 31, 40, 0.15);
 }
+

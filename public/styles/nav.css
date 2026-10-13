@@ -58,41 +58,39 @@
   border-bottom-color: #f5c340;
 }
 
-@media (max-width: 768px) {
-  .nav {
-    background-color: white;
-    border-bottom: 1px solid #E5E8EB;
-  }
+.nav {
+  background-color: white;
+  border-bottom: 1px solid #E5E8EB;
+}
 
-  .nav__tabs {
-    padding: 0 4vw;
-    width: 100%;
-  }
+.nav__tabs {
+  padding: 0 4vw;
+  width: 100%;
+}
 
-  .nav__tabs-list {
-    gap: 4px;
-    /* 모바일은 헤더 높이가 body 의 margin-top(101px)과 맞춰져 있어
-       여백을 더하면 헤더가 커져서 윗부분이 잘린다 */
-    margin-top: 0;
-  }
+.nav__tabs-list {
+  gap: 4px;
+  /* 모바일은 헤더 높이가 body 의 margin-top(101px)과 맞춰져 있어
+     여백을 더하면 헤더가 커져서 윗부분이 잘린다 */
+  margin-top: 0;
+}
 
-  .nav__tab {
-    padding: 6px 11px;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #B0B8C1;
-    border: none;
-    border-radius: 100px;
-  }
+.nav__tab {
+  padding: 6px 11px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #B0B8C1;
+  border: none;
+  border-radius: 100px;
+}
 
-  .nav__tab.active {
-    color: white;
-    background-color: #626ABD;
-    border-bottom-color: transparent;
-  }
+.nav__tab.active {
+  color: white;
+  background-color: #626ABD;
+  border-bottom-color: transparent;
+}
 
-  .nav__tab[data-series].active {
-    background-color: #f5c340;
-    color: white;
-  }
+.nav__tab[data-series].active {
+  background-color: #f5c340;
+  color: white;
 }

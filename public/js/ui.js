@@ -321,27 +321,6 @@ function placeControls() {
 
 placeControls();
 
-// PC 에서만 포스트시즌 버튼을 월 탭 줄 오른쪽으로 옮긴다.
-// 시즌 구분(정규시즌 월 vs 포스트시즌)이라 월 탭과 같은 줄이 맞다.
-// 모바일은 별도 버튼(#postseasonBtnMobile)을 쓰므로 원위치 그대로 둔다.
-const postseasonNavEl = document.querySelector('.app__header-section .nav');
-const postseasonMountDesktop = document.getElementById('postseasonMountDesktop');
-const headerSectionForNav = document.querySelector('.app__header-section');
-const pcMql = window.matchMedia('(min-width: 769px)');
-
-function placePostseason() {
-  if (!postseasonNavEl || !postseasonMountDesktop || !headerSectionForNav) return;
-  if (pcMql.matches) {
-    postseasonMountDesktop.appendChild(postseasonNavEl);
-  } else if (postseasonNavEl.parentElement !== headerSectionForNav) {
-    // 모바일에서는 원래 자리(팀 필터 위)로 되돌린다
-    headerSectionForNav.insertBefore(postseasonNavEl, headerSectionForNav.querySelector('.filter'));
-  }
-}
-
-placePostseason();
-pcMql.addEventListener('change', placePostseason);
-
 // 진행중 경기가 있으면 하단 TODAY 버튼을 가리키는 말풍선을 띄운다.
 // 하루에 한 번 닫으면 그 날은 다시 안 뜨고, 날짜가 바뀌면 다시 뜬다
 const LIVE_BUBBLE_DISMISS_KEY = 'kbo-live-bubble-dismissed-date';
@@ -374,23 +353,15 @@ function positionLiveBubble() {
 
   const rect = target.getBoundingClientRect();
 
-  if (isMobileCalendar()) {
-    // 모바일: TODAY 버튼 바로 위, 버튼 중앙에 화살표가 오도록
-    const bubbleWidth = bubble.offsetWidth || 240;
-    let left = rect.left + rect.width / 2 - bubbleWidth / 2;
-    left = Math.max(12, Math.min(left, window.innerWidth - bubbleWidth - 12));
-    bubble.style.left = `${left}px`;
-    bubble.style.right = 'auto';
-    bubble.style.top = 'auto';
-    const arrow = bubble.querySelector('.live-bubble__arrow');
-    if (arrow) arrow.style.left = `${rect.left + rect.width / 2 - left - 7}px`;
-  } else {
-    // 데스크톱: TODAY 버튼 왼쪽, 세로 중앙을 맞춘다
-    bubble.style.top = `${rect.top + rect.height / 2}px`;
-    bubble.style.transform = 'translateY(-50%)';
-    bubble.style.right = `${window.innerWidth - rect.left + 14}px`;
-    bubble.style.left = 'auto';
-  }
+  // TODAY 버튼 바로 위, 버튼 중앙에 화살표가 오도록
+  const bubbleWidth = bubble.offsetWidth || 240;
+  let left = rect.left + rect.width / 2 - bubbleWidth / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - bubbleWidth - 12));
+  bubble.style.left = `${left}px`;
+  bubble.style.right = 'auto';
+  bubble.style.top = 'auto';
+  const arrow = bubble.querySelector('.live-bubble__arrow');
+  if (arrow) arrow.style.left = `${rect.left + rect.width / 2 - left - 7}px`;
 }
 
 function showLiveBubble() {

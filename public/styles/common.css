@@ -135,10 +135,16 @@ optgroup {
 }
 
 /* Base Styles */
+:root {
+  /* PC 에서도 모바일 화면 폭으로 보여준다 */
+  --app-w: 480px;
+}
+
 html {
   font-size: 16px;
   height: 100%;
   scrollbar-gutter: stable;
+  background-color: #E5E8EB;
 }
 
 body {
@@ -152,6 +158,10 @@ body {
   flex-direction: column;
   height: 100%;
   margin-top: 160px;
+  width: 100%;
+  max-width: var(--app-w);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 body.body--no-scroll {
@@ -168,7 +178,7 @@ body.body--no-scroll {
   align-items: center;
   gap: 8px;
   flex-wrap: nowrap;
-  max-width: 95vw;
+  max-width: min(95vw, var(--app-w));
   padding: 14px 20px;
   border-radius: 24px;
   background-color: rgba(139, 149, 161, 0.92);
@@ -292,7 +302,7 @@ body.body--no-scroll {
 
 /* Layout */
 .app-wrapper {
-  max-width: 960px;
+  max-width: var(--app-w);
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -336,44 +346,42 @@ body.body--no-scroll {
   color: #666;
 }
 
-@media (max-width: 768px) {
-  body {
-    margin-top: 101px;
-  }
+body {
+  margin-top: 101px;
+}
 
-  .app__header-section {
-    gap: 0;
-    background-color: transparent;
-    padding: 0;
-    width: 100%;
-  }
+.app__header-section {
+  gap: 0;
+  background-color: transparent;
+  padding: 0;
+  width: 100%;
+}
 
-  .app__header-section .nav {
-    order: 1;
-  }
+.app__header-section .nav {
+  order: 1;
+}
 
-  .app__header-section .filter {
-    order: 2;
-  }
+.app__header-section .filter {
+  order: 2;
+}
 
-  body,
-  .app-wrapper,
-  .app {
-    background-color: #F2F4F6;
-  }
+body,
+.app-wrapper,
+.app {
+  background-color: #F2F4F6;
+}
 
-  .loading {
-    font-size: 0.85rem;
-    padding: 30px 20px;
-    background-color: #F2F4F6;
-  }
+.loading {
+  font-size: 0.85rem;
+  padding: 30px 20px;
+  background-color: #F2F4F6;
+}
 
-  .loading p {
-    font-size: 0.85rem;
-  }
+.loading p {
+  font-size: 0.85rem;
+}
 
-  .spinner-border {
-    font-size: 32px;
-    margin-bottom: 14px;
-  }
+.spinner-border {
+  font-size: 32px;
+  margin-bottom: 14px;
 }

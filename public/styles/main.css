@@ -273,158 +273,156 @@
   justify-content: center;
 }
 
-@media (max-width: 768px) {
 
-  .schedule__no-games {
-    font-size: 0.875rem;
-    padding: 48px 20px;
-    color: #B0B8C1;
-  }
+.schedule__no-games {
+  font-size: 0.875rem;
+  padding: 48px 20px;
+  color: #B0B8C1;
+}
 
-  /* 2단 레이아웃: 1행 = 시간/구장 + 상태, 2행 = 팀 대결 */
-  .schedule__game {
-    gap: 8px;
-  }
+/* 2단 레이아웃: 1행 = 시간/구장 + 상태, 2행 = 팀 대결 */
+.schedule__game {
+  gap: 8px;
+}
 
-  .schedule__info {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    row-gap: 6px;
-    column-gap: 6px;
-  }
+.schedule__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 6px;
+  column-gap: 6px;
+}
 
-  .schedule__time {
-    order: 1;
-  }
+.schedule__time {
+  order: 1;
+}
 
-  .schedule__stadium {
-    order: 2;
-  }
+.schedule__stadium {
+  order: 2;
+}
 
-  .schedule__status {
-    order: 3;
-    margin-left: auto;
-    min-width: 0;
-    padding: 3px 6px 3px 6px;
-    font-size: 0.7rem;
-  }
+.schedule__status {
+  order: 3;
+  margin-left: auto;
+  min-width: 0;
+  padding: 3px 6px 3px 6px;
+  font-size: 0.7rem;
+}
 
-  .schedule__teams {
-    order: 4;
-    flex-basis: 100%;
-    width: 100%;
-    gap: 24px;
-  }
+.schedule__teams {
+  order: 4;
+  flex-basis: 100%;
+  width: 100%;
+  gap: 24px;
+}
 
-  .schedule__team {
-    width: 64px;
-  }
+.schedule__team {
+  width: 64px;
+}
 
-  .schedule__team-name {
-    min-width: 0;
-    width: 100%;
-    font-size: 0.9375rem;
-  }
+.schedule__team-name {
+  min-width: 0;
+  width: 100%;
+  font-size: 0.9375rem;
+}
 
-  .schedule__pitcher {
-    min-width: 0;
-    width: 100%;
-    font-size: 0.75rem;
-    gap: 0;
-  }
+.schedule__pitcher {
+  min-width: 0;
+  width: 100%;
+  font-size: 0.75rem;
+  gap: 0;
+}
 
-  .schedule__score {
-    min-width: 56px;
-    white-space: nowrap;
-  }
+.schedule__score {
+  min-width: 56px;
+  white-space: nowrap;
+}
 
-  .schedule__logo {
-    width: 32px;
-    height: 32px;
-  }
+.schedule__logo {
+  width: 32px;
+  height: 32px;
+}
 
-  .schedule__list {
-    gap: 0;
-  }
+.schedule__list {
+  gap: 0;
+}
 
-  /* 날짜 그룹: 박스 없는 얇은 헤더로 */
-  .schedule__day {
-    background-color: transparent;
-    box-shadow: none;
-    padding: 0;
-    border: none;
-  }
+/* 날짜 그룹: 박스 없는 얇은 헤더로 */
+.schedule__day {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+  border: none;
+}
 
-  .schedule__day.schedule__day--today {
-    background-color: transparent;
-    border: none;
-  }
+.schedule__day.schedule__day--today {
+  background-color: transparent;
+  border: none;
+}
 
-  .schedule__date-header {
-    padding: 12px 4px 12px 4px;
-    margin-bottom: 0;
-    border-bottom: none;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: #6B7684;
-  }
+.schedule__date-header {
+  padding: 12px 4px 12px 4px;
+  margin-bottom: 0;
+  border-bottom: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #6B7684;
+}
 
-  .schedule__today-badge {
-    background-color: #626ABD;
-    color: white;
-    padding: 3px 9px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 800;
-  }
+.schedule__today-badge {
+  background-color: #626ABD;
+  color: white;
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
 
-  /* 경기 카드: 개별 라운드 카드 */
-  .schedule__game {
-    background-color: white;
-    border: 1.5px solid transparent;
-    border-radius: 20px;
-    padding: 16px 18px;
-    margin-bottom: 10px;
-    min-height: 0;
-  }
+/* 경기 카드: 개별 라운드 카드 */
+.schedule__game {
+  background-color: white;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  min-height: 0;
+}
 
-  .schedule__game.schedule__game--finished,
-  .schedule__game.schedule__game--cancelled {
-    background-color: white;
-  }
+.schedule__game.schedule__game--finished,
+.schedule__game.schedule__game--cancelled {
+  background-color: white;
+}
 
-  .schedule__game:hover {
-    box-shadow: none;
-  }
+.schedule__game:hover {
+  box-shadow: none;
+}
 
-  .schedule__day.schedule__day--today .schedule__game {
-    background-color: #EEEFF9;
-    border: 1.5px solid #626ABD;
-  }
+.schedule__day.schedule__day--today .schedule__game {
+  background-color: #EEEFF9;
+  border: 1.5px solid #626ABD;
+}
 
-  .schedule__time {
-    font-size: 0.85rem;
-    font-weight: 800;
-  }
+.schedule__time {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
 
-  .schedule__day.schedule__day--today .schedule__time {
-    color: #4C54A0;
-  }
+.schedule__day.schedule__day--today .schedule__time {
+  color: #4C54A0;
+}
 
-  .schedule__stadium {
-    font-size: 0.85rem;
-  }
+.schedule__stadium {
+  font-size: 0.85rem;
+}
 
-  .schedule__score {
-    font-size: 1.125rem;
-    font-weight: 800;
-  }
+.schedule__score {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
 
-  .schedule__score.schedule__game--live,
-  .schedule__score.schedule__game--finished {
-    font-size: 1.125rem;
-  }
+.schedule__score.schedule__game--live,
+.schedule__score.schedule__game--finished {
+  font-size: 1.125rem;
 }
 
 
@@ -477,23 +475,21 @@
   margin-top: 3px;
 }
 
-@media (max-width: 768px) {
-  .champion {
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    margin-top: 10px;
-  }
+.champion {
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  margin-top: 10px;
+}
 
-  .champion__ico {
-    width: 38px;
-    height: 38px;
-    font-size: 1.25rem;
-  }
+.champion__ico {
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
+}
 
-  .champion__team {
-    font-size: 1rem;
-  }
+.champion__team {
+  font-size: 1rem;
 }
 
 /* KBO 공식 일정 확정 전 잠정 일정 안내 (와일드카드 ~ 한국시리즈) */
@@ -602,250 +598,21 @@
   font-weight: 700;
 }
 
-@media (max-width: 768px) {
-  .provisional-card {
-    border-radius: 16px;
-    padding: 14px 16px;
-  }
-
-  .provisional-card__time {
-    font-size: 0.85rem;
-  }
-
-  .provisional-card__venue {
-    font-size: 0.85rem;
-  }
-
-  .provisional-card__label {
-    font-size: 0.9375rem;
-  }
+.provisional-card {
+  border-radius: 16px;
+  padding: 14px 16px;
 }
 
-/* ==================== PC 레이아웃 정리 ====================
-   기본 CSS 는 PC, @media (max-width:768px) 가 모바일 오버라이드인 구조라
-   PC 전용 변경은 반드시 min-width:769px 안에만 둔다 (모바일 영향 차단)
+.provisional-card__time {
+  font-size: 0.85rem;
+}
 
-   간격·radius 는 당근 SEED Design 스케일을 따른다 (색상은 기존 유지)
-   - radius : r2=8 / r2_5=10 / r3=12 / r4=16
-   - spacing: x1=4 / x2=8 / x3=12 / x4=16 / x4_5=18 / x5=20 / x6=24
-   https://seed-design.io/llms/foundations/radius.txt
-   https://seed-design.io/llms/foundations/spacing.txt */
-@media (min-width: 769px) {
-  /* 1. 콘텐츠 폭 — 고정 헤더 내부도 본문과 같은 축에 맞춘다.
-     .app-header 는 .app-wrapper 바깥이라 폭 제한을 못 받아
-     헤더만 화면 끝까지 퍼지고 본문(960px)과 어긋나 있었다 */
-  .app-header__content,
-  #monthTabsContainer {
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-  }
+.provisional-card__venue {
+  font-size: 0.85rem;
+}
 
-  /* 2. 상단 영역 — 세로로 길게 쌓이던 것을 한 줄로 정리.
-     제목은 왼쪽, 연도·달력은 오른쪽 */
-  .app-header {
-    padding: 16px 0; /* x4 */
-  }
-
-  .app-header__content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px; /* x6 */
-    padding: 0 20px; /* x5 */
-  }
-
-  .app-header__title {
-    text-align: left;
-  }
-
-  .app-header__title h1 {
-    font-size: 1.6rem;
-  }
-
-  .app-header__title p {
-    font-size: 0.875rem;
-  }
-
-  /* 헤더 오른쪽에 들어간 연도/달력 컨트롤 (모바일과 같은 위치) */
-  .controls-mount .controls {
-    gap: 16px; /* x4 */
-  }
-
-  .controls-mount .year-selector {
-    display: flex;
-    align-items: center;
-    gap: 4px; /* x1 */
-  }
-
-  .controls-mount .btn--year {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 1rem;
-    color: #6B7684;
-  }
-
-  .controls-mount .btn--year:hover {
-    background-color: #F2F4F6;
-    color: #333;
-  }
-
-  .controls-mount #yearDisplay {
-    font-size: 1.125rem;
-    font-weight: 700;
-    min-width: 58px;
-    text-align: center;
-  }
-
-  .controls-mount .btn--calendar {
-    display: flex;
-    align-items: center;
-    gap: 6px; /* x1_5 */
-    padding: 8px 16px; /* x2 x4 */
-    border-radius: 9999px; /* full */
-    border: 1px solid #E5E8EB;
-    color: #4E5968;
-    font-size: 0.875rem;
-    font-weight: 700;
-  }
-
-  /* 포스트시즌 버튼과 같은 방식 — 배경을 채우지 않고 테두리와 글자만 진해진다 */
-  .controls-mount .btn--calendar:hover {
-    background-color: transparent;
-    border-color: #B0B8C1;
-    color: #333;
-  }
-
-  /* controls 가 헤더로 올라가 header-section 은 팀 필터만 남는다 */
-  .app__header-section {
-    padding: 0;
-  }
-
-  /* 월 탭 + 포스트시즌을 한 줄에 (시즌 구분이라 같은 층위) */
-  .header-tabs-row {
-    max-width: 960px;
-    margin: 0 auto;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 12px; /* x3 */
-  }
-
-  .header-tabs-row #monthTabsContainer {
-    flex: 1;
-    min-width: 0;
-    justify-content: flex-start;
-  }
-
-  /* 월 탭과 포스트시즌 사이 구분선 */
-  .postseason-mount:not(:empty) {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    padding-left: 12px; /* x3 */
-  }
-
-  .postseason-mount .nav {
-    background-color: transparent;
-    width: auto;
-  }
-
-  /* 포스트시즌 버튼 — 알약형으로 통일 */
-  .postseason-mount .filter__postseason {
-    padding: 7px 14px;
-    font-size: 0.875rem; /* t4 */
-    font-weight: 700;
-    border-radius: 9999px; /* full */
-    border: 1px solid #E5E8EB;
-    margin-right: 20px; /* x5 */
-  }
-
-  .postseason-mount .filter__postseason:not(.active):hover {
-    border-color: #B0B8C1;
-    color: #333;
-  }
-
-  /* 팀 필터는 별도 줄로 분리해 역할을 구분한다 */
-  .app__header-section .filter {
-    padding: 10px 0; /* x2_5 */
-  }
-
-  /* 3. 경기 카드 — 여백과 대비를 정리해 목록이 눈에 들어오게 */
-  .schedule__list {
-    gap: 16px; /* x4 */
-  }
-
-  .schedule__day {
-    padding: 18px 20px; /* x4_5 x5 */
-    border-radius: 12px; /* r3 */
-    box-shadow: 0 1px 3px rgba(22, 38, 100, 0.06);
-  }
-
-  .schedule__date-header {
-    font-size: 1.05rem;
-    padding-bottom: 12px; /* x3 */
-    margin-bottom: 12px; /* x3 */
-  }
-
-  .schedule__game {
-    min-height: 72px;
-    padding: 12px 18px; /* x3 x4_5 */
-    border-radius: 10px; /* r2_5 */
-  }
-
-  .schedule__game:hover {
-    border-color: #626ABD;
-    box-shadow: 0 2px 8px rgba(98, 106, 189, 0.14);
-  }
-
-  /* ---------- 헤더 색상 통일 ----------
-     회색이 #999 / #666 / #333 / #4E5968 / #6B7684 로 제각각이라
-     역할별로 세 단계만 쓰도록 맞춘다.
-       주요 텍스트  #191F28  (제목, 연도, 선택된 탭)
-       보조 텍스트  #6B7684  (버튼 글자, 연도 화살표)
-       흐린 텍스트  #8B95A1  (부제목, 선택 안 된 탭)
-     테두리는 #E5E8EB, 호버 테두리는 #B0B8C1 로 통일 */
-
-  .app-header__title h1,
-  .controls-mount #yearDisplay {
-    color: #191F28;
-  }
-
-  .app-header__title p {
-    color: #8B95A1;
-  }
-
-  .controls-mount .btn--year,
-  .controls-mount .btn--calendar,
-  .postseason-mount .filter__postseason:not(.active) {
-    color: #6B7684;
-  }
-
-  .controls-mount .btn--year:hover,
-  .controls-mount .btn--calendar:hover,
-  .postseason-mount .filter__postseason:not(.active):hover {
-    color: #191F28;
-  }
-
-  .header-tabs-row .nav__tab {
-    color: #8B95A1;
-  }
-
-  .header-tabs-row .nav__tab:hover {
-    color: #6B7684;
-  }
-
-  /* 선택된 달은 가장 진하게 + 같은 색 밑줄.
-     포스트시즌 시리즈 탭은 금색을 그대로 두어야 해서 제외한다 */
-  .header-tabs-row .nav__tab.active:not([data-series]) {
-    color: #191F28;
-    border-bottom-color: #191F28;
-  }
+.provisional-card__label {
+  font-size: 0.9375rem;
 }
 
 /* ==================== Skeleton ==================== */
@@ -952,57 +719,55 @@
   }
 }
 
-@media (max-width: 768px) {
-  /* 모바일 카드는 2단 — 1행에 시간/구장/상태, 2행에 팀 대결 */
-  .skeleton__day {
-    background-color: transparent;
-    box-shadow: none;
-    padding: 0;
-  }
-
-  .skeleton__game {
-    background-color: white;
-    border: 1.5px solid transparent;
-    border-radius: 20px;
-    padding: 16px 18px;
-    margin-bottom: 10px;
-    min-height: 0;
-  }
-
-  .skeleton__info {
-    flex-wrap: wrap;
-    row-gap: 10px;
-    column-gap: 6px;
-  }
-
-  /* 실제 카드처럼 order 로 줄을 나눈다.
-     팀 대결(flex-basis:100%)이 DOM 상 상태보다 앞이라
-     order 없이는 상태가 3행으로 밀린다 */
-  .skeleton__time { order: 1; }
-  .skeleton__stadium { order: 2; }
-
-  /* 상태는 1행 오른쪽 끝으로 */
-  .skeleton__status {
-    order: 3;
-    margin-left: auto;
-  }
-
-  /* 팀 대결은 통째로 2행 */
-  .skeleton__teams {
-    order: 4;
-    flex-basis: 100%;
-    width: 100%;
-    gap: 24px;
-  }
-
-  .skeleton__date {
-    width: 96px;
-    height: 18px;
-    margin-bottom: 12px;
-  }
-
-  .skeleton__team { width: 52px; height: 30px; }
-  .skeleton__logo { width: 32px; height: 32px; }
-  .skeleton__score { width: 46px; height: 20px; }
-  .skeleton__status { width: 62px; height: 18px; }
+/* 모바일 카드는 2단 — 1행에 시간/구장/상태, 2행에 팀 대결 */
+.skeleton__day {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
 }
+
+.skeleton__game {
+  background-color: white;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  min-height: 0;
+}
+
+.skeleton__info {
+  flex-wrap: wrap;
+  row-gap: 10px;
+  column-gap: 6px;
+}
+
+/* 실제 카드처럼 order 로 줄을 나눈다.
+   팀 대결(flex-basis:100%)이 DOM 상 상태보다 앞이라
+   order 없이는 상태가 3행으로 밀린다 */
+.skeleton__time { order: 1; }
+.skeleton__stadium { order: 2; }
+
+/* 상태는 1행 오른쪽 끝으로 */
+.skeleton__status {
+  order: 3;
+  margin-left: auto;
+}
+
+/* 팀 대결은 통째로 2행 */
+.skeleton__teams {
+  order: 4;
+  flex-basis: 100%;
+  width: 100%;
+  gap: 24px;
+}
+
+.skeleton__date {
+  width: 96px;
+  height: 18px;
+  margin-bottom: 12px;
+}
+
+.skeleton__team { width: 52px; height: 30px; }
+.skeleton__logo { width: 32px; height: 32px; }
+.skeleton__score { width: 46px; height: 20px; }
+.skeleton__status { width: 62px; height: 18px; }

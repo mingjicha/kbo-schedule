@@ -58,10 +58,6 @@ async function loadPostseasonGameDates(year) {
   return dates;
 }
 
-function isMobileCalendar() {
-  return window.matchMedia('(max-width: 768px)').matches;
-}
-
 function initializeFlatpickr() {
   if (!window.flatpickr) {
     console.error('Flatpickr not loaded');
@@ -169,33 +165,11 @@ function initializeFlatpickr() {
     fpInstance.jumpToDate(new Date(calendarDisplayYear, calendarDisplayMonth - 1, 1));
     prefetchNeighborMonths(calendarDisplayYear, calendarDisplayMonth);
 
-    if (isMobileCalendar()) {
-      if (calendarSheetOverlay) calendarSheetOverlay.classList.add('show');
-      fpInstance.open();
-      if (calendarSheetMount && fpInstance.calendarContainer) {
-        calendarSheetMount.appendChild(fpInstance.calendarContainer);
-      }
-      return;
-    }
-
+    if (calendarSheetOverlay) calendarSheetOverlay.classList.add('show');
     fpInstance.open();
-
-    setTimeout(() => {
-      const calendar = document.querySelector('.flatpickr-calendar');
-      if (!calendar) return;
-
-      const btnRect = calendarBtn.getBoundingClientRect();
-
-      // 화면 밖으로 나가지 않게 좌우를 잡아준다
-      const left = btnRect.left - (calendar.offsetWidth - btnRect.width) / 2;
-      const maxLeft = window.innerWidth - calendar.offsetWidth - 8;
-
-      // flatpickr 가 스스로 위치를 다시 잡으므로 !important 로 덮어쓴다.
-      // 달력이 헤더보다 위(z-index)에 있어서 버튼 바로 아래에 붙일 수 있다
-      calendar.style.setProperty('position', 'fixed', 'important');
-      calendar.style.setProperty('top', (btnRect.bottom + 8) + 'px', 'important');
-      calendar.style.setProperty('left', Math.min(Math.max(8, left), maxLeft) + 'px', 'important');
-    }, 0);
+    if (calendarSheetMount && fpInstance.calendarContainer) {
+      calendarSheetMount.appendChild(fpInstance.calendarContainer);
+    }
   });
 
   if (calendarSheetOverlay) {

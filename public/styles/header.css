@@ -9,6 +9,8 @@
   right: 0;
   z-index: 100;
   width: 100%;
+  max-width: var(--app-w);
+  margin: 0 auto;
 }
 
 .app-header__content {
@@ -98,96 +100,94 @@
   gap: 24px;
 }
 
-@media (max-width: 768px) {
-  /* Mobile header: compact controls sitting beside the title, one line */
-  .controls-mount .controls {
-    gap: 8px;
-  }
+/* Mobile header: compact controls sitting beside the title, one line */
+.controls-mount .controls {
+  gap: 8px;
+}
 
-  .controls-mount .year-selector {
-    gap: 2px;
-    background-color: #fff;
-    border-radius: 100px;
-    padding: 4px;
-  }
+.controls-mount .year-selector {
+  gap: 2px;
+  background-color: #fff;
+  border-radius: 100px;
+  padding: 4px;
+}
 
-  .controls-mount .year-selector .btn--year {
-    width: 26px;
-    height: 26px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6B7684;
-  }
+.controls-mount .year-selector .btn--year {
+  width: 26px;
+  height: 26px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7684;
+}
 
-  .controls-mount #yearDisplay {
-    font-size: 0.9375rem;
-    min-width: 0;
-    padding: 0 6px;
-    color: #333;
-  }
+.controls-mount #yearDisplay {
+  font-size: 0.9375rem;
+  min-width: 0;
+  padding: 0 6px;
+  color: #333;
+}
 
-  .controls-mount .btn--calendar {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background-color: #fff;
-    color: #6B7684;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.controls-mount .btn--calendar {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #6B7684;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .controls-mount .btn--calendar:hover {
-    background-color: #E5E8EB;
-    border: none;
-  }
+.controls-mount .btn--calendar:hover {
+  background-color: #E5E8EB;
+  border: none;
+}
 
-  .controls-mount .btn--calendar__label {
-    display: none;
-  }
-  .app-header {
-    padding: 14px 0 10px;
-    background-color: #F2F4F6;
-    border-bottom: none;
-  }
+.controls-mount .btn--calendar__label {
+  display: none;
+}
+.app-header {
+  padding: 14px 0 10px;
+  background-color: #F2F4F6;
+  border-bottom: none;
+}
 
-  .app-header__content {
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
+.app-header__content {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 
-  .app-header__title {
-    text-align: left;
-  }
+.app-header__title {
+  text-align: left;
+}
 
-  .app-header__title h1 {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #333;
-  }
+.app-header__title h1 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #333;
+}
 
-  .app-header__title p {
-    display: none;
-  }
+.app-header__title p {
+  display: none;
+}
 
-  .btn--year {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #333;
-  }
+.btn--year {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #333;
+}
 
-  .btn--calendar i {
-    font-size: 0.875rem;
-    line-height: 1;
-  }
+.btn--calendar i {
+  font-size: 0.875rem;
+  line-height: 1;
 }

@@ -21,6 +21,7 @@
 }
 
 .modal__content {
+  max-width: var(--app-w);
   background-color: white;
   border-radius: 8px;
   width: 920px;
@@ -738,563 +739,561 @@
   display: none;
 }
 
-@media (max-width: 768px) {
-  .modal {
-    padding: 0 10px;
-  }
-
-  .modal__content,
-  .modal--game-detail .modal__content {
-    width: 100%;
-    border-radius: 20px;
-    box-shadow: 0 12px 32px -8px rgba(25, 31, 40, 0.2);
-  }
-
-  .modal__header h3 {
-    font-size: 1.15rem;
-  }
-
-  .modal__header {
-    border-bottom-color: #F2F4F6;
-  }
-
-  .modal__badge {
-    font-size: 0.875rem;
-    padding: 5px 12px;
-    border-radius: 100px;
-  }
-
-  .modal__date {
-    font-size: 0.75rem;
-    color: #B0B8C1;
-  }
-
-  .modal__btn {
-    width: 30px;
-    height: 30px;
-    border: none;
-    background-color: #F2F4F6;
-    color: #6B7684;
-  }
-
-  .modal__btn:hover,
-  .modal__btn--refresh:hover,
-  .modal__btn--close:hover,
-  .modal--weather .modal__btn--refresh:hover {
-    background-color: #F2F4F6;
-    border: none;
-    color: #6B7684;
-  }
-
-  .modal__btn:active,
-  .modal__btn--refresh:active,
-  .modal__btn--close:active {
-    background-color: #E5E8EB;
-    color: #6B7684;
-  }
-
-  .modal__btn i {
-    font-size: 0.85rem;
-    line-height: 1;
-  }
-
-  .lineup__team-tabs {
-    display: flex;
-    gap: 6px;
-  }
-
-  .lineup__team-tab {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #E5E8EB;
-    border-radius: 12px;
-    background-color: white;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #6B7684;
-    cursor: pointer;
-  }
-
-  .lineup__team-tab.active {
-    background-color: var(--tab-color, #333);
-    border-color: var(--tab-color, #333);
-    color: white;
-  }
-
-  .lineup__players {
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .lineup__team {
-    display: none;
-  }
-
-  .lineup__team.active {
-    display: block;
-  }
-
-  .lineup-table {
-    display: none;
-  }
-
-  .lineup__list {
-    display: flex;
-    flex-direction: column;
-    margin-top: 8px;
-  }
-
-  .lineup__list-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 2px;
-    border-bottom: 1px solid #F2F4F6;
-  }
-
-  .lineup__list-item:last-child {
-    border-bottom: none;
-  }
-
-  .lineup__list-order {
-    width: 18px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #B0B8C1;
-    text-align: center;
-  }
-
-  .lineup__list-position {
-    width: 46px;
-    font-size: 0.6875rem;
-    color: #B0B8C1;
-  }
-
-  .lineup__list-name {
-    flex: 1;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .lineup__list-war {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #333;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .lineup-data .graph {
-    display: none;
-  }
-
-  .lineup-data .label {
-    display: none;
-  }
-
-  .lineup-data li {
-    height: auto;
-    margin-bottom: 12px;
-  }
-
-  .lineup__war-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex-basis: 100%;
-    width: 100%;
-  }
-
-  .lineup__war-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .lineup__war-bar-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .lineup__war-value {
-    font-size: 0.8rem;
-    font-weight: 700;
-    width: 32px;
-  }
-
-  .lineup__war-value.away {
-    color: #4a90e2;
-    text-align: right;
-  }
-
-  .lineup__war-value.home {
-    color: #e24a4a;
-  }
-
-  .lineup__war-bar {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background-color: #f0f0f0;
-    display: flex;
-    overflow: hidden;
-  }
-
-  .lineup__war-bar--away {
-    justify-content: flex-end;
-  }
-
-  .lineup__war-bar--home {
-    justify-content: flex-start;
-  }
-
-  .lineup__war-bar-fill.away {
-    background-color: #4a90e2;
-  }
-
-  .lineup__war-bar-fill.home {
-    background-color: #e24a4a;
-  }
-
-  .game-detail__pitcher-card .game-detail__pitcher-header {
-    display: none;
-  }
-
-  .game-detail__pitcher-stat-cards {
-    display: block;
-  }
-
-  .game-detail__pitcher-stat-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 10px;
-  }
-
-  .game-detail__pitcher-stat-header .pitcher-info-logo {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-  }
-
-  .game-detail__pitcher-stat-name {
-    font-size: 0.9375rem;
-    font-weight: 800;
-    color: #333;
-  }
-
-  .game-detail__pitcher-stat-name .style {
-    font-size: 0.6875rem;
-    font-weight: 400;
-    color: #B0B8C1;
-    margin-left: 4px;
-  }
-
-  .game-detail__pitcher-stat-record {
-    font-size: 0.6875rem;
-    color: #B0B8C1;
-  }
-
-  .game-detail__stat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-
-  .game-detail__stat-tile {
-    background-color: #F2F4F6;
-    border-radius: 12px;
-    padding: 9px 6px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .game-detail__stat-tile.stat-highlight {
-    background-color: #EEF3FF;
-  }
-
-  .game-detail__stat-label {
-    font-size: 0.625rem;
-    color: #B0B8C1;
-  }
-
-  .game-detail__stat-value {
-    font-size: 0.9375rem;
-    font-weight: 800;
-    color: #333;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .game-detail__stat-tile.stat-highlight .game-detail__stat-value {
-    color: #2B4C8C;
-  }
-
-  .game-detail__tabs {
-    background-color: #F2F4F6;
-    border-radius: 100px;
-    padding: 3px;
-    width: 100%;
-  }
-
-  .game-detail__tab {
-    flex: 1;
-    padding: 4px 3px;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    border-radius: 100px;
-    color: #6B7684;
-  }
-
-  .game-detail__tab.active {
-    color: #333;
-    background-color: white;
-    box-shadow: 0 1px 3px rgba(25, 31, 40, 0.1);
-  }
-
-  .lineup__war-summary {
-    padding: 13px;
-    background-color: #F2F4F6;
-    border-radius: 14px;
-  }
-
-  .lineup__war-summary h4 {
-    margin-bottom: 11px;
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: #333;
-  }
-
-  .lineup__team-header {
-    font-size: 0.875rem;
-    font-weight: 800;
-    color: #333;
-    gap: 6px;
-  }
-
-  .game-review {
-    padding-bottom: 20px;
-  }
-
-  .modal__rank-table {
-    display: none;
-  }
-
-  .modal__rank-list {
-    display: block;
-  }
-
-  .modal__rank-item {
-    padding: 13px 2px;
-    border-bottom: 1px solid #F2F4F6;
-  }
-
-  .modal__rank-item:last-child {
-    border-bottom: none;
-  }
-
-  .modal__rank-item:has(+ .modal__rank-divider) {
-    border-bottom: none;
-  }
-
-  .modal__rank-divider {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #2C3E64;
-  }
-
-  .modal__rank-divider::before,
-  .modal__rank-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #DDE2EC;
-  }
-
-  .modal__rank-item-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .modal__rank-item-rank {
-    width: 18px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #B0B8C1;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .modal__rank-item--top .modal__rank-item-rank {
-    color: #2C3E64;
-    font-weight: 800;
-  }
-
-  .modal__rank-item-logo {
-    width: 26px;
-    height: 26px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
-
-  .modal__rank-item-team {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .modal__rank-item-name {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #333;
-  }
-
-  .modal__rank-item-record {
-    font-size: 0.7rem;
-    color: #B0B8C1;
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .modal__rank-item-streak {
-    flex-shrink: 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #6B7684;
-    background: #F2F4F6;
-    border-radius: 8px;
-    padding: 3px 7px;
-  }
-
-  .modal__rank-item-stats {
-    text-align: right;
-    flex-shrink: 0;
-    min-width: 62px;
-  }
-
-  .modal__rank-item-winrate {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #333;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .modal__rank-item-gamediff {
-    font-size: 0.7rem;
-    color: #B0B8C1;
-    margin-top: 1px;
-    white-space: nowrap;
-  }
-
-  .modal__body--weather {
-    align-items: flex-start;
-  }
-
-  .modal__no-data,
-  .modal__no-rank-data,
-  .modal__no-weather-data {
-    font-size: 0.875rem;
-    padding: 32px 20px;
-    color: #B0B8C1;
-  }
-
-  .modal__weather-cards {
-    display: none;
-  }
-
-  .modal__weather-list {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .modal__weather-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 2px;
-    border-bottom: 1px solid #F2F4F6;
-  }
-
-  .modal__weather-row:last-child {
-    border-bottom: none;
-  }
-
-  .modal__weather-row-icon {
-    font-size: 1.625rem;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .modal__weather-row-main {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .modal__weather-row-stadium {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #333;
-  }
-
-  .modal__weather-row-desc {
-    font-size: 0.7rem;
-    color: #B0B8C1;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .modal__weather-row-meta {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-  }
-
-  .modal__weather-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 0.7rem;
-    color: #6B7684;
-    background: #F2F4F6;
-    border-radius: 8px;
-    padding: 3px 7px;
-    white-space: nowrap;
-  }
-
-  .modal__weather-chip--rain {
-    background: #FEF3E9;
-    color: #884A14;
-  }
-
-  .modal__weather-row-stats {
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .modal__weather-row-temp {
-    font-size: 1.0625rem;
-    font-weight: 800;
-    color: #333;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .modal__weather-row-range {
-    font-size: 0.7rem;
-    color: #B0B8C1;
-    margin-top: 1px;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
+.modal {
+  padding: 0 10px;
+}
+
+.modal__content,
+.modal--game-detail .modal__content {
+  width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px -8px rgba(25, 31, 40, 0.2);
+}
+
+.modal__header h3 {
+  font-size: 1.15rem;
+}
+
+.modal__header {
+  border-bottom-color: #F2F4F6;
+}
+
+.modal__badge {
+  font-size: 0.875rem;
+  padding: 5px 12px;
+  border-radius: 100px;
+}
+
+.modal__date {
+  font-size: 0.75rem;
+  color: #B0B8C1;
+}
+
+.modal__btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background-color: #F2F4F6;
+  color: #6B7684;
+}
+
+.modal__btn:hover,
+.modal__btn--refresh:hover,
+.modal__btn--close:hover,
+.modal--weather .modal__btn--refresh:hover {
+  background-color: #F2F4F6;
+  border: none;
+  color: #6B7684;
+}
+
+.modal__btn:active,
+.modal__btn--refresh:active,
+.modal__btn--close:active {
+  background-color: #E5E8EB;
+  color: #6B7684;
+}
+
+.modal__btn i {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.lineup__team-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.lineup__team-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px;
+  background-color: white;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #6B7684;
+  cursor: pointer;
+}
+
+.lineup__team-tab.active {
+  background-color: var(--tab-color, #333);
+  border-color: var(--tab-color, #333);
+  color: white;
+}
+
+.lineup__players {
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lineup__team {
+  display: none;
+}
+
+.lineup__team.active {
+  display: block;
+}
+
+.lineup-table {
+  display: none;
+}
+
+.lineup__list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.lineup__list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid #F2F4F6;
+}
+
+.lineup__list-item:last-child {
+  border-bottom: none;
+}
+
+.lineup__list-order {
+  width: 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #B0B8C1;
+  text-align: center;
+}
+
+.lineup__list-position {
+  width: 46px;
+  font-size: 0.6875rem;
+  color: #B0B8C1;
+}
+
+.lineup__list-name {
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.lineup__list-war {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineup-data .graph {
+  display: none;
+}
+
+.lineup-data .label {
+  display: none;
+}
+
+.lineup-data li {
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.lineup__war-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-basis: 100%;
+  width: 100%;
+}
+
+.lineup__war-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.lineup__war-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineup__war-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: 32px;
+}
+
+.lineup__war-value.away {
+  color: #4a90e2;
+  text-align: right;
+}
+
+.lineup__war-value.home {
+  color: #e24a4a;
+}
+
+.lineup__war-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #f0f0f0;
+  display: flex;
+  overflow: hidden;
+}
+
+.lineup__war-bar--away {
+  justify-content: flex-end;
+}
+
+.lineup__war-bar--home {
+  justify-content: flex-start;
+}
+
+.lineup__war-bar-fill.away {
+  background-color: #4a90e2;
+}
+
+.lineup__war-bar-fill.home {
+  background-color: #e24a4a;
+}
+
+.game-detail__pitcher-card .game-detail__pitcher-header {
+  display: none;
+}
+
+.game-detail__pitcher-stat-cards {
+  display: block;
+}
+
+.game-detail__pitcher-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.game-detail__pitcher-stat-header .pitcher-info-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.game-detail__pitcher-stat-name {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.game-detail__pitcher-stat-name .style {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: #B0B8C1;
+  margin-left: 4px;
+}
+
+.game-detail__pitcher-stat-record {
+  font-size: 0.6875rem;
+  color: #B0B8C1;
+}
+
+.game-detail__stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.game-detail__stat-tile {
+  background-color: #F2F4F6;
+  border-radius: 12px;
+  padding: 9px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.game-detail__stat-tile.stat-highlight {
+  background-color: #EEF3FF;
+}
+
+.game-detail__stat-label {
+  font-size: 0.625rem;
+  color: #B0B8C1;
+}
+
+.game-detail__stat-value {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-detail__stat-tile.stat-highlight .game-detail__stat-value {
+  color: #2B4C8C;
+}
+
+.game-detail__tabs {
+  background-color: #F2F4F6;
+  border-radius: 100px;
+  padding: 3px;
+  width: 100%;
+}
+
+.game-detail__tab {
+  flex: 1;
+  padding: 4px 3px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border-radius: 100px;
+  color: #6B7684;
+}
+
+.game-detail__tab.active {
+  color: #333;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(25, 31, 40, 0.1);
+}
+
+.lineup__war-summary {
+  padding: 13px;
+  background-color: #F2F4F6;
+  border-radius: 14px;
+}
+
+.lineup__war-summary h4 {
+  margin-bottom: 11px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.lineup__team-header {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #333;
+  gap: 6px;
+}
+
+.game-review {
+  padding-bottom: 20px;
+}
+
+.modal__rank-table {
+  display: none;
+}
+
+.modal__rank-list {
+  display: block;
+}
+
+.modal__rank-item {
+  padding: 13px 2px;
+  border-bottom: 1px solid #F2F4F6;
+}
+
+.modal__rank-item:last-child {
+  border-bottom: none;
+}
+
+.modal__rank-item:has(+ .modal__rank-divider) {
+  border-bottom: none;
+}
+
+.modal__rank-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2C3E64;
+}
+
+.modal__rank-divider::before,
+.modal__rank-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #DDE2EC;
+}
+
+.modal__rank-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal__rank-item-rank {
+  width: 18px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #B0B8C1;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.modal__rank-item--top .modal__rank-item-rank {
+  color: #2C3E64;
+  font-weight: 800;
+}
+
+.modal__rank-item-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.modal__rank-item-team {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal__rank-item-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal__rank-item-record {
+  font-size: 0.7rem;
+  color: #B0B8C1;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal__rank-item-streak {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7684;
+  background: #F2F4F6;
+  border-radius: 8px;
+  padding: 3px 7px;
+}
+
+.modal__rank-item-stats {
+  text-align: right;
+  flex-shrink: 0;
+  min-width: 62px;
+}
+
+.modal__rank-item-winrate {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal__rank-item-gamediff {
+  font-size: 0.7rem;
+  color: #B0B8C1;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.modal__body--weather {
+  align-items: flex-start;
+}
+
+.modal__no-data,
+.modal__no-rank-data,
+.modal__no-weather-data {
+  font-size: 0.875rem;
+  padding: 32px 20px;
+  color: #B0B8C1;
+}
+
+.modal__weather-cards {
+  display: none;
+}
+
+.modal__weather-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.modal__weather-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+  border-bottom: 1px solid #F2F4F6;
+}
+
+.modal__weather-row:last-child {
+  border-bottom: none;
+}
+
+.modal__weather-row-icon {
+  font-size: 1.625rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.modal__weather-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal__weather-row-stadium {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal__weather-row-desc {
+  font-size: 0.7rem;
+  color: #B0B8C1;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal__weather-row-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.modal__weather-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  color: #6B7684;
+  background: #F2F4F6;
+  border-radius: 8px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.modal__weather-chip--rain {
+  background: #FEF3E9;
+  color: #884A14;
+}
+
+.modal__weather-row-stats {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.modal__weather-row-temp {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal__weather-row-range {
+  font-size: 0.7rem;
+  color: #B0B8C1;
+  margin-top: 1px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Key Players (진행중 경기) */

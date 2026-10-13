@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kbo-schedule-v20';
+const CACHE_NAME = 'kbo-schedule-v21';
 const APP_SHELL = [
   '/',
   '/index.html',

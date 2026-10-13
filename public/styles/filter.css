@@ -249,130 +249,128 @@
   display: none;
 }
 
-@media (max-width: 768px) {
-  .filter {
-    background-color: transparent;
-  }
+.filter {
+  background-color: transparent;
+}
 
-  .filter__content {
-    padding: 10px 16px 0;
-    display: flex;
-    justify-content: flex-start;
-  }
+.filter__content {
+  padding: 10px 16px 0;
+  display: flex;
+  justify-content: flex-start;
+}
 
-  .filter__summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 100px;
-    background-color: white;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #333;
-  }
+.filter__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 100px;
+  background-color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #333;
+}
 
-  .filter__summary-dot {
-    display: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: #333;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    flex-shrink: 0;
-  }
+.filter__summary-dot {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #333;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
 
-  .filter__summary i {
-    font-size: 0.75rem;
-    color: #999;
-  }
+.filter__summary i {
+  font-size: 0.75rem;
+  color: #999;
+}
 
-  .filter__teams {
-    display: none;
-  }
+.filter__teams {
+  display: none;
+}
 
-  .team-sheet-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.45);
-    z-index: 1100;
-    align-items: flex-end;
-    justify-content: center;
-  }
+.team-sheet-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 1100;
+  align-items: flex-end;
+  justify-content: center;
+}
 
-  .team-sheet-overlay.show {
-    display: flex;
-  }
+.team-sheet-overlay.show {
+  display: flex;
+}
 
-  .team-sheet {
-    width: 100%;
-    max-width: 95vw;
-    background-color: white;
-    border-radius: 20px 20px 0 0;
-    padding-bottom: 16px;
-  }
+.team-sheet {
+  width: 100%;
+  max-width: min(95vw, var(--app-w));
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: 16px;
+}
 
-  .team-sheet__handle {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: #ddd;
-    margin: 10px auto 6px;
-  }
+.team-sheet__handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #ddd;
+  margin: 10px auto 6px;
+}
 
-  .team-sheet__title {
-    padding: 5px 18px 14px;
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #333;
-  }
+.team-sheet__title {
+  padding: 5px 18px 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #333;
+}
 
-  .team-sheet__list {
-    max-height: 55vh;
-    overflow-y: auto;
-  }
+.team-sheet__list {
+  max-height: 55vh;
+  overflow-y: auto;
+}
 
-  .team-sheet__item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 3vw;
-    padding: 2vw 5vw;
-    border: none;
-    background: none;
-    text-align: left;
-    font-size: 0.875rem;
-    color: #333;
-  }
+.team-sheet__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3vw;
+  padding: 2vw 5vw;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #333;
+}
 
-  .team-sheet__item-logo {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
+.team-sheet__item-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 
-  .team-sheet__item-name {
-    flex: 1;
-  }
+.team-sheet__item-name {
+  flex: 1;
+}
 
-  .team-sheet__item-name--all {
-    font-weight: 700;
-  }
+.team-sheet__item-name--all {
+  font-weight: 700;
+}
 
-  .team-sheet__item i {
-    font-size: 1rem;
-    color: #626ABD;
-    display: none;
-  }
+.team-sheet__item i {
+  font-size: 1rem;
+  color: #626ABD;
+  display: none;
+}
 
-  .team-sheet__item.active i {
-    display: block;
-  }
+.team-sheet__item.active i {
+  display: block;
 }
 
 /* 포스트시즌 토글: PC 는 월 탭 줄 오른쪽, 모바일은 '전체' 드롭다운 옆.
@@ -414,29 +412,27 @@
   color: white;
 }
 
-@media (max-width: 768px) {
-  #postseasonBtn {
-    display: none;
-  }
+#postseasonBtn {
+  display: none;
+}
 
-  #postseasonBtnMobile {
-    display: block;
-  }
+#postseasonBtnMobile {
+  display: block;
+}
 
-  .filter__postseason {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 100px;
-    background-color: white;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #8B95A1;
-    margin-left: auto;
-  }
+.filter__postseason {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 100px;
+  background-color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8B95A1;
+  margin-left: auto;
+}
 
-  .filter__postseason.active,
-  .filter__postseason.active:hover {
-    background-color: #f5c340;
-    color: white;
-  }
+.filter__postseason.active,
+.filter__postseason.active:hover {
+  background-color: #f5c340;
+  color: white;
 }
