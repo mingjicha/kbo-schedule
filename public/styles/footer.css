@@ -343,8 +343,14 @@
   color: #333;
 }
 
+.app-footer__section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .app-footer__section h4 {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .app-footer__logo {
