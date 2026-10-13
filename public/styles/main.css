@@ -709,7 +709,7 @@
 
 .skeleton__game {
   background-color: white;
-  border: 1.5px solid transparent;
+  border: 1px solid transparent;
   border-radius: 20px;
   padding: 16px 18px;
   margin-bottom: 10px;
@@ -718,7 +718,7 @@
 
 .skeleton__info {
   flex-wrap: wrap;
-  row-gap: 10px;
+  row-gap: 6px;
   column-gap: 6px;
 }
 
@@ -742,13 +742,30 @@
   gap: 24px;
 }
 
+/* 날짜 헤더: 실제 헤더(글자 23px + 위아래 padding 12px = 47px)의 글자 자리에 막대를 둔다 */
 .skeleton__date {
   width: 96px;
   height: 18px;
-  margin-bottom: 12px;
+  margin: 14.5px 0;
+  padding-bottom: 0;
 }
 
-.skeleton__team { width: 52px; height: 30px; }
+/* 날짜별 묶음 사이는 간격 없이, 마지막 카드의 아래 여백(10px)만 둔다 (실제 .schedule__day 와 같다) */
+.skeleton {
+  gap: 0;
+}
+
+.skeleton__day .skeleton__game:last-child {
+  margin-bottom: 10px;
+}
+
+/* 시간/구장/상태 줄 — 실제 카드 높이(상태 배지 24px)에 맞춘다 */
+.skeleton__time { width: 29px; height: 18px; }
+.skeleton__stadium { width: 22px; height: 16px; }
+.skeleton__status { width: 65px; height: 24px; }
+
+/* 팀 줄 — 실제로는 팀명(24px) 아래 선발투수 줄이 있어 높이가 43px 이다.
+   팀명 막대는 위쪽에 두고 아래 여백으로 줄 높이를 채운다 */
+.skeleton__team { width: 44px; height: 24px; margin-bottom: 19.2px; }
 .skeleton__logo { width: 32px; height: 32px; }
-.skeleton__score { width: 46px; height: 20px; }
-.skeleton__status { width: 62px; height: 18px; }
+.skeleton__score { width: 56px; height: 22px; }
