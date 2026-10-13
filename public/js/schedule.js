@@ -1129,7 +1129,19 @@ async function renderSeries(seriesKey) {
 
   // 이동일까지 포함한 일정 틀에 KBO 실제 경기(팀·점수·승패)를 날짜별로 끼워 넣어 보여준다.
   // 틀이 없는 해는 아래의 일반 경기 목록으로 보여준다
-  if (await renderProvisionalSeries(seriesKey, games)) {
+  // 앞 라운드가 끝났다면 그 승자가 이번 라운드의 "WC 승리팀" 같은 자리에 들어간다
+  const seriesIdx = POSTSEASON_SERIES_LIST.findIndex(s => s.key === seriesKey);
+  let previousWinner = null;
+  if (seriesIdx > 0) {
+    const previousKey = POSTSEASON_SERIES_LIST[seriesIdx - 1].key;
+    try {
+      previousWinner = getSeriesWinner(previousKey, await loadSeriesData(previousKey));
+    } catch (e) {
+      previousWinner = null;
+    }
+  }
+
+  if (await renderProvisionalSeries(seriesKey, games, previousWinner)) {
     // 한국시리즈가 끝난 해라면 우승팀을 맨 위에 보여준다
     const champ = seriesKey === 'ks' ? getChampionInfo(games) : null;
     if (champ) scheduleContainer.insertBefore(renderChampionBanner(champ), scheduleContainer.firstChild);
@@ -1191,7 +1203,27 @@ function isSeriesDecided(seriesKey, games) {
   return Object.values(wins).some(w => w >= need);
 }
 
-function renderProvisionalRound(round, games = []) {
+// 시리즈를 이긴 팀 (결정 전이면 null)
+function getSeriesWinner(seriesKey, games) {
+  if (!isSeriesDecided(seriesKey, games)) return null;
+  const finished = games.filter(g => getGameStatus(g) === '종료' && g.winner);
+
+  // 와일드카드는 4위 팀(홈)이 한 번만 이겨도 통과, 아니면 두 경기를 모두 이긴 5위 팀
+  if (seriesKey === 'wc') {
+    const homeWin = finished.find(g => g.winner === 'home');
+    return homeWin ? homeWin.homeTeam : (finished[0] ? finished[0].awayTeam : null);
+  }
+
+  const wins = {};
+  finished.forEach(g => {
+    const team = g.winner === 'away' ? g.awayTeam : g.homeTeam;
+    wins[team] = (wins[team] || 0) + 1;
+  });
+  const top = Object.entries(wins).sort((a, b) => b[1] - a[1])[0];
+  return top ? top[0] : null;
+}
+
+function renderProvisionalRound(round, games = [], previousWinner = null) {
   const container = document.createElement('div');
 
   const timeline = document.createElement('div');
@@ -1207,7 +1239,7 @@ function renderProvisionalRound(round, games = []) {
   const placeholder = [firstGame.away, firstGame.home].find(name => !teamLogos[name]) || null;
   const fixedTeam = placeholder ? [firstGame.away, firstGame.home].find(name => name !== placeholder) : null;
   const known = games.find(g => g.awayTeam === fixedTeam || g.homeTeam === fixedTeam);
-  const actualTeam = known ? (known.awayTeam === fixedTeam ? known.homeTeam : known.awayTeam) : null;
+  const actualTeam = (known ? (known.awayTeam === fixedTeam ? known.homeTeam : known.awayTeam) : null) || previousWinner;
   const swapPlaceholder = text => (placeholder && actualTeam && text === placeholder ? actualTeam : text);
 
   // 치러지지 않은 경기(시리즈 종료 후 남은 칸, 열리지 않고 지나간 날짜)는 뺀다
@@ -1291,7 +1323,7 @@ function renderProvisionalRound(round, games = []) {
   return container;
 }
 
-async function renderProvisionalSeries(seriesKey, games = []) {
+async function renderProvisionalSeries(seriesKey, games = [], previousWinner = null) {
   const scheduleContainer = document.getElementById('scheduleContainer');
   const postseasonAlert = document.getElementById('postseasonAlert');
 
@@ -1305,7 +1337,7 @@ async function renderProvisionalSeries(seriesKey, games = []) {
   if (!round) return false;
 
   scheduleContainer.innerHTML = '';
-  scheduleContainer.appendChild(renderProvisionalRound(round, games));
+  scheduleContainer.appendChild(renderProvisionalRound(round, games, previousWinner));
   return true;
 }
 
@@ -1429,7 +1461,23 @@ async function renderPostseasonTabs() {
   // 지난 해는 첫 시리즈를 연다
   const withGames = seriesList.filter(s => s.hasGames);
   const pick = currentYear === new Date().getFullYear() ? withGames[withGames.length - 1] : withGames[0];
-  const defaultKey = pick ? pick.key : POSTSEASON_SERIES_LIST[0].key;
+  let defaultIdx = pick ? POSTSEASON_SERIES_LIST.findIndex(s => s.key === pick.key) : 0;
+
+  // 앞 라운드가 끝났으면 KBO에 다음 대진이 올라오기 전이라도 다음 라운드 탭을 연다
+  if (currentYear === new Date().getFullYear()) {
+    while (defaultIdx < POSTSEASON_SERIES_LIST.length - 1) {
+      const key = POSTSEASON_SERIES_LIST[defaultIdx].key;
+      let seriesGames = [];
+      try {
+        seriesGames = await loadSeriesData(key);
+      } catch (e) {
+        break;
+      }
+      if (!isSeriesDecided(key, seriesGames)) break;
+      defaultIdx++;
+    }
+  }
+  const defaultKey = POSTSEASON_SERIES_LIST[defaultIdx].key;
 
   // 기다리는 동안 사용자가 다른 탭을 눌렀으면 그 선택을 존중한다
   if (postseasonSeries) return;
