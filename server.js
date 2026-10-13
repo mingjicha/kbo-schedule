@@ -1895,6 +1895,46 @@ app.get('/api/today-games-status', async (req, res) => {
 });
 
 
+// 배포/재시작 직후나 캐시가 만료된 직후에는 첫 방문자가 KBO를 새로 긁어오느라 3초 이상 기다린다.
+// 시작할 때 올해 일정을 미리 채우고, 이후 1분마다 이번 달·포스트시즌 캐시를 갱신해 항상 따뜻하게 둔다.
+// 일반 요청과 같은 경로(/api/schedule)를 거치므로 캐시 정책이 그대로 적용된다
+async function warmSchedule(months, seriesKeys = ['']) {
+  const year = new Date().getFullYear();
+  for (const m of months) {
+    for (const series of seriesKeys) {
+      try {
+        await axios.get(`http://127.0.0.1:${PORT}/api/schedule`, {
+          params: { year, month: String(m).padStart(2, '0'), team: '', ...(series ? { series } : {}) }
+        });
+      } catch (e) {
+        console.error('Schedule warmup failed:', year, m, series, e.message);
+      }
+    }
+  }
+}
+
+let warming = false;
+async function runWarmup(isBoot) {
+  if (warming) return;
+  warming = true;
+  try {
+    const cur = new Date().getMonth() + 1;
+    const psKeys = Object.keys(POSTSEASON_SERIES);
+    if (isBoot) {
+      const months = [cur, cur + 1, ...Array.from({ length: cur - 3 }, (_, i) => cur - 1 - i)].filter(m => m >= 3 && m <= 12);
+      await warmSchedule(months);
+      await warmSchedule([9, 10, 11, 12], psKeys);
+    } else {
+      await warmSchedule([cur]);
+      if (cur >= 9) await warmSchedule([cur, cur + 1].filter(m => m <= 12), psKeys);
+    }
+  } finally {
+    warming = false;
+  }
+}
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at https://localhost:${PORT}`);
+  runWarmup(true);
+  setInterval(() => runWarmup(false), MINUTE);
 });
