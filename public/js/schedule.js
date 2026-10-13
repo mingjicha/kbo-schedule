@@ -997,6 +997,8 @@ function updateGameStatuses() {
   const now = new Date();
 
   gameCards.forEach(card => {
+    // 포스트시즌 일정 틀 카드는 날짜 묶음(.schedule__day) 밖에 있고, 상태는 시리즈를 다시 그릴 때 갱신된다
+    if (card.closest('.provisional-item')) return;
     const timeElement = card.querySelector('.schedule__time');
     if (!timeElement) return;
     const timeText = timeElement.textContent;
@@ -1104,14 +1106,18 @@ async function renderSeries(seriesKey) {
   }
   window.currentScheduleData = games;
 
-  // 경기가 하나도 시작되기 전에는 이동일까지 포함한 일정 틀을 보여준다.
-  // 첫 경기가 시작(또는 취소)되면 실제 경기 결과 화면으로 넘어간다
-  if (games.every(g => getGameStatus(g) === '예정')) {
-    if (await renderProvisionalSeries(seriesKey)) return;
-    if (games.length === 0) {
-      scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
-      return;
-    }
+  // 이동일까지 포함한 일정 틀에 KBO 실제 경기(팀·점수·승패)를 날짜별로 끼워 넣어 보여준다.
+  // 틀이 없는 해는 아래의 일반 경기 목록으로 보여준다
+  if (await renderProvisionalSeries(seriesKey, games)) {
+    // 한국시리즈가 끝난 해라면 우승팀을 맨 위에 보여준다
+    const champ = seriesKey === 'ks' ? getChampionInfo(games) : null;
+    if (champ) scheduleContainer.insertBefore(renderChampionBanner(champ), scheduleContainer.firstChild);
+    return;
+  }
+
+  if (games.length === 0) {
+    scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
+    return;
   }
 
   if (postseasonAlert) postseasonAlert.innerHTML = '';
@@ -1124,10 +1130,8 @@ async function renderSeries(seriesKey) {
   scheduleContainer.appendChild(renderGamesByMonth(games, null, currentYear));
 }
 
-// ==================== 포스트시즌 잠정 일정 ====================
-// KBO 사이트에 실제 대진이 확정되기 전까지, 참고용으로 정리해둔 라운드별
-// 날짜 틀을 보여준다. 실제 일정이 뜨면 loadSeriesData 결과가 비지 않게 되어
-// 이 fallback은 자동으로 더 이상 쓰이지 않는다.
+// ==================== 포스트시즌 일정 틀 ====================
+// 라운드별 날짜·이동일·예정 대진을 적어둔 틀. KBO 실제 경기가 있으면 같은 날짜 카드에 덮어쓴다
 let provisionalPostseasonData = null;
 
 async function loadProvisionalPostseasonSchedule() {
@@ -1151,13 +1155,56 @@ function shortenGameLabel(label, roundName) {
   return label.startsWith(roundName) ? label.slice(roundName.length).trim() : label;
 }
 
-function renderProvisionalRound(round) {
+// 시리즈가 이미 결정됐는지 (남은 경기는 치러지지 않는다)
+// 와일드카드는 4위 팀(홈)이 1승만 하면 끝, 준PO·PO는 3승, 한국시리즈는 4승
+function isSeriesDecided(seriesKey, games) {
+  const finished = games.filter(g => getGameStatus(g) === '종료' && g.winner);
+  if (seriesKey === 'wc') return finished.some(g => g.winner === 'home') || finished.length >= 2;
+
+  const need = seriesKey === 'ks' ? 4 : 3;
+  const wins = {};
+  finished.forEach(g => {
+    const team = g.winner === 'away' ? g.awayTeam : g.homeTeam;
+    wins[team] = (wins[team] || 0) + 1;
+  });
+  return Object.values(wins).some(w => w >= need);
+}
+
+function renderProvisionalRound(round, games = []) {
   const container = document.createElement('div');
 
   const timeline = document.createElement('div');
   timeline.className = 'provisional-timeline';
 
-  round.items.forEach(item => {
+  const realByDate = new Map(games.map(g => [g.date.split('(')[0].trim(), g]));
+  const decided = isSeriesDecided(round.key, games);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+  // 앞선 실제 경기로 상대 팀이 확인되면 남은 칸의 "WC 승리팀" 같은 자리표시를 그 팀 이름으로 바꾼다
+  const firstGame = round.items.find(i => i.type === 'game');
+  const placeholder = [firstGame.away, firstGame.home].find(name => !teamLogos[name]) || null;
+  const fixedTeam = placeholder ? [firstGame.away, firstGame.home].find(name => name !== placeholder) : null;
+  const known = games.find(g => g.awayTeam === fixedTeam || g.homeTeam === fixedTeam);
+  const actualTeam = known ? (known.awayTeam === fixedTeam ? known.homeTeam : known.awayTeam) : null;
+  const swapPlaceholder = text => (placeholder && actualTeam && text === placeholder ? actualTeam : text);
+
+  // 치러지지 않은 경기(시리즈 종료 후 남은 칸, 열리지 않고 지나간 날짜)는 뺀다
+  const items = round.items.filter(item => {
+    if (item.type !== 'game') return true;
+    const [month, day] = item.date.split('-');
+    const real = realByDate.get(`${month}.${day}`);
+    if (decided) return !!real && getGameStatus(real) === '종료';
+    if (real) return true;
+    return new Date(currentYear, Number(month) - 1, Number(day)).getTime() >= today;
+  });
+
+  // 마지막 경기 뒤에 남은 이동일 같은 줄은 의미가 없으므로 같이 뺀다
+  let lastGame = -1;
+  items.forEach((item, i) => { if (item.type === 'game') lastGame = i; });
+  if (lastGame >= 0) items.length = lastGame + 1;
+
+  items.forEach(item => {
     const row = document.createElement('div');
     row.className = 'provisional-item';
 
@@ -1177,15 +1224,27 @@ function renderProvisionalRound(round) {
       dateHeader.textContent = formatDateDisplay(dateStr);
       row.appendChild(dateHeader);
 
-      row.appendChild(createGameCard({
-        provisional: true,
-        date: dateStr,
-        time: item.time,
-        stadium: item.venue,
-        awayTeam: item.away,
-        homeTeam: item.home,
-        badgeText: shortenGameLabel(item.label, round.name)
-      }, dateStr, false));
+      // KBO 실제 경기가 있으면 그 데이터(팀·시간·점수·승패)를, 없으면 틀의 예정 대진을 쓴다
+      const real = realByDate.get(`${month}.${day}`);
+      const gameLabel = shortenGameLabel(item.label, round.name);
+      let game;
+      let clickable = false;
+      if (real) {
+        const status = getGameStatus(real);
+        game = { ...real, badgeText: status === '예정' ? gameLabel : `${gameLabel} · ${status}` };
+        clickable = status === '종료' || status === '진행중' || new Date(currentYear, Number(month) - 1, Number(day)).getTime() === today;
+      } else {
+        game = {
+          provisional: true,
+          date: dateStr,
+          time: item.time,
+          stadium: swapPlaceholder(item.venue),
+          awayTeam: swapPlaceholder(item.away),
+          homeTeam: swapPlaceholder(item.home),
+          badgeText: gameLabel
+        };
+      }
+      row.appendChild(createGameCard(game, dateStr, clickable));
     } else {
       row.classList.add('provisional-item--travel');
 
@@ -1211,7 +1270,7 @@ function renderProvisionalRound(round) {
   return container;
 }
 
-async function renderProvisionalSeries(seriesKey) {
+async function renderProvisionalSeries(seriesKey, games = []) {
   const scheduleContainer = document.getElementById('scheduleContainer');
   const postseasonAlert = document.getElementById('postseasonAlert');
 
@@ -1225,7 +1284,7 @@ async function renderProvisionalSeries(seriesKey) {
   if (!round) return false;
 
   scheduleContainer.innerHTML = '';
-  scheduleContainer.appendChild(renderProvisionalRound(round));
+  scheduleContainer.appendChild(renderProvisionalRound(round, games));
   return true;
 }
 
