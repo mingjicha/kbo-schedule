@@ -367,6 +367,8 @@
 }
 
 .app-footer__links a {
+  position: relative;
+  top: 1px;
   font-size: 0.8rem;
   color: #8B95A1;
 }
