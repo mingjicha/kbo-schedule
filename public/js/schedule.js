@@ -1125,25 +1125,6 @@ async function loadProvisionalPostseasonSchedule() {
   return provisionalPostseasonData;
 }
 
-function renderProvisionalNotice(data) {
-  const notice = document.createElement('div');
-  notice.className = 'provisional-notice';
-
-  const text = document.createElement('div');
-  text.className = 'provisional-notice__text';
-  text.textContent = data.note;
-  notice.appendChild(text);
-
-  if (data.source && data.source.label) {
-    const source = document.createElement('div');
-    source.className = 'provisional-notice__source';
-    source.textContent = `출처: ${data.source.label}`;
-    notice.appendChild(source);
-  }
-
-  return notice;
-}
-
 function formatProvisionalDate(dateStr, day) {
   const [month, date] = dateStr.split('-').map(Number);
   return `${month}/${date}(${day})`;
@@ -1247,8 +1228,6 @@ async function renderProvisionalSeries(seriesKey) {
     scheduleContainer.innerHTML = '<div class="schedule__no-games">포스트시즌 일정이 아직 안 나왔어요<span class="symbol-font">♤</span></div>';
     return;
   }
-
-  if (postseasonAlert) postseasonAlert.appendChild(renderProvisionalNotice(data));
 
   scheduleContainer.innerHTML = '';
   scheduleContainer.appendChild(renderProvisionalRound(round));

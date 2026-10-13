@@ -501,24 +501,6 @@
   display: none;
 }
 
-.provisional-notice {
-  background-color: #EEF0FB;
-  border: 1px solid #D8DCF3;
-  margin: 16px 0 16px 0;
-}
-
-.provisional-notice__text {
-  font-size: 0.8125rem;
-  color: #4C54A0;
-  line-height: 1.5;
-}
-
-.provisional-notice__source {
-  margin-top: 4px;
-  font-size: 0.75rem;
-  color: #8B95A1;
-}
-
 .provisional-round__matchup {
   font-weight: 700;
   color: #333;
@@ -621,15 +603,6 @@
 }
 
 @media (max-width: 768px) {
-  .provisional-notice {
-    padding: 12px 14px;
-    border-radius: 16px;
-  }
-
-  .provisional-notice__text {
-    font-size: 0.75rem;
-  }
-
   .provisional-card {
     border-radius: 16px;
     padding: 14px 16px;
