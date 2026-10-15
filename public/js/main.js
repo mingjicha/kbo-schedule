@@ -22,7 +22,6 @@ async function initializeApp() {
     if (await shouldStartInPostseason(schedule)) {
       postseasonSeasonActive = true;
       await setPostseasonMode(true);
-      maybeStartPostseasonOnboarding();
       startTodayRefreshTimer();
       startFutureRefreshTimer();
       loadWeather();

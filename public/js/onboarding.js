@@ -3,8 +3,6 @@ const ONBOARDING_KEY = 'kbo-onboarding-done';
 const ONBOARDING_FINISHED_GAMES_KEY = 'kbo-onboarding-finished-games-done';
 const ONBOARDING_PREVIEW_KEY = 'kbo-onboarding-preview-done';
 
-const ONBOARDING_POSTSEASON_KEY = 'kbo-onboarding-postseason-done';
-
 const onboardingEl = document.getElementById('onboarding');
 const spotlightEl = document.getElementById('onboardingSpotlight');
 const coachEl = document.getElementById('onboardingCoach');
@@ -58,31 +56,6 @@ const previewSteps = [
     title: '예정된 경기는 눌러보세요',
     desc: '선발투수 기록과 라인업을 미리 확인할 수 있어요.',
     key: ONBOARDING_PREVIEW_KEY
-  }
-];
-
-// 정규시즌이 끝나고 포스트시즌이 기본 화면일 때의 안내
-const postseasonSteps = [
-  {
-    target: () => document.getElementById('monthTabsContainer'),
-    title: '라운드를 골라보세요',
-    desc: '와일드카드부터 한국시리즈까지 탭으로 옮겨 다닐 수 있어요.'
-  },
-  {
-    target: () => document.getElementById('calendarBtn'),
-    title: '날짜로 바로 이동해요',
-    desc: '경기가 있는 날짜를 골라 그날 일정으로 이동할 수 있어요.'
-  },
-  {
-    target: () => document.getElementById('todayMenuBtn'),
-    title: '오늘 경기로 바로 이동',
-    desc: '언제든 눌러서 오늘 포스트시즌 경기로 돌아올 수 있어요.'
-  },
-  {
-    target: () => [document.getElementById('postseasonBtnMobile'), document.getElementById('postseasonBtn')].find(isVisible) || null,
-    title: '정규시즌은 여기서',
-    desc: '이 버튼을 누르면 정규시즌 일정으로 돌아가요.',
-    key: ONBOARDING_POSTSEASON_KEY
   }
 ];
 
@@ -221,14 +194,6 @@ if (onboardingEl) {
 
 function shouldShowOnboarding() {
   return !(isDone(ONBOARDING_KEY) && isDone(ONBOARDING_FINISHED_GAMES_KEY) && isDone(ONBOARDING_PREVIEW_KEY));
-}
-
-function maybeStartPostseasonOnboarding(onFinish) {
-  if (isDone(ONBOARDING_POSTSEASON_KEY)) {
-    if (onFinish) onFinish();
-    return;
-  }
-  setTimeout(() => startOnboarding(postseasonSteps, onFinish), 300);
 }
 
 function maybeStartOnboarding(onFinish) {

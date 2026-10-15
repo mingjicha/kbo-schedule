@@ -694,11 +694,7 @@ function createGameCard(game, date, isToday) {
 
   const statusSymbol = STATUS_SYMBOLS[finalStatus] || '';
 
-  if (game.badgeText) {
-    statusBadge.textContent = game.badgeText;
-  } else {
-    statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
-  }
+  statusBadge.innerHTML = buildStatusHTML(finalStatus, statusSymbol);
 
   gameInfo.appendChild(statusBadge);
 
@@ -1271,21 +1267,32 @@ function renderProvisionalRound(round, games = [], previousWinner = null) {
       // 날짜 헤더 + 정규시즌과 같은 경기 카드. 팀이 정해지지 않은 쪽은 이름만 보여준다
       const [month, day] = item.date.split('-');
       const dateStr = `${month}.${day}(${item.day})`;
+      const isTodayGame = new Date(currentYear, Number(month) - 1, Number(day)).getTime() === today;
 
+      // 오늘 경기는 정규시즌과 같이 today 배지와 카드 테두리(.schedule__day--today)로 강조한다
+      if (isTodayGame) row.classList.add('schedule__day', 'schedule__day--today');
+
+      // 날짜 옆에 "1차전" 같은 경기 이름을 같이 보여준다
+      const gameLabel = shortenGameLabel(item.label, round.name);
       const dateHeader = document.createElement('div');
       dateHeader.className = 'provisional-card__date-header';
-      dateHeader.textContent = formatDateDisplay(dateStr);
+      dateHeader.textContent = `${formatDateDisplay(dateStr)} ${gameLabel}`;
+      if (isTodayGame) {
+        const badge = document.createElement('span');
+        badge.className = 'schedule__today-badge';
+        badge.textContent = 'today';
+        dateHeader.appendChild(badge);
+      }
       row.appendChild(dateHeader);
 
       // KBO 실제 경기가 있으면 그 데이터(팀·시간·점수·승패)를, 없으면 틀의 예정 대진을 쓴다
       const real = realByDate.get(`${month}.${day}`);
-      const gameLabel = shortenGameLabel(item.label, round.name);
       let game;
       let clickable = false;
       if (real) {
         const status = getGameStatus(real);
-        game = { ...real, badgeText: status === '예정' ? gameLabel : `${gameLabel} · ${status}` };
-        clickable = status === '종료' || status === '진행중' || new Date(currentYear, Number(month) - 1, Number(day)).getTime() === today;
+        game = real;
+        clickable = status === '종료' || status === '진행중' || isTodayGame;
       } else {
         game = {
           provisional: true,
@@ -1293,8 +1300,7 @@ function renderProvisionalRound(round, games = [], previousWinner = null) {
           time: item.time,
           stadium: swapPlaceholder(item.venue),
           awayTeam: swapPlaceholder(item.away),
-          homeTeam: swapPlaceholder(item.home),
-          badgeText: gameLabel
+          homeTeam: swapPlaceholder(item.home)
         };
       }
       row.appendChild(createGameCard(game, dateStr, clickable));

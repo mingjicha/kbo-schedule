@@ -540,11 +540,16 @@
   border: 3px solid #EEF0FB;
 }
 
+/* 이동일 줄과 바로 다음 날짜 사이는 경기 카드 사이보다 좁게 */
+.provisional-item--travel {
+  margin-bottom: 4px;
+}
+
 .provisional-item--travel .provisional-marker {
   width: 8px;
   height: 8px;
   left: -24px;
-  top: 8px;
+  top: 11px;
   background: #C7CBE0;
   border: none;
 }
@@ -554,10 +559,14 @@
   word-break: keep-all;
 }
 
+/* 정규시즌 날짜 헤더(.schedule__date-header)와 같은 글자 크기·굵기·색 */
 .provisional-card__date-header {
-  font-size: 0.8125rem;
-  color: #8B95A1;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #6B7684;
+  font-weight: 800;
   padding: 0 2px 6px 2px;
 }
 
@@ -567,7 +576,7 @@
   gap: 8px;
   padding: 4px 4px;
   color: #B0B8C1;
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
 }
 
 .provisional-travel__date {
@@ -689,14 +698,14 @@
 .skeleton .skeleton__date--timeline {
   width: 96px;
   height: 14px;
-  margin: 4px 0 8.8px;
+  margin: 4px 0 11px;
   padding-bottom: 0;
 }
 
 .skeleton .skeleton__date--travel {
   width: 120px;
   height: 12px;
-  margin: 6px 0 10.8px;
+  margin: 9.5px 0 9.5px;
   padding-bottom: 0;
 }
 
