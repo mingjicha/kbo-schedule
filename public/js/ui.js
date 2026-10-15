@@ -223,6 +223,10 @@ async function goToToday() {
       await renderPostseasonTabs();
     }
     window.scrollTo({ top: 0, behavior: 'auto' });
+    // 열린 라운드에 오늘 경기(today 배지 카드)가 없으면 정규시즌과 같이 알려준다
+    if (!document.querySelector('.schedule__day--today')) {
+      showToast('오늘은 예정된 경기가 없어요', '', '😿');
+    }
     return;
   }
 
